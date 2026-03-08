@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Røvær Rutebåt</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a1628;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+
+    header p {
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 640px) {
+      .columns { grid-template-columns: 1fr; }
+    }
+
+    .direction {
+      background: #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .direction-header {
+      padding: 1rem 1.25rem;
+      font-weight: 600;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .direction-header .arrow {
+      font-size: 1.2rem;
+    }
+
+    .to-haugesund .direction-header { background: #1e3a5f; }
+    .to-rovar .direction-header { background: #1a3f2e; }
+
+    .departure-list {
+      list-style: none;
+      padding: 0.5rem 0;
+    }
+
+    .departure-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 1.25rem;
+      border-bottom: 1px solid #2d3748;
+    }
+
+    .departure-list li:last-child { border-bottom: none; }
+
+    .departure-list .time {
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      min-width: 3.5rem;
+    }
+
+    .departure-list .dest {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      text-align: right;
+    }
+
+    .departure-list li.passed {
+      opacity: 0.35;
+    }
+
+    .departure-list li.next .time {
+      color: #38bdf8;
+    }
+
+    .to-rovar .departure-list li.next .time {
+      color: #4ade80;
+    }
+
+    .loading, .error, .empty {
+      padding: 2rem 1.25rem;
+      text-align: center;
+      color: #94a3b8;
+    }
+
+    .error { color: #f87171; }
+
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      color: #475569;
+      font-size: 0.8rem;
+    }
+
+    footer a { color: #64748b; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Røvær Rutebåt</h1>
+    <p id="date-display"></p>
+  </header>
+
+  <div class="columns">
+    <div class="direction to-haugesund">
+      <div class="direction-header">
+        <span class="arrow">&#8592;</span> Røvær → Haugesund
+      </div>
+      <div id="from-rovar"></div>
+    </div>
+    <div class="direction to-rovar">
+      <div class="direction-header">
+        <span class="arrow">&#8594;</span> Haugesund → Røvær
+      </div>
+      <div id="from-haugesund"></div>
+    </div>
+  </div>
+
+  <footer>
+    Rutedata fra <a href="https://developer.entur.org" target="_blank">Entur</a> &middot; Linje 700 Kolumbus
+  </footer>
+
+  <script>
+    const ENTUR_API = "https://api.entur.io/journey-planner/v3/graphql";
+    const ROVAR_STOP = "NSR:StopPlace:25940";
+    const HAUGESUND_STOP = "NSR:StopPlace:26090";
+
+    const query = `query departures($stopId: String!, $n: Int!) {
+      stopPlace(id: $stopId) {
+        estimatedCalls(numberOfDepartures: $n, timeRange: 86400) {
+          expectedDepartureTime
+          destinationDisplay { frontText }
+          serviceJourney {
+            line { publicCode }
+          }
+        }
+      }
+    }`;
+
+    async function fetchDepartures(stopId) {
+      const res = await fetch(ENTUR_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ET-Client-Name": "polybjorn-rovar-rutebat"
+        },
+        body: JSON.stringify({
+          query,
+          variables: { stopId, n: 20 }
+        })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return json.data.stopPlace.estimatedCalls;
+    }
+
+    function filterRovarRoute(calls, direction) {
+      return calls.filter(c => {
+        const dest = c.destinationDisplay.frontText.toLowerCase();
+        if (direction === "to-haugesund") {
+          return dest.includes("haugesund");
+        }
+        return dest.includes("røvær");
+      });
+    }
+
+    function renderDepartures(containerId, calls) {
+      const container = document.getElementById(containerId);
+      if (!calls.length) {
+        container.innerHTML = '<div class="empty">Ingen avganger i dag</div>';
+        return;
+      }
+
+      const now = new Date();
+      let nextFound = false;
+
+      const items = calls.map(c => {
+        const dt = new Date(c.expectedDepartureTime);
+        const time = dt.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+        const dest = c.destinationDisplay.frontText;
+        const passed = dt < now;
+        let cls = passed ? "passed" : "";
+        if (!passed && !nextFound) {
+          cls = "next";
+          nextFound = true;
+        }
+        return `<li class="${cls}">
+          <span class="time">${time}</span>
+          <span class="dest">${dest}</span>
+        </li>`;
+      }).join("");
+
+      container.innerHTML = `<ul class="departure-list">${items}</ul>`;
+    }
+
+    function setDateDisplay() {
+      const now = new Date();
+      const opts = { weekday: "long", day: "numeric", month: "long", year: "numeric" };
+      const formatted = now.toLocaleDateString("nb-NO", opts);
+      document.getElementById("date-display").textContent =
+        formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    }
+
+    async function loadAll() {
+      setDateDisplay();
+
+      const containers = ["from-rovar", "from-haugesund"];
+      containers.forEach(id => {
+        document.getElementById(id).innerHTML = '<div class="loading">Henter avganger...</div>';
+      });
+
+      try {
+        const [rovarCalls, haugesundCalls] = await Promise.all([
+          fetchDepartures(ROVAR_STOP),
+          fetchDepartures(HAUGESUND_STOP)
+        ]);
+        renderDepartures("from-rovar", filterRovarRoute(rovarCalls, "to-haugesund"));
+        renderDepartures("from-haugesund", filterRovarRoute(haugesundCalls, "to-rovar"));
+      } catch (err) {
+        containers.forEach(id => {
+          document.getElementById(id).innerHTML =
+            `<div class="error">Kunne ikke hente data: ${err.message}</div>`;
+        });
+      }
+    }
+
+    loadAll();
+    setInterval(loadAll, 60000);
+  </script>
+</body>
+</html>
