@@ -133,7 +133,7 @@ function render(containerId, calls) {
     if (infoTexts.length) {
       noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}">${infoIcon} Info</button>`;
     }
-    const detailHtml = allTexts.length ? `<div class="dep-detail" id="${noticeId}" hidden>${esc(allTexts.join(' '))}</div>` : '';
+    const detailHtml = allTexts.length ? `<div class="dep-detail" id="${noticeId}"><div class="dep-detail-inner">${esc(allTexts.join(' '))}</div></div>` : '';
 
     return `<li class="${cls}">
       <div class="dep-row">
@@ -153,9 +153,8 @@ function render(containerId, calls) {
     btn.addEventListener('click', () => {
       const detail = btn.closest('li').querySelector('.dep-detail');
       if (!detail) return;
-      const show = detail.hidden;
-      detail.hidden = !show;
-      btn.setAttribute('aria-expanded', String(show));
+      const isOpen = detail.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(isOpen));
     });
   });
 }

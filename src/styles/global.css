@@ -1,13 +1,27 @@
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/barlow-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/barlow-600.woff2') format('woff2');
+}
+
 :root {
   --color-ocean: #1a5276;
   --color-ocean-dark: #0e3650;
   --color-ocean-light: #2980b9;
   --color-sand: #f5f0e8;
   --color-sand-dark: #e8dfd2;
-  --color-driftwood: #6b5b4e;
   --color-foam: #ffffff;
   --color-kelp: #2e7d5b;
-  --color-kelp-dark: #1e5a3f;
   --color-text: #2c3e50;
   --color-text-light: #5d6d7e;
   --color-border: #d5cfc5;
@@ -26,7 +40,7 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Barlow', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--color-text);
   background: var(--color-sand);
   line-height: 1.6;

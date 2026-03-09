@@ -111,10 +111,8 @@ import Layout from '../layouts/Layout.astro';
     font-size: 1rem;
     color: #fff;
     text-align: center;
+    background: var(--color-ocean);
   }
-
-  .dep-to-haugesund .dep-header { background: var(--color-ocean); }
-  .dep-to-rovar .dep-header { background: var(--color-kelp); }
 
   .dep-direction :global(.dep-list) {
     list-style: none;
@@ -134,7 +132,21 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .dep-direction :global(.dep-detail) {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.25s ease, margin 0.25s ease, opacity 0.2s ease;
+    margin-top: 0;
+    opacity: 0;
+  }
+
+  .dep-direction :global(.dep-detail.open) {
+    grid-template-rows: 1fr;
     margin-top: 0.4rem;
+    opacity: 1;
+  }
+
+  .dep-direction :global(.dep-detail-inner) {
+    overflow: hidden;
     padding: 0.5rem 0.75rem;
     background: var(--color-sand);
     border-radius: 6px;
@@ -242,25 +254,12 @@ import Layout from '../layouts/Layout.astro';
 
   .dep-direction :global(.next) {
     background: rgba(0, 0, 0, 0.04);
-    border-left: 3px solid transparent;
+    border-left: 3px solid var(--color-ocean);
     padding-left: calc(1.25rem - 3px);
   }
 
-  .dep-to-haugesund :global(.next) {
-    border-left-color: var(--color-ocean);
-  }
-
-  .dep-to-rovar :global(.next) {
-    border-left-color: var(--color-kelp);
-  }
-
-  .dep-to-haugesund :global(.next .dep-time) {
+  .dep-direction :global(.next .dep-time) {
     color: var(--color-ocean);
-    font-weight: 700;
-  }
-
-  .dep-to-rovar :global(.next .dep-time) {
-    color: var(--color-kelp);
     font-weight: 700;
   }
 
