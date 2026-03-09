@@ -62,6 +62,33 @@ a:hover {
   text-decoration: underline;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-ocean-light);
+  outline-offset: 2px;
+}
+
+.nav :focus-visible {
+  outline-color: #fff;
+}
+
+/* Skip link */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  background: var(--color-ocean-dark);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 6px 6px;
+  z-index: 200;
+  font-size: 0.9rem;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
 /* Navigation */
 
 .nav {
@@ -241,16 +268,6 @@ img.card-img {
   object-fit: cover;
 }
 
-div.card-img {
-  height: 160px;
-  background: var(--color-sand-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-light);
-  font-size: 0.85rem;
-}
-
 .card-body {
   padding: 1rem 1.25rem;
 }
@@ -268,19 +285,6 @@ div.card-img {
   line-height: 1.5;
 }
 
-/* Image placeholder */
-
-.img-placeholder {
-  background: var(--color-sand-dark);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-light);
-  font-size: 0.85rem;
-  border: 1px dashed var(--color-border);
-}
-
 img.section-img {
   display: block;
   width: 100%;
@@ -289,15 +293,6 @@ img.section-img {
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 1rem;
-}
-
-div.section-img {
-  height: 220px;
-  margin-bottom: 1rem;
-}
-
-div.section-img::after {
-  content: attr(data-label);
 }
 
 /* Hero */

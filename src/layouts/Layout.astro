@@ -29,6 +29,7 @@ const nav = [
   <meta name="referrer" content="no-referrer">
 </head>
 <body>
+  <a href="#main" class="skip-link">Hopp til innhold</a>
   <nav class="nav">
     <div class="nav-inner">
       <a href="/" class="nav-logo">Røvær</a>
@@ -45,7 +46,9 @@ const nav = [
     </div>
   </nav>
 
-  <slot />
+  <main id="main">
+    <slot />
+  </main>
 
   <footer class="footer">
     <p><a href="mailto:rovaroyting@rovar.no">rovaroyting@rovar.no</a></p>
