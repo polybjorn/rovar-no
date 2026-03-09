@@ -18,7 +18,7 @@ Three arguments for switching:
 
 ## Pages
 
-- `/` - Homepage with hero and card grid
+- `/` - Homepage with hero, card grid, and OpenStreetMap link
 - `/opplev-oya-var/` - Activities, beaches, museum, food, accommodation
 - `/rutebaten/` - Live departure board (Entur API, auto-refresh 60s)
 - `/leirskolen/` - Camp school info and contact
@@ -32,7 +32,11 @@ Three arguments for switching:
 - Haugesund hurtigbåtkai: `NSR:StopPlace:26090`
 - Line: 700 (Kolumbus)
 - Fetches `estimatedCalls` with stop-by-stop times, duration, via-stops
-- Bestillingsrute detection: heuristic (last departure), NOT confirmed with Kolumbus
+- Also fetches `notices` and `situations` per serviceJourney (booking info, school-day-only, etc.)
+- Bestillingsrute detection: API notices/situations first, fallback soft notice on last departure per direction
+- All times use `timeZone: "Europe/Oslo"` to avoid browser timezone issues
+- Passed/next departure styling: greyed rows for passed, accent border + bold for next
+- Kolumbus backup link with dynamic date: `reise.kolumbus.no/no/search`
 
 ## Development
 

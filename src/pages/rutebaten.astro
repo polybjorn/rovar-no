@@ -36,8 +36,10 @@ import Layout from '../layouts/Layout.astro';
     </p>
 
     <p class="dep-credit">
-      Sanntidsdata fra <a href="https://developer.entur.org" target="_blank" rel="noopener">Entur</a>.
+      Sanntidsdata fra <a href="https://entur.no/" target="_blank" rel="noopener">Entur</a>.
       Oppdateres automatisk hvert minutt.
+      <span class="dep-kolumbus-sep">|</span>
+      <a id="kolumbus-link" href="https://reise.kolumbus.no/no/search?fromId=NSR:StopPlace:25940&toId=NSR:StopPlace:26090" target="_blank" rel="noopener">Se ruter på Kolumbus</a>
     </p>
   </div>
 
@@ -108,6 +110,7 @@ import Layout from '../layouts/Layout.astro';
     font-weight: 600;
     font-size: 1rem;
     color: #fff;
+    text-align: center;
   }
 
   .dep-to-haugesund .dep-header { background: var(--color-ocean); }
@@ -119,12 +122,25 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .dep-direction :global(.dep-list li) {
+    padding: 0.55rem 1.25rem;
+    border-bottom: 1px solid var(--color-sand-dark);
+  }
+
+  .dep-direction :global(.dep-row) {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.55rem 1.25rem;
-    border-bottom: 1px solid var(--color-sand-dark);
     gap: 0.75rem;
+  }
+
+  .dep-direction :global(.dep-detail) {
+    margin-top: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-sand);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--color-text);
+    line-height: 1.4;
   }
 
   .dep-direction :global(.dep-list li:last-child) {
@@ -177,9 +193,11 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .dep-direction :global(.dep-notice) {
-    cursor: help;
-    display: flex;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
+    border: none;
+    font-family: inherit;
   }
 
   .dep-direction :global(.dep-booking-notice) {
@@ -214,16 +232,36 @@ import Layout from '../layouts/Layout.astro';
     height: 0.85rem;
   }
 
-  .dep-direction :global(.passed) {
+  .dep-direction :global(.passed .dep-time),
+  .dep-direction :global(.passed .dep-arrow),
+  .dep-direction :global(.passed .dep-arr),
+  .dep-direction :global(.passed .dep-via),
+  .dep-direction :global(.passed .dep-duration) {
     opacity: 0.35;
   }
 
+  .dep-direction :global(.next) {
+    background: rgba(0, 0, 0, 0.04);
+    border-left: 3px solid transparent;
+    padding-left: calc(1.25rem - 3px);
+  }
+
+  .dep-to-haugesund :global(.next) {
+    border-left-color: var(--color-ocean);
+  }
+
+  .dep-to-rovar :global(.next) {
+    border-left-color: var(--color-kelp);
+  }
+
   .dep-to-haugesund :global(.next .dep-time) {
-    color: var(--color-ocean-light);
+    color: var(--color-ocean);
+    font-weight: 700;
   }
 
   .dep-to-rovar :global(.next .dep-time) {
     color: var(--color-kelp);
+    font-weight: 700;
   }
 
   .dep-direction :global(.dep-loading),
@@ -258,5 +296,10 @@ import Layout from '../layouts/Layout.astro';
   .dep-credit {
     font-size: 0.85rem;
     color: var(--color-text-light);
+  }
+
+  .dep-kolumbus-sep {
+    margin: 0 0.3rem;
+    opacity: 0.4;
   }
 </style>
