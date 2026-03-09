@@ -25,6 +25,8 @@ const nav = [
   <title>{title} | Røvær</title>
   <meta name="description" content={description}>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
 </head>
 <body>
   <nav class="nav">
@@ -46,19 +48,10 @@ const nav = [
   <slot />
 
   <footer class="footer">
-    <p>Røvær &middot; <a href="mailto:rovaroyting@rovar.no">rovaroyting@rovar.no</a></p>
+    <p><a href="mailto:rovaroyting@rovar.no">rovaroyting@rovar.no</a></p>
   </footer>
 
-  <script>
-    const toggle = document.querySelector('.nav-toggle');
-    const links = document.querySelector('.nav-links');
-    if (toggle && links) {
-      toggle.addEventListener('click', () => {
-        const open = links.classList.toggle('open');
-        toggle.setAttribute('aria-expanded', String(open));
-      });
-    }
-  </script>
+  <script src="../scripts/nav.js"></script>
 </body>
 </html>
 

@@ -10,6 +10,7 @@ const query = `query departures($stopId: String!, $n: Int!) {
       serviceJourney {
         line { publicCode }
         notices { text }
+        situations { summary { value } }
         estimatedCalls {
           quay { stopPlace { name } }
           expectedDepartureTime
@@ -33,17 +34,36 @@ async function fetchDepartures(stopId) {
   return json.data.stopPlace.estimatedCalls;
 }
 
+function toOsloDate(dt) {
+  return dt.toLocaleDateString("en-CA", { timeZone: "Europe/Oslo" });
+}
+
 function filterRoute(calls, direction) {
-  return calls.filter(c => {
+  const today = toOsloDate(new Date());
+  const tomorrow = toOsloDate(new Date(Date.now() + 86400000));
+  const matched = calls.filter(c => {
     const dest = c.destinationDisplay.frontText.toLowerCase();
     return direction === "to-haugesund"
       ? dest.includes("haugesund")
       : dest.includes("røvær");
   });
+  const todayCalls = matched.filter(c => toOsloDate(new Date(c.expectedDepartureTime)) === today);
+  const tomorrowMorning = matched.filter(c => {
+    const d = new Date(c.expectedDepartureTime);
+    const h = parseInt(d.toLocaleTimeString("en-US", { hour: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
+    return toOsloDate(d) === tomorrow && h < 12;
+  });
+  return [...tomorrowMorning, ...todayCalls];
 }
 
 function fmt(dt) {
-  return dt.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+  return dt.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Oslo" });
+}
+
+function esc(str) {
+  const el = document.createElement('span');
+  el.textContent = str;
+  return el.innerHTML;
 }
 
 function getRouteInfo(call) {
@@ -70,6 +90,9 @@ function render(containerId, calls) {
   }
 
   const now = new Date();
+  const nowOsloH = parseInt(now.toLocaleTimeString("en-US", { hour: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
+  const nowOsloM = parseInt(now.toLocaleTimeString("en-US", { minute: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
+  const nowMinutes = nowOsloH * 60 + nowOsloM;
   let nextFound = false;
 
   const phoneIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>';
@@ -80,47 +103,75 @@ function render(containerId, calls) {
     const time = fmt(dt);
     const { arrivalTime, duration, via } = getRouteInfo(c);
     const notices = c.serviceJourney.notices || [];
-    // TODO: Verify with Kolumbus/route owners which departures are bestillingsruter.
-    // Currently assuming last departure in each direction. Entur API does not expose this.
+    const situations = (c.serviceJourney.situations || []).map(s => s.summary?.map(v => v.value).join(' ') || '').filter(Boolean);
     const isLast = i === calls.length - 1;
-    const isBooking = isLast || notices.some(n => /bestill/i.test(n.text));
-    const passed = dt < now;
+    const allTexts = [...notices.map(n => n.text), ...situations];
+    if (isLast && !allTexts.some(t => /bestill/i.test(t))) {
+      allTexts.push('Siste avgang – dette er ofte en bestillingsrute.');
+    }
+    const isBooking = allTexts.some(t => /bestill/i.test(t));
+    const infoTexts = allTexts.filter(t => !/bestill/i.test(t));
+    const depH = parseInt(dt.toLocaleTimeString("en-US", { hour: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
+    const depM = parseInt(dt.toLocaleTimeString("en-US", { minute: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
+    const depMinutes = depH * 60 + depM;
+    const passed = depMinutes < nowMinutes;
     let cls = passed ? "passed" : "";
     if (!passed && !nextFound) {
       cls = "next";
       nextFound = true;
     }
 
-    const arrHtml = arrivalTime ? `<span class="dep-arrow">→</span><span class="dep-arr">${fmt(arrivalTime)}</span>` : '';
-    const viaHtml = via.length ? `<span class="dep-via">via ${via.join(', ')}</span>` : '';
+    const arrHtml = arrivalTime ? `<span class="dep-arrow">→</span><span class="dep-arr">${esc(fmt(arrivalTime))}</span>` : '';
+    const viaHtml = via.length ? `<span class="dep-via">via ${esc(via.join(', '))}</span>` : '';
     const durationHtml = duration ? `<span class="dep-duration">${duration} min</span>` : '';
 
     let noticeHtml = '';
+    const noticeId = `notice-${containerId}-${i}`;
     if (isBooking) {
-      noticeHtml = `<span class="dep-notice dep-booking-notice" title="Må bestilles på forhånd">${phoneIcon} Bestill</span>`;
-    } else if (notices.length) {
-      noticeHtml = `<span class="dep-notice dep-info-notice" title="${notices.map(n => n.text).join(', ')}">${infoIcon} Info</span>`;
+      noticeHtml = `<button class="dep-notice dep-booking-notice" aria-expanded="false" aria-controls="${noticeId}">${phoneIcon} Bestill</button>`;
     }
+    if (infoTexts.length) {
+      noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}">${infoIcon} Info</button>`;
+    }
+    const detailHtml = allTexts.length ? `<div class="dep-detail" id="${noticeId}" hidden>${esc(allTexts.join(' '))}</div>` : '';
 
     return `<li class="${cls}">
-      <div class="dep-route">
-        <span class="dep-time">${time}</span>${arrHtml}${viaHtml}
+      <div class="dep-row">
+        <div class="dep-route">
+          <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
+        </div>
+        <div class="dep-info">
+          ${noticeHtml}${durationHtml}
+        </div>
       </div>
-      <div class="dep-info">
-        ${noticeHtml}${durationHtml}
-      </div>
+      ${detailHtml}
     </li>`;
   }).join("");
 
   container.innerHTML = `<ul class="dep-list">${items}</ul>`;
+  container.querySelectorAll('.dep-notice').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const detail = btn.closest('li').querySelector('.dep-detail');
+      if (!detail) return;
+      const show = detail.hidden;
+      detail.hidden = !show;
+      btn.setAttribute('aria-expanded', String(show));
+    });
+  });
 }
 
 function setDate() {
   const el = document.getElementById("dep-date");
   if (!el) return;
-  const opts = { weekday: "long", day: "numeric", month: "long", year: "numeric" };
+  const opts = { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Oslo" };
   const f = new Date().toLocaleDateString("nb-NO", opts);
   el.textContent = f.charAt(0).toUpperCase() + f.slice(1);
+
+  const kolumbus = document.getElementById("kolumbus-link");
+  if (kolumbus) {
+    const date = toOsloDate(new Date());
+    kolumbus.href = `https://reise.kolumbus.no/no/search?fromId=NSR:StopPlace:25940&toId=NSR:StopPlace:26090&dateTime=${date}T05:00:00.000Z`;
+  }
 }
 
 async function loadAll() {
