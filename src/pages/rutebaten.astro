@@ -3,29 +3,36 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Rutebåten" description="Avgangstider for hurtigbåten mellom Haugesund og Røvær, linje 700.">
-  <div class="page page-wide">
+  <div class="page page-wide dep-page">
     <div class="dep-intro">
-      <div>
-        <h1 class="page-title">Rutebåten</h1>
-        <p class="page-intro">
-          Røvær har daglige forbindelser med hurtigbåt fra Haugesund.<br>
-          Turen tar omtrent 25 minutter.
-        </p>
+      <h1 class="page-title">Rutebåten</h1>
+      <p class="page-intro">
+        Røvær har daglige forbindelser med hurtigbåt fra Haugesund.<br>
+        Turen tar omtrent 25 minutter.
+      </p>
+      <div class="dep-nav">
+        <button class="dep-nav-btn" id="dep-prev" disabled aria-label="Forrige dag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
         <p class="dep-date-line" id="dep-date"></p>
-      </div>
-      <div class="dep-boat-wrap">
-        <img class="dep-boat-img" src="/images/Bilde-Fjorled-JMT-1-e1593513975750.jpg" alt="Hurtigbåten Fjordled (Kolumbus)">
+        <button class="dep-nav-btn" id="dep-next" aria-label="Neste dag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
       </div>
     </div>
 
+    <div class="dep-boat-wrap">
+      <img class="dep-boat-img" src="/images/Bilde-Fjorled-JMT-1-e1593513975750.jpg" alt="Hurtigbåten Fjordled (Kolumbus)">
+    </div>
+
     <div class="dep-columns">
-      <div class="dep-direction dep-to-haugesund">
-        <div class="dep-header">Røvær → Haugesund</div>
-        <div id="from-rovar"></div>
-      </div>
       <div class="dep-direction dep-to-rovar">
         <div class="dep-header">Haugesund → Røvær</div>
         <div id="from-haugesund"></div>
+      </div>
+      <div class="dep-direction dep-to-haugesund">
+        <div class="dep-header">Røvær → Haugesund</div>
+        <div id="from-rovar"></div>
       </div>
     </div>
 
@@ -36,9 +43,9 @@ import Layout from '../layouts/Layout.astro';
     </p>
 
     <p class="dep-credit">
-      Linje 700 (Kolumbus). Sanntidsdata fra <a href="https://entur.no/" target="_blank" rel="noopener">Entur</a>, oppdateres hvert minutt.
+      Sanntidsdata fra <a href="https://entur.no/" target="_blank" rel="noopener">Entur</a>, oppdateres hvert minutt.
       <span class="dep-kolumbus-sep">|</span>
-      <a id="kolumbus-link" href="https://reise.kolumbus.no/no/search?fromId=NSR:StopPlace:25940&toId=NSR:StopPlace:26090" target="_blank" rel="noopener">Se ruter på Kolumbus</a>
+      <a id="kolumbus-link" href="https://reise.kolumbus.no/no/search?fromId=NSR:StopPlace:25940&toId=NSR:StopPlace:26090" target="_blank" rel="noopener">Se ruter på Kolumbus</a> (linje 700)
     </p>
   </div>
 
@@ -46,23 +53,28 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <style>
-  .dep-intro {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    margin-bottom: 1rem;
+  .dep-page {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    column-gap: 2rem;
+    align-items: start;
+    padding-top: 1rem;
   }
 
-  .dep-intro > div:first-child {
-    flex: 1;
+  .dep-intro {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
   }
 
   .dep-boat-wrap {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
     width: 280px;
     height: 180px;
     border-radius: 10px;
     overflow: hidden;
-    flex-shrink: 0;
   }
 
   .dep-boat-img {
@@ -73,15 +85,65 @@ import Layout from '../layouts/Layout.astro';
     scale: 1.4;
   }
 
+  .dep-columns,
+  .dep-booking,
+  .dep-credit {
+    grid-column: 1 / -1;
+  }
+
   @media (max-width: 640px) {
-    .dep-intro {
-      flex-direction: column;
-      gap: 1rem;
+    .dep-page {
+      grid-template-columns: 1fr;
     }
+    .dep-intro { order: 1; grid-column: auto; grid-row: auto; }
+    .dep-columns { order: 2; grid-column: auto; }
     .dep-boat-wrap {
+      order: 3;
+      grid-column: auto;
+      grid-row: auto;
       width: 100%;
       height: 160px;
     }
+    .dep-booking { order: 4; }
+    .dep-credit { order: 5; }
+    .dep-nav {
+      justify-content: center;
+    }
+  }
+
+  .dep-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .dep-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-foam);
+    color: var(--color-ocean);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s, opacity 0.15s;
+  }
+
+  .dep-nav-btn:hover:not(:disabled) {
+    background: var(--color-sand);
+  }
+
+  .dep-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .dep-nav-btn svg {
+    width: 1.1rem;
+    height: 1.1rem;
   }
 
   .dep-date-line {
@@ -94,11 +156,18 @@ import Layout from '../layouts/Layout.astro';
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.25rem;
-    margin-bottom: 2rem;
+    margin-top: 1rem;
+    margin-bottom: 1.25rem;
   }
 
   @media (max-width: 640px) {
     .dep-columns { grid-template-columns: 1fr; }
+    .dep-direction :global(.dep-row) {
+      flex-wrap: wrap;
+    }
+    .dep-direction :global(.dep-info) {
+      margin-left: auto;
+    }
   }
 
   .dep-direction {
@@ -150,12 +219,16 @@ import Layout from '../layouts/Layout.astro';
 
   .dep-direction :global(.dep-detail-inner) {
     overflow: hidden;
-    padding: 0.5rem 0.75rem;
+    min-height: 0;
     background: var(--color-sand);
     border-radius: 6px;
     font-size: 0.8rem;
     color: var(--color-text);
     line-height: 1.4;
+  }
+
+  .dep-direction :global(.dep-detail.open .dep-detail-inner) {
+    padding: 0.5rem 0.75rem;
   }
 
   .dep-direction :global(.dep-list li:last-child) {
@@ -282,10 +355,12 @@ import Layout from '../layouts/Layout.astro';
   .dep-booking {
     font-size: 0.85rem;
     color: var(--color-text-light);
-    margin-bottom: 0.5rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.3rem;
+    flex-wrap: wrap;
   }
 
   .dep-booking-icon {
@@ -293,6 +368,7 @@ import Layout from '../layouts/Layout.astro';
     height: 1rem;
     color: var(--color-kelp);
     flex-shrink: 0;
+    margin-top: 0.15rem;
   }
 
   .dep-credit {
@@ -303,5 +379,30 @@ import Layout from '../layouts/Layout.astro';
   .dep-kolumbus-sep {
     margin: 0 0.3rem;
     opacity: 0.4;
+  }
+
+  @media (max-width: 640px) {
+    .dep-booking {
+      display: block;
+      line-height: 1.5;
+      text-align: center;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    .dep-booking-icon {
+      display: inline-block;
+      vertical-align: -0.15rem;
+    }
+    .dep-credit {
+      line-height: 1.5;
+      text-align: center;
+    }
+    .dep-kolumbus-sep {
+      display: none;
+    }
+    .dep-credit a:last-child::before {
+      content: "\A";
+      white-space: pre;
+    }
   }
 </style>

@@ -1,10 +1,11 @@
 const ENTUR_API = "https://api.entur.io/journey-planner/v3/graphql";
 const ROVAR_STOP = "NSR:StopPlace:25940";
 const HAUGESUND_STOP = "NSR:StopPlace:26090";
+let dayOffset = 0;
 
-const query = `query departures($stopId: String!, $n: Int!) {
+const query = `query departures($stopId: String!, $n: Int!, $startTime: DateTime!) {
   stopPlace(id: $stopId) {
-    estimatedCalls(numberOfDepartures: $n, timeRange: 86400) {
+    estimatedCalls(numberOfDepartures: $n, timeRange: 86400, startTime: $startTime) {
       expectedDepartureTime
       destinationDisplay { frontText }
       serviceJourney {
@@ -20,14 +21,26 @@ const query = `query departures($stopId: String!, $n: Int!) {
   }
 }`;
 
-async function fetchDepartures(stopId) {
+function getOsloMidnight(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  const dateStr = toOsloDate(d);
+  const utcMidnight = new Date(`${dateStr}T00:00:00Z`);
+  const osloHour = parseInt(utcMidnight.toLocaleTimeString("en-US", {
+    timeZone: "Europe/Oslo", hour: "numeric", hour12: false
+  }));
+  const pad = String(osloHour).padStart(2, "0");
+  return `${dateStr}T00:00:00+${pad}:00`;
+}
+
+async function fetchDepartures(stopId, startTime) {
   const res = await fetch(ENTUR_API, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "ET-Client-Name": "polybjorn-rovar-no"
     },
-    body: JSON.stringify({ query, variables: { stopId, n: 20 } })
+    body: JSON.stringify({ query, variables: { stopId, n: 20, startTime } })
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
@@ -39,21 +52,16 @@ function toOsloDate(dt) {
 }
 
 function filterRoute(calls, direction) {
-  const today = toOsloDate(new Date());
-  const tomorrow = toOsloDate(new Date(Date.now() + 86400000));
-  const matched = calls.filter(c => {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  const targetDate = toOsloDate(d);
+  return calls.filter(c => {
     const dest = c.destinationDisplay.frontText.toLowerCase();
-    return direction === "to-haugesund"
+    const dirMatch = direction === "to-haugesund"
       ? dest.includes("haugesund")
       : dest.includes("røvær");
+    return dirMatch && toOsloDate(new Date(c.expectedDepartureTime)) === targetDate;
   });
-  const todayCalls = matched.filter(c => toOsloDate(new Date(c.expectedDepartureTime)) === today);
-  const tomorrowMorning = matched.filter(c => {
-    const d = new Date(c.expectedDepartureTime);
-    const h = parseInt(d.toLocaleTimeString("en-US", { hour: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
-    return toOsloDate(d) === tomorrow && h < 12;
-  });
-  return [...tomorrowMorning, ...todayCalls];
 }
 
 function fmt(dt) {
@@ -114,9 +122,9 @@ function render(containerId, calls) {
     const depH = parseInt(dt.toLocaleTimeString("en-US", { hour: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
     const depM = parseInt(dt.toLocaleTimeString("en-US", { minute: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
     const depMinutes = depH * 60 + depM;
-    const passed = depMinutes < nowMinutes;
+    const passed = dayOffset === 0 && depMinutes < nowMinutes;
     let cls = passed ? "passed" : "";
-    if (!passed && !nextFound) {
+    if (dayOffset === 0 && !passed && !nextFound) {
       cls = "next";
       nextFound = true;
     }
@@ -128,10 +136,10 @@ function render(containerId, calls) {
     let noticeHtml = '';
     const noticeId = `notice-${containerId}-${i}`;
     if (isBooking) {
-      noticeHtml = `<button class="dep-notice dep-booking-notice" aria-expanded="false" aria-controls="${noticeId}">${phoneIcon} Bestill</button>`;
+      noticeHtml = `<button class="dep-notice dep-booking-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="Bestill">${phoneIcon}</button>`;
     }
     if (infoTexts.length) {
-      noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}">${infoIcon} Info</button>`;
+      noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="Info">${infoIcon}</button>`;
     }
     const detailHtml = allTexts.length ? `<div class="dep-detail" id="${noticeId}"><div class="dep-detail-inner">${esc(allTexts.join(' '))}</div></div>` : '';
 
@@ -162,13 +170,20 @@ function render(containerId, calls) {
 function setDate() {
   const el = document.getElementById("dep-date");
   if (!el) return;
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
   const opts = { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Oslo" };
-  const f = new Date().toLocaleDateString("nb-NO", opts);
+  const f = d.toLocaleDateString("nb-NO", opts);
   el.textContent = f.charAt(0).toUpperCase() + f.slice(1);
+
+  const prev = document.getElementById("dep-prev");
+  const next = document.getElementById("dep-next");
+  if (prev) prev.disabled = dayOffset <= 0;
+  if (next) next.disabled = dayOffset >= 7;
 
   const kolumbus = document.getElementById("kolumbus-link");
   if (kolumbus) {
-    const date = toOsloDate(new Date());
+    const date = toOsloDate(d);
     kolumbus.href = `https://reise.kolumbus.no/no/search?fromId=NSR:StopPlace:25940&toId=NSR:StopPlace:26090&dateTime=${date}T05:00:00.000Z`;
   }
 }
@@ -182,10 +197,11 @@ async function loadAll() {
     }
   });
 
+  const startTime = getOsloMidnight(dayOffset);
   try {
     const [rovar, haugesund] = await Promise.all([
-      fetchDepartures(ROVAR_STOP),
-      fetchDepartures(HAUGESUND_STOP)
+      fetchDepartures(ROVAR_STOP, startTime),
+      fetchDepartures(HAUGESUND_STOP, startTime)
     ]);
     render("from-rovar", filterRoute(rovar, "to-haugesund"));
     render("from-haugesund", filterRoute(haugesund, "to-rovar"));
@@ -196,6 +212,13 @@ async function loadAll() {
     });
   }
 }
+
+document.getElementById("dep-prev")?.addEventListener("click", () => {
+  if (dayOffset > 0) { dayOffset--; loadAll(); }
+});
+document.getElementById("dep-next")?.addEventListener("click", () => {
+  if (dayOffset < 7) { dayOffset++; loadAll(); }
+});
 
 loadAll();
 setInterval(loadAll, 60000);

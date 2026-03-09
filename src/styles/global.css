@@ -109,11 +109,14 @@ a:hover {
 }
 
 .nav-logo {
-  color: var(--color-foam);
-  font-weight: 700;
-  font-size: 1.15rem;
   text-decoration: none;
-  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo-img {
+  height: 1.8rem;
+  filter: invert(1);
 }
 
 .nav-logo:hover {
@@ -176,6 +179,13 @@ a:hover {
 
   .nav-links a {
     padding: 0.6rem 0.75rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .nav-links a:hover,
+  .nav-links a[aria-current="page"] {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
   }
 }
 
