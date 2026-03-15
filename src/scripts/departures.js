@@ -55,6 +55,10 @@ const query = `query departures($stopId: String!, $n: Int!, $startTime: DateTime
         line { publicCode }
         notices { text }
         situations { summary { value } }
+        passingTimes {
+          departure { time }
+          arrival { time }
+        }
         estimatedCalls {
           quay { stopPlace { name } }
           expectedDepartureTime
@@ -118,9 +122,31 @@ function esc(str) {
   return el.innerHTML;
 }
 
+function parseViaFromFrontText(frontText) {
+  const m = frontText.match(/\bvia\s+(.+)/i);
+  if (!m) return [];
+  return m[1].split(/[-,]/).map(s => s.trim()).filter(Boolean);
+}
+
+function getArrivalFromPassingTimes(call) {
+  const pt = call.serviceJourney.passingTimes;
+  if (!pt || pt.length < 2) return { arrivalTime: null, duration: null };
+  const depTime = pt[0].departure.time;
+  const arrTime = pt[pt.length - 1].arrival?.time || pt[pt.length - 1].departure.time;
+  const depDate = toOsloDate(new Date(call.expectedDepartureTime));
+  const dep = new Date(`${depDate}T${depTime}`);
+  const arr = new Date(`${depDate}T${arrTime}`);
+  const duration = Math.round((arr - dep) / 60000);
+  return { arrivalTime: arr, duration: duration > 0 ? duration : null };
+}
+
 function getRouteInfo(call) {
   const stops = call.serviceJourney.estimatedCalls;
-  if (!stops || stops.length < 2) return { arrivalTime: null, duration: null, via: [], hasBooking: false };
+  if (!stops || stops.length < 2) {
+    const via = parseViaFromFrontText(call.destinationDisplay?.frontText || '');
+    const { arrivalTime, duration } = getArrivalFromPassingTimes(call);
+    return { arrivalTime, duration, via, hasBooking: false };
+  }
 
   const first = new Date(stops[0].expectedDepartureTime);
   const last = new Date(stops[stops.length - 1].expectedDepartureTime);
@@ -172,7 +198,7 @@ function render(containerId, calls) {
     const depMinutes = depH * 60 + depM;
     const passed = dayOffset === 0 && depMinutes < nowMinutes;
     let cls = passed ? "passed" : "";
-    if (dayOffset === 0 && !passed && !nextFound) {
+    if (!passed && !nextFound) {
       cls = "next";
       nextFound = true;
     }
