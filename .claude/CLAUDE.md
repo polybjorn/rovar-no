@@ -34,7 +34,7 @@ Three arguments for switching:
 - Fetches `estimatedCalls` with stop-by-stop times, duration, via-stops
 - Also fetches `notices` and `situations` per serviceJourney (booking info, school-day-only, etc.)
 - Notice buttons: icon-only (phone for booking, info circle for situations), no text labels
-- Bestillingsrute detection: API notices/situations first, fallback soft notice on last departure per direction
+- Bestillingsrute detection: primary source is `bookingArrangements` in per-stop `estimatedCalls`, secondary is API notices/situations text, fallback soft notice on last departure per direction
 - All times use `timeZone: "Europe/Oslo"` to avoid browser timezone issues
 - Passed/next departure styling: greyed rows for passed, accent border + bold for next
 - Day navigation: arrows to browse departures day-by-day (today + up to 7 days forward), one day per view
@@ -44,7 +44,7 @@ Three arguments for switching:
 ## Known Entur data gaps
 
 - **12:40 Haugesund → Røvær**: `serviceJourney.estimatedCalls` returns empty array, so arrival time, duration, and via-stops are missing. Entur data issue, not our code
-- **Last departure booking info**: Entur does not consistently flag the last departure as a bestillingsrute. Fallback: static soft notice appended to the last departure per direction ("Siste avgang, dette er ofte en bestillingsrute"). Could be resolved if Kolumbus adds the booking info to Entur
+- **Last departure booking info**: Entur now provides `bookingArrangements` on per-stop level for most booking routes. Fallback soft notice still appended to the last departure per direction if API data is missing
 
 ## Development
 
@@ -66,17 +66,18 @@ Three arguments for switching:
 - Capture tool: `npx capture-website-cli` at 1280x800, delay 5s for API data
 - Disable dev toolbar temporarily via `devToolbar: { enabled: false }` in astro.config.mjs when taking screenshots
 
-## i18n (planned)
+## i18n
 
 - Astro built-in i18n routing, `prefixDefaultLocale: false`
 - Languages: Norwegian (default, root), English (`/en/`), German (`/de/`)
 - English URL slugs shared across all languages (no translated slugs)
 - Slug mapping: `opplev-oya-var` → `explore`, `rutebaten` → `ferry`, `leirskolen` → `camp-school`, `rovaers-historie` → `history`
-- All 5 pages translated
-- Language switcher (client-side JS)
+- All 5 pages translated for EN and DE
+- Language switcher with flag buttons (client-side JS)
 - Shared layouts/components/styles, only page content translated
-- UI strings (nav labels, departure page text) in a shared translations file
+- UI strings (nav labels, departure page text) in `src/data/translations.js`
+- Departure board strings in `src/scripts/departures.js` (STRINGS object, per-language bookingRegex)
 
 ## Status
 
-Private repo. Norwegian content only. No English/German translations yet.
+Private repo. Norwegian, English, and German content complete.

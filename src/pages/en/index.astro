@@ -1,0 +1,72 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Home" description="Røvær, the island outside Haugesund. Nature, history and coastal culture." lang="en" page="home">
+  <div class="hero" style="background-image: url('/images/rovar_forntpage.png');">
+    <div class="hero-overlay">
+      <h1>Explore our island</h1>
+      <p>A short boat ride from Haugesund lies the island where Vikings and fishermen once lived. Welcome to Røvær.</p>
+    </div>
+  </div>
+
+  <div class="page page-wide">
+    <div class="card-grid">
+      <a href="/en/explore/" class="card">
+        <img class="card-img" src="/images/Jenter_forside_frontpage-1.jpg" alt="Girls on Røvær">
+        <div class="card-body">
+          <h3>Explore the island</h3>
+          <p>Hikes, beaches, museum and food</p>
+        </div>
+      </a>
+      <a href="/en/ferry/" class="card">
+        <img class="card-img" src="/images/Bilde-Fjorled-JMT-1-e1593513975750.jpg" alt="The express boat Fjordled">
+        <div class="card-body">
+          <h3>Ferry</h3>
+          <p>Today's departures between Haugesund and Røvær</p>
+        </div>
+      </a>
+      <a href="/en/camp-school/" class="card">
+        <img class="card-img" src="/images/Hotell_Mork_frontpage.png" alt="Røvær evening mood" loading="lazy">
+        <div class="card-body">
+          <h3>Camp school</h3>
+          <p>Outdoor life and coastal culture for students</p>
+        </div>
+      </a>
+      <a href="/en/history/" class="card">
+        <img class="card-img" src="/images/Suggevagen_frontpage.jpg" alt="Coastal landscape on Røvær" loading="lazy">
+        <div class="card-body">
+          <h3>History of Røvær</h3>
+          <p>From the Stone Age to fishing community</p>
+        </div>
+      </a>
+    </div>
+
+    <p class="map-link">
+      <a href="https://www.openstreetmap.org/#map=14/59.43816/5.09139" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="map-icon" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+        View Røvær on the map
+      </a>
+    </p>
+  </div>
+</Layout>
+
+<style>
+  .map-link {
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+
+  .map-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.95rem;
+    color: var(--color-ocean);
+  }
+
+  .map-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+</style>

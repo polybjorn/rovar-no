@@ -1,3 +1,46 @@
+const STRINGS = {
+  no: {
+    loading: "Henter avganger...",
+    empty: "Ingen avganger i dag",
+    error: "Kunne ikke hente rutedata",
+    lastNotice: "Siste avgang \u2013 dette er ofte en bestillingsrute.",
+    bookingNotice: "Bestillingsrute. Bestill via billetter.kolumbus.no eller ring 482 21 780.",
+    bookLabel: "Bestill",
+    infoLabel: "Info",
+    dateLocale: "nb-NO",
+    timeLocale: "nb-NO",
+    bookingRegex: /bestill/i,
+  },
+  en: {
+    loading: "Loading departures...",
+    empty: "No departures today",
+    error: "Could not load schedule",
+    lastNotice: "Last departure \u2013 this is often a booking route.",
+    bookingNotice: "Booking required. Book at billetter.kolumbus.no or call 482 21 780.",
+    bookLabel: "Book",
+    infoLabel: "Info",
+    dateLocale: "en-GB",
+    timeLocale: "en-GB",
+    bookingRegex: /bestill|book/i,
+  },
+  de: {
+    loading: "Abfahrten werden geladen...",
+    empty: "Keine Abfahrten heute",
+    error: "Fahrplandaten konnten nicht geladen werden",
+    lastNotice: "Letzte Abfahrt \u2013 oft nur mit Reservierung.",
+    bookingNotice: "Reservierung erforderlich. Buchen Sie über billetter.kolumbus.no oder rufen Sie 482 21 780 an.",
+    bookLabel: "Buchen",
+    infoLabel: "Info",
+    dateLocale: "de-DE",
+    timeLocale: "de-DE",
+    bookingRegex: /bestill|book|reservierung|buchen/i,
+  },
+};
+
+const depPage = document.querySelector('.dep-page');
+const LANG = depPage?.dataset.lang || 'no';
+const S = STRINGS[LANG] || STRINGS.no;
+
 const ENTUR_API = "https://api.entur.io/journey-planner/v3/graphql";
 const ROVAR_STOP = "NSR:StopPlace:25940";
 const HAUGESUND_STOP = "NSR:StopPlace:26090";
@@ -15,6 +58,7 @@ const query = `query departures($stopId: String!, $n: Int!, $startTime: DateTime
         estimatedCalls {
           quay { stopPlace { name } }
           expectedDepartureTime
+          bookingArrangements { latestBookingTime bookingMethods }
         }
       }
     }
@@ -65,7 +109,7 @@ function filterRoute(calls, direction) {
 }
 
 function fmt(dt) {
-  return dt.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Oslo" });
+  return dt.toLocaleTimeString(S.timeLocale, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Oslo" });
 }
 
 function esc(str) {
@@ -76,7 +120,7 @@ function esc(str) {
 
 function getRouteInfo(call) {
   const stops = call.serviceJourney.estimatedCalls;
-  if (!stops || stops.length < 2) return { arrivalTime: null, duration: null, via: [] };
+  if (!stops || stops.length < 2) return { arrivalTime: null, duration: null, via: [], hasBooking: false };
 
   const first = new Date(stops[0].expectedDepartureTime);
   const last = new Date(stops[stops.length - 1].expectedDepartureTime);
@@ -84,8 +128,9 @@ function getRouteInfo(call) {
   const via = stops.slice(1, -1).map(s =>
     s.quay.stopPlace.name.replace(' hurtigbåtkai', '')
   );
+  const hasBooking = stops[0].bookingArrangements?.bookingMethods?.length > 0;
 
-  return { arrivalTime: last, duration, via };
+  return { arrivalTime: last, duration, via, hasBooking };
 }
 
 function render(containerId, calls) {
@@ -93,7 +138,7 @@ function render(containerId, calls) {
   if (!container) return;
 
   if (!calls.length) {
-    container.innerHTML = '<div class="dep-empty">Ingen avganger i dag</div>';
+    container.innerHTML = `<div class="dep-empty">${esc(S.empty)}</div>`;
     return;
   }
 
@@ -109,16 +154,19 @@ function render(containerId, calls) {
   const items = calls.map((c, i) => {
     const dt = new Date(c.expectedDepartureTime);
     const time = fmt(dt);
-    const { arrivalTime, duration, via } = getRouteInfo(c);
+    const { arrivalTime, duration, via, hasBooking } = getRouteInfo(c);
     const notices = c.serviceJourney.notices || [];
     const situations = (c.serviceJourney.situations || []).map(s => s.summary?.map(v => v.value).join(' ') || '').filter(Boolean);
     const isLast = i === calls.length - 1;
     const allTexts = [...notices.map(n => n.text), ...situations];
-    if (isLast && !allTexts.some(t => /bestill/i.test(t))) {
-      allTexts.push('Siste avgang – dette er ofte en bestillingsrute.');
+    if (isLast && !hasBooking && !allTexts.some(t => S.bookingRegex.test(t))) {
+      allTexts.push(S.lastNotice);
     }
-    const isBooking = allTexts.some(t => /bestill/i.test(t));
-    const infoTexts = allTexts.filter(t => !/bestill/i.test(t));
+    if (hasBooking && !allTexts.some(t => S.bookingRegex.test(t))) {
+      allTexts.push(S.bookingNotice);
+    }
+    const isBooking = hasBooking || allTexts.some(t => S.bookingRegex.test(t));
+    const infoTexts = allTexts.filter(t => !S.bookingRegex.test(t));
     const depH = parseInt(dt.toLocaleTimeString("en-US", { hour: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
     const depM = parseInt(dt.toLocaleTimeString("en-US", { minute: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
     const depMinutes = depH * 60 + depM;
@@ -129,23 +177,23 @@ function render(containerId, calls) {
       nextFound = true;
     }
 
-    const arrHtml = arrivalTime ? `<span class="dep-arrow">→</span><span class="dep-arr">${esc(fmt(arrivalTime))}</span>` : '';
+    const arrHtml = arrivalTime ? `<span class="dep-arrow">\u2192</span><span class="dep-arr">${esc(fmt(arrivalTime))}</span>` : '';
     const viaHtml = via.length ? `<span class="dep-via">via ${esc(via.join(', '))}</span>` : '';
     const durationHtml = duration ? `<span class="dep-duration">${duration} min</span>` : '';
 
     let noticeHtml = '';
     const noticeId = `notice-${containerId}-${i}`;
     if (isBooking) {
-      noticeHtml = `<button class="dep-notice dep-booking-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="Bestill">${phoneIcon}</button>`;
+      noticeHtml = `<button class="dep-notice dep-booking-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="${esc(S.bookLabel)}">${phoneIcon}</button>`;
     }
     if (infoTexts.length) {
-      noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="Info">${infoIcon}</button>`;
+      noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="${esc(S.infoLabel)}">${infoIcon}</button>`;
     }
     const detailHtml = allTexts.length ? `<div class="dep-detail" id="${noticeId}"><div class="dep-detail-inner">${esc(allTexts.join(' '))}</div></div>` : '';
 
     return `<li class="${cls}">
       <div class="dep-row">
-        <div class="dep-route">
+        <div class="dep-route" style="flex:1 1 0;min-width:0;flex-wrap:wrap">
           <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
         </div>
         <div class="dep-info">
@@ -173,7 +221,7 @@ function setDate() {
   const d = new Date();
   d.setDate(d.getDate() + dayOffset);
   const opts = { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Oslo" };
-  const f = d.toLocaleDateString("nb-NO", opts);
+  const f = d.toLocaleDateString(S.dateLocale, opts);
   el.textContent = f.charAt(0).toUpperCase() + f.slice(1);
 
   const prev = document.getElementById("dep-prev");
@@ -193,7 +241,7 @@ async function loadAll() {
   ["from-rovar", "from-haugesund"].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el.querySelector(".dep-list")) {
-      el.innerHTML = '<div class="dep-loading">Henter avganger...</div>';
+      el.innerHTML = `<div class="dep-loading">${esc(S.loading)}</div>`;
     }
   });
 
@@ -208,7 +256,7 @@ async function loadAll() {
   } catch (err) {
     ["from-rovar", "from-haugesund"].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.innerHTML = `<div class="dep-error">Kunne ikke hente rutedata</div>`;
+      if (el) el.innerHTML = `<div class="dep-error">${esc(S.error)}</div>`;
     });
   }
 }

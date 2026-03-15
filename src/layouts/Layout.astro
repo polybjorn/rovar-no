@@ -2,38 +2,50 @@
 interface Props {
   title: string;
   description?: string;
+  lang?: string;
+  page?: string;
 }
 
 import '../styles/global.css';
+import { t, routes, langFlags, langLabels } from '../data/translations.js';
 
-const { title, description = "Øya utenfor Haugesund" } = Astro.props;
+const { title, description = "Øya utenfor Haugesund", lang = "no", page = "home" } = Astro.props;
+const tr = t[lang];
 const currentPath = Astro.url.pathname;
 
 const nav = [
-  { href: "/opplev-oya-var/", label: "Opplev øya" },
-  { href: "/rutebaten/", label: "Rutebåten" },
-  { href: "/leirskolen/", label: "Leirskolen" },
-  { href: "/rovaers-historie/", label: "Historie" },
+  { href: routes.explore[lang], label: tr.navExplore },
+  { href: routes.ferry[lang], label: tr.navFerry },
+  { href: routes.campSchool[lang], label: tr.navCampSchool },
+  { href: routes.history[lang], label: tr.navHistory },
 ];
+
+const homeHref = routes.home[lang];
+const pageRoutes = routes[page];
+const langOrder = ['no', 'en', 'de'];
 ---
 
 <!DOCTYPE html>
-<html lang="no">
+<html lang={lang}>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title} | Røvær</title>
   <meta name="description" content={description}>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  {Object.entries(pageRoutes).map(([l, path]) => (
+    <link rel="alternate" hreflang={l} href={`https://rovar.no${path}`} />
+  ))}
+  <link rel="alternate" hreflang="x-default" href={`https://rovar.no${pageRoutes.no}`} />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="no-referrer">
 </head>
 <body>
-  <a href="#main" class="skip-link">Hopp til innhold</a>
+  <a href="#main" class="skip-link">{tr.skipLink}</a>
   <nav class="nav">
     <div class="nav-inner">
-      <a href="/" class="nav-logo"><img src="/images/rovar-logo.png" alt="Røvær" class="nav-logo-img"></a>
-      <button class="nav-toggle" aria-label="Meny" aria-expanded="false">&#9776;</button>
+      <a href={homeHref} class="nav-logo"><img src="/images/rovar-logo.png" alt="Røvær" class="nav-logo-img"></a>
+      <button class="nav-toggle" aria-label={tr.menuLabel} aria-expanded="false">&#9776;</button>
       <ul class="nav-links">
         {nav.map(({ href, label }) => (
           <li>
@@ -42,6 +54,17 @@ const nav = [
             </a>
           </li>
         ))}
+        <li class="lang-switcher">
+          {langOrder.map(l => l === lang ? (
+            <span class="lang-current" aria-label={langLabels[l]}>
+              <img src={langFlags[l]} alt={langLabels[l]} width="20" height="15">
+            </span>
+          ) : (
+            <a href={pageRoutes[l]} class="lang-link" aria-label={langLabels[l]}>
+              <img src={langFlags[l]} alt={langLabels[l]} width="20" height="15">
+            </a>
+          ))}
+        </li>
       </ul>
     </div>
   </nav>
@@ -57,4 +80,3 @@ const nav = [
   <script src="../scripts/nav.js"></script>
 </body>
 </html>
-

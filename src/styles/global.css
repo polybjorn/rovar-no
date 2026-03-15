@@ -156,6 +156,53 @@ a:hover {
   padding: 0.25rem;
 }
 
+/* Language switcher */
+
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  padding-left: 0.75rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.lang-switcher a.lang-link,
+.lang-switcher .lang-current {
+  display: block;
+  padding: 0.3rem;
+  border-radius: 4px;
+}
+
+.lang-switcher a.lang-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lang-current {
+  opacity: 0.5;
+}
+
+.lang-switcher img {
+  width: 20px;
+  height: 15px;
+  border-radius: 2px;
+  display: block;
+}
+
+.lang-current {
+  opacity: 1;
+}
+
+.lang-link {
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+
+.lang-link:hover {
+  opacity: 1;
+  text-decoration: none;
+}
+
 @media (max-width: 700px) {
   .nav-toggle {
     display: block;
@@ -186,6 +233,15 @@ a:hover {
   .nav-links a[aria-current="page"] {
     background: transparent;
     color: rgba(255, 255, 255, 0.8);
+  }
+
+  .lang-switcher {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
   }
 }
 

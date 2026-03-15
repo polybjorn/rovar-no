@@ -15,7 +15,7 @@ Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær i
 - [Astro](https://astro.build) (static output, zero JS by default)
 - Vanilla CSS with CSS custom properties
 - [Entur JourneyPlanner API](https://entur.no/) for live departures
-- Norwegian content only (no English/German yet)
+- Three languages: Norwegian (default), English (`/en/`), German (`/de/`)
 
 ## Development
 
