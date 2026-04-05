@@ -1,5 +1,6 @@
 node_modules/
 dist/
 .astro/
-.claude/launch.json
+CLAUDE.md
+.claude/
 .DS_Store
