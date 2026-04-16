@@ -1,6 +1,5 @@
 node_modules/
 dist/
 .astro/
-CLAUDE.md
 .claude/
 .DS_Store
