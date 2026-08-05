@@ -1,0 +1,8 @@
+# Site copy is Norwegian and German; typos only knows English.
+# Keep spellcheck for code, config, and English docs.
+[files]
+extend-exclude = [
+  "src/pages/**",
+  "src/data/**",
+  "src/scripts/departures.js",
+]
