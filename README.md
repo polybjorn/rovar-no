@@ -10,6 +10,8 @@ Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær i
 - **Leirskolen** (`/leirskolen/`) - Camp school program, practical info, contact
 - **Røværs historie** (`/rovaers-historie/`) - Archaeological finds, fishing community, the 1899 disaster
 
+All pages are available in Norwegian (root), English (`/en/`) and German (`/de/`).
+
 ## Tech
 
 - [Astro](https://astro.build) (static output, zero JS by default)
@@ -27,4 +29,10 @@ npm run build    # Static output to dist/
 
 ## Status
 
-Work in progress. Not yet deployed.
+Proposal stage. Not publicly deployed; rovar.no still runs the current site.
+
+## License
+
+The code is MIT licensed (see LICENSE). Page texts and photos belong to
+Røvær øyting and the respective photographers and are not covered by the
+MIT license.

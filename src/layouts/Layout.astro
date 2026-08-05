@@ -7,13 +7,21 @@ interface Props {
 }
 
 import '../styles/global.css';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import logoImg from '../assets/rovar-logo.png';
+import heroImg from '../assets/rovar-frontpage.png';
 import { t, routes, langFlags, langLabels } from '../data/translations.js';
 
 const { title, description = "Øya utenfor Haugesund", lang = "no", page = "home" } = Astro.props;
 const tr = t[lang];
 const currentPath = Astro.url.pathname;
+const site = (Astro.site?.href ?? 'https://rovar.no/').replace(/\/$/, '');
+const canonical = `${site}${currentPath}`;
+const pageTitle = page === 'home' ? title : `${title} | Røvær`;
+const ogLocales = { no: 'nb_NO', en: 'en_GB', de: 'de_DE' };
+// Same params as the homepage hero, so the preload and the CSS background
+// resolve to one asset.
+const ogImage = await getImage({ src: heroImg, format: 'webp', width: 1600 });
 
 const nav = [
   { href: routes.explore[lang], label: tr.navExplore },
@@ -32,13 +40,24 @@ const langOrder = ['no', 'en', 'de'];
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{title} | Røvær</title>
+  <title>{pageTitle}</title>
   <meta name="description" content={description}>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="canonical" href={canonical}>
+  <link rel="sitemap" href="/sitemap-index.xml">
+  {page === 'home' && <link rel="preload" as="image" href={ogImage.src} />}
   {Object.entries(pageRoutes).map(([l, path]) => (
-    <link rel="alternate" hreflang={l} href={`https://rovar.no${path}`} />
+    <link rel="alternate" hreflang={l} href={`${site}${path}`} />
   ))}
-  <link rel="alternate" hreflang="x-default" href={`https://rovar.no${pageRoutes.no}`} />
+  <link rel="alternate" hreflang="x-default" href={`${site}${pageRoutes.no}`} />
+  <meta property="og:site_name" content="Røvær">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content={pageTitle}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  <meta property="og:image" content={`${site}${ogImage.src}`}>
+  <meta property="og:locale" content={ogLocales[lang]}>
+  <meta name="twitter:card" content="summary_large_image">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="no-referrer">
 </head>
