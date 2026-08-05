@@ -69,16 +69,19 @@ const query = `query departures($stopId: String!, $n: Int!, $startTime: DateTime
   }
 }`;
 
-function getOsloMidnight(offset) {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  const dateStr = toOsloDate(d);
+function osloOffset(dateStr) {
   const utcMidnight = new Date(`${dateStr}T00:00:00Z`);
   const osloHour = parseInt(utcMidnight.toLocaleTimeString("en-US", {
     timeZone: "Europe/Oslo", hour: "numeric", hour12: false
   }));
-  const pad = String(osloHour).padStart(2, "0");
-  return `${dateStr}T00:00:00+${pad}:00`;
+  return `+${String(osloHour).padStart(2, "0")}:00`;
+}
+
+function getOsloMidnight(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  const dateStr = toOsloDate(d);
+  return `${dateStr}T00:00:00${osloOffset(dateStr)}`;
 }
 
 async function fetchDepartures(stopId, startTime) {
@@ -134,8 +137,11 @@ function getArrivalFromPassingTimes(call) {
   const depTime = pt[0].departure.time;
   const arrTime = pt[pt.length - 1].arrival?.time || pt[pt.length - 1].departure.time;
   const depDate = toOsloDate(new Date(call.expectedDepartureTime));
-  const dep = new Date(`${depDate}T${depTime}`);
-  const arr = new Date(`${depDate}T${arrTime}`);
+  // passingTimes are wall-clock Oslo times; anchor them to the Oslo UTC offset
+  // so they don't get parsed in the visitor's local timezone.
+  const tz = osloOffset(depDate);
+  const dep = new Date(`${depDate}T${depTime}${tz}`);
+  const arr = new Date(`${depDate}T${arrTime}${tz}`);
   const duration = Math.round((arr - dep) / 60000);
   return { arrivalTime: arr, duration: duration > 0 ? duration : null };
 }
@@ -219,7 +225,7 @@ function render(containerId, calls) {
 
     return `<li class="${cls}">
       <div class="dep-row">
-        <div class="dep-route" style="flex:1 1 0;min-width:0;flex-wrap:wrap">
+        <div class="dep-route">
           <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
         </div>
         <div class="dep-info">
@@ -230,13 +236,25 @@ function render(containerId, calls) {
     </li>`;
   }).join("");
 
+  const openIds = new Set(
+    [...container.querySelectorAll('.dep-detail.open')].map(el => el.id)
+  );
   container.innerHTML = `<ul class="dep-list">${items}</ul>`;
+  const setOpen = (detail, isOpen) => {
+    detail.classList.toggle('open', isOpen);
+    detail.closest('li').querySelectorAll('.dep-notice').forEach(b =>
+      b.setAttribute('aria-expanded', String(isOpen))
+    );
+  };
+  openIds.forEach(id => {
+    const detail = document.getElementById(id);
+    if (detail) setOpen(detail, true);
+  });
   container.querySelectorAll('.dep-notice').forEach(btn => {
     btn.addEventListener('click', () => {
       const detail = btn.closest('li').querySelector('.dep-detail');
       if (!detail) return;
-      const isOpen = detail.classList.toggle('open');
-      btn.setAttribute('aria-expanded', String(isOpen));
+      setOpen(detail, !detail.classList.contains('open'));
     });
   });
 }
@@ -295,4 +313,6 @@ document.getElementById("dep-next")?.addEventListener("click", () => {
 });
 
 loadAll();
-setInterval(loadAll, 60000);
+setInterval(() => {
+  if (!document.hidden) loadAll();
+}, 60000);

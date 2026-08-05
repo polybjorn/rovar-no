@@ -3,6 +3,7 @@
 [files]
 extend-exclude = [
   "src/pages/**",
+  "src/components/**",
   "src/data/**",
   "src/scripts/departures.js",
 ]

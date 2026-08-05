@@ -1,9 +1,17 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { Image, getImage } from 'astro:assets';
+import heroImg from '../../assets/rovar-frontpage.png';
+import jenterImg from '../../assets/Jenter_forside_frontpage-1.jpg';
+import boatImg from '../../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
+import hotellImg from '../../assets/Hotell_Mork_frontpage.png';
+import suggevagenImg from '../../assets/Suggevagen_frontpage.jpg';
+
+const heroBg = await getImage({ src: heroImg, format: 'webp', width: 1600 });
 ---
 
 <Layout title="Røvær – the island of opportunities" description="The small island community of Røvær lies a short boat trip from Haugesund." lang="en" page="home">
-  <div class="hero" style="background-image: url('/images/rovar_forntpage.png');">
+  <div class="hero" style={`background-image: url('${heroBg.src}');`}>
     <div class="hero-overlay">
       <h1>Røvær – the island of opportunities</h1>
       <p>The small island community of Røvær lies a short boat trip from Haugesund. A visit is like a journey back in time – to the island where the Vikings and the fishermen once lived.</p>
@@ -13,31 +21,31 @@ import Layout from '../../layouts/Layout.astro';
   <div class="page page-wide">
     <div class="card-grid">
       <a href="/en/explore/" class="card">
-        <img class="card-img" src="/images/Jenter_forside_frontpage-1.jpg" alt="Girls on Røvær">
+        <Image class="card-img" src={jenterImg} alt="Girls on Røvær" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="eager" />
         <div class="card-body">
-          <h3>Explore the island</h3>
+          <h2>Explore the island</h2>
           <p>Hikes, beaches, museum and food</p>
         </div>
       </a>
       <a href="/en/ferry/" class="card">
-        <img class="card-img" src="/images/Bilde-Fjorled-JMT-1-e1593513975750.jpg" alt="The express boat Fjordled">
+        <Image class="card-img" src={boatImg} alt="The express boat Fjordled" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="eager" />
         <div class="card-body">
-          <h3>Ferry</h3>
+          <h2>Ferry</h2>
           <p>Today's departures between Haugesund and Røvær</p>
         </div>
       </a>
       <a href="/en/camp-school/" class="card">
-        <img class="card-img" src="/images/Hotell_Mork_frontpage.png" alt="Røvær evening mood" loading="lazy">
+        <Image class="card-img" src={hotellImg} alt="Røvær evening mood" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="lazy" />
         <div class="card-body">
-          <h3>Camp school</h3>
-          <p>Outdoor life and coastal culture for students</p>
+          <h2>Camp school</h2>
+          <p>Outdoor life and coastal culture for pupils</p>
         </div>
       </a>
       <a href="/en/history/" class="card">
-        <img class="card-img" src="/images/Suggevagen_frontpage.jpg" alt="Coastal landscape on Røvær" loading="lazy">
+        <Image class="card-img" src={suggevagenImg} alt="Coastal landscape on Røvær" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="lazy" />
         <div class="card-body">
-          <h3>History of Røvær</h3>
-          <p>From the Stone Age to fishing community</p>
+          <h2>History of Røvær</h2>
+          <p>From the Stone Age to a fishing community</p>
         </div>
       </a>
     </div>
@@ -50,23 +58,3 @@ import Layout from '../../layouts/Layout.astro';
     </p>
   </div>
 </Layout>
-
-<style>
-  .map-link {
-    text-align: center;
-    margin-top: 1.5rem;
-  }
-
-  .map-link a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.95rem;
-    color: var(--color-ocean);
-  }
-
-  .map-icon {
-    width: 1.1rem;
-    height: 1.1rem;
-  }
-</style>

@@ -7,6 +7,8 @@ interface Props {
 }
 
 import '../styles/global.css';
+import { Image } from 'astro:assets';
+import logoImg from '../assets/rovar-logo.png';
 import { t, routes, langFlags, langLabels } from '../data/translations.js';
 
 const { title, description = "Øya utenfor Haugesund", lang = "no", page = "home" } = Astro.props;
@@ -44,9 +46,9 @@ const langOrder = ['no', 'en', 'de'];
   <a href="#main" class="skip-link">{tr.skipLink}</a>
   <nav class="nav">
     <div class="nav-inner">
-      <a href={homeHref} class="nav-logo"><img src="/images/rovar-logo.png" alt="Røvær" class="nav-logo-img"></a>
-      <button class="nav-toggle" aria-label={tr.menuLabel} aria-expanded="false">&#9776;</button>
-      <ul class="nav-links">
+      <a href={homeHref} class="nav-logo"><Image src={logoImg} alt="Røvær" height={58} class="nav-logo-img" loading="eager" /></a>
+      <button class="nav-toggle" aria-label={tr.menuLabel} aria-expanded="false" aria-controls="nav-links">&#9776;</button>
+      <ul class="nav-links" id="nav-links">
         {nav.map(({ href, label }) => (
           <li>
             <a href={href} aria-current={currentPath === href ? "page" : undefined}>
