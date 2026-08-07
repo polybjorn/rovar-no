@@ -518,12 +518,13 @@ const t = text[lang];
     color: var(--color-text);
   }
 
+  /* Own line, so a long via list can never crowd it on a narrow screen. */
   .dep-direction :global(.dep-countdown) {
+    margin: 0.15rem 0 0;
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--color-ocean);
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
   }
 
   .dep-direction :global(.dep-loading),

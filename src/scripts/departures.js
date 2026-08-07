@@ -253,16 +253,20 @@ function render(containerId, calls) {
       noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="${esc(S.infoLabel)}">${infoIcon}</button>`;
     }
     const detailHtml = allTexts.length ? `<div class="dep-detail" id="${noticeId}"><div class="dep-detail-inner">${esc(allTexts.join(' '))}</div></div>` : '';
+    const countdownHtml = isNext
+      ? `<p class="dep-countdown">${esc(fmtCountdown(depMinutes - nowMinutes))}</p>`
+      : '';
 
     return `<li class="${cls}">
       <div class="dep-row">
         <div class="dep-route">
-          <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}${isNext ? `<span class="dep-countdown">${esc(fmtCountdown(depMinutes - nowMinutes))}</span>` : ''}
+          <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
         </div>
         <div class="dep-info">
           ${noticeHtml}${durationHtml}
         </div>
       </div>
+      ${countdownHtml}
       ${detailHtml}
     </li>`;
   }).join("");
