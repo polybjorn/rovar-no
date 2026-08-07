@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { Image } from 'astro:assets';
-import sjosproytImg from '../../assets/sjosproyt_2-500x330.jpg';
+import sjosproytImg from '../../assets/sjosproyt_2.jpg';
 ---
 
 <Layout title="Geschichte von Røvær" description="Archäologische Funde, die Fischergemeinschaft und das Unglück von 1899. Die Geschichte von Røvær." lang="de" page="history">
@@ -46,7 +46,7 @@ import sjosproytImg from '../../assets/sjosproyt_2-500x330.jpg';
 
     <div class="section">
       <h2 class="section-title">Tragisches Unglück im Jahr 1899</h2>
-      <Image class="section-img" src={sjosproytImg} alt="Gischt bei Røvær" />
+      <Image class="section-img" src={sjosproytImg} widths={[672, 1344]} sizes="(max-width: 768px) 100vw, 672px" alt="Gischt bei Røvær" />
       <p>
         Der 13. Oktober 1899 veränderte das Leben auf Røvær mit einem Schlag
         und machte den Namen der Insel im ganzen Land bekannt. Von den etwa 130

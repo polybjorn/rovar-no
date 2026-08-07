@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { Image } from 'astro:assets';
-import sjosproytImg from '../assets/sjosproyt_2-500x330.jpg';
+import sjosproytImg from '../assets/sjosproyt_2.jpg';
 ---
 
 <Layout title="Røværs historie" description="Arkeologiske funn, fiskesamfunnet og ulykken i 1899. Historien om Røvær." page="history">
@@ -45,7 +45,7 @@ import sjosproytImg from '../assets/sjosproyt_2-500x330.jpg';
 
     <div class="section">
       <h2 class="section-title">Tragisk ulykke i 1899</h2>
-      <Image class="section-img" src={sjosproytImg} alt="Sjøsprøyt ved Røvær" />
+      <Image class="section-img" src={sjosproytImg} widths={[672, 1344]} sizes="(max-width: 768px) 100vw, 672px" alt="Sjøsprøyt ved Røvær" />
       <p>
         Den 13. oktober 1899 forandret med et slag livet på Røvær, og gjorde
         øyas navn kjent utover hele landet. Av øyas omlag 130 innbyggere, omkom

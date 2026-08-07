@@ -3,8 +3,11 @@ import Layout from '../../layouts/Layout.astro';
 import { Image } from 'astro:assets';
 import sykkelImg from '../../assets/Sykkel-500x334.jpg';
 import snorklingImg from '../../assets/snorkling-500x333.jpg';
-import naturImg from '../../assets/Rvr_DSC6137_liten-500x334.jpg';
-import havbrukImg from '../../assets/151117-Modul-1C-1920x1015-500x264.jpg';
+import naturImg from '../../assets/Rvr_DSC6137_liten.jpg';
+import havbrukImg from '../../assets/havbrukssenter.jpg';
+import { season } from '../../data/season.js';
+
+const s = season.en;
 ---
 
 <Layout title="Explore our island" description="Hiking, swimming, historic sites, food and accommodation on Røvær." lang="en" page="explore">
@@ -59,7 +62,7 @@ import havbrukImg from '../../assets/151117-Modul-1C-1920x1015-500x264.jpg';
 
     <div class="section">
       <h2 class="section-title">Røvær Aquaculture Centre</h2>
-      <Image class="section-img" src={havbrukImg} alt="Røvær Aquaculture Centre" loading="lazy" />
+      <Image class="section-img" src={havbrukImg} widths={[672, 1344]} sizes="(max-width: 768px) 100vw, 672px" alt="Røvær Aquaculture Centre" loading="lazy" />
       <p>
         At Røvær Havbrukssenter you can learn more about Norway as an ocean
         nation, and how we have developed into a world-leading producer of
@@ -80,8 +83,8 @@ import havbrukImg from '../../assets/151117-Modul-1C-1920x1015-500x264.jpg';
     <div class="section">
       <h2 class="section-title">RIB tour to the salmon pens</h2>
       <p>
-        Every day this summer until 16 August, a RIB boat tour takes visitors
-        out to the salmon pens. Departures at 11:30 and 14:15. Duration about
+        Every day this summer until {s.end}, a RIB boat tour takes visitors
+        out to the salmon pens. Departures at {s.ribDepartures}. Duration about
         45 minutes, including getting dressed for the trip.
       </p>
       <p>Price: 100 kr for adults and 50 kr for children.</p>
@@ -91,7 +94,7 @@ import havbrukImg from '../../assets/151117-Modul-1C-1920x1015-500x264.jpg';
         <li>Children under 18 need written permission from a guardian.</li>
       </ul>
       <p>
-        Sign up at Røvær Sjøhus (open daily 11:00 – 16:00 until 16 August), by
+        Sign up at Røvær Sjøhus (open daily {s.sjohusSummer} until {s.end}), by
         email to <a href="mailto:post@rovarhavbrukssenter.no">post@rovarhavbrukssenter.no</a>
         or by phone on 960 94 450. Payment at Røvær Sjøhus or by Vipps.
       </p>
@@ -99,7 +102,7 @@ import havbrukImg from '../../assets/151117-Modul-1C-1920x1015-500x264.jpg';
 
     <div class="section">
       <h2 class="section-title">Hiltahuset Museum</h2>
-      <Image class="section-img" src={naturImg} alt="Nature on Røvær" loading="lazy" />
+      <Image class="section-img" src={naturImg} widths={[672, 975]} sizes="(max-width: 768px) 100vw, 672px" alt="Nature on Røvær" loading="lazy" />
       <p>
         Our museum, Hiltahuset, can be opened for visitors after appointment –
         a skillful guide will fill you in on the story of our island.
@@ -107,7 +110,7 @@ import havbrukImg from '../../assets/151117-Modul-1C-1920x1015-500x264.jpg';
         shop with items handcrafted by local hands.
       </p>
       <p>
-        <a href="https://en.visithaugesund.no/things-to-do/hiltahuset-the-oldest-house-on-rovaer-p876523" target="_blank" rel="noopener">Read more about opening hours and prices here.</a>
+        <a href="https://www.fjordnorway.com/en/see-and-do/hiltahouse-rovaer" target="_blank" rel="noopener">Read more about opening hours and prices here.</a>
       </p>
     </div>
 
@@ -116,15 +119,14 @@ import havbrukImg from '../../assets/151117-Modul-1C-1920x1015-500x264.jpg';
       <div class="info-box">
         <h3>Røvær Sjøhus</h3>
         <p>
-          In summer 2026, Røvær Sjøhus is open every day 11:00 – 16:00 until
-          16 August, with tourist information and sale of coffee, soft drinks,
+          In summer {season.year}, Røvær Sjøhus is open every day {s.sjohusSummer} until
+          {s.end}, with tourist information and sale of coffee, soft drinks,
           ice cream and sweets. All lunch and dinner service is at Røvær
           Havhotell this year. Røvær Sjøhus is also known for serving the
           traditional Norwegian dish “komle”.
         </p>
         <p>
-          After 16 August it is open Saturday and Sunday 11:00 – 15:00 through
-          September.
+          After {s.end} it is open Saturday and Sunday {s.sjohusAutumn} {s.autumnEnd}.
         </p>
         <p>
           For more information, see
@@ -134,11 +136,11 @@ import havbrukImg from '../../assets/151117-Modul-1C-1920x1015-500x264.jpg';
       <div class="info-box">
         <h3>Røvær Havhotell</h3>
         <p>
-          The restaurant at Røvær Havhotell is open all summer until 16 August.
-          Sunday to Wednesday it is open 12:00 – 20:00 with food served
-          12:30 – 19:00. Thursday to Saturday it is open 12:00 – 21:00 with
-          food served 12:30 – 20:00. (After 16 August the restaurant is open
-          every Saturday and Sunday 12:00 – 16:30 through September.)
+          The restaurant at Røvær Havhotell is open all summer until {s.end}.
+          Sunday to Wednesday it is open {s.hotelSunWed} with food served
+          {s.hotelSunWedFood}. Thursday to Saturday it is open {s.hotelThuSat} with
+          food served {s.hotelThuSatFood}. (After {s.end} the restaurant is open
+          every Saturday and Sunday {s.hotelAutumn} {s.autumnEnd}.)
         </p>
         <p>
           The menu is available

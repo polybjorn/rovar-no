@@ -3,8 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import { Image } from 'astro:assets';
 import sykkelImg from '../assets/Sykkel-500x334.jpg';
 import snorklingImg from '../assets/snorkling-500x333.jpg';
-import naturImg from '../assets/Rvr_DSC6137_liten-500x334.jpg';
-import havbrukImg from '../assets/151117-Modul-1C-1920x1015-500x264.jpg';
+import naturImg from '../assets/Rvr_DSC6137_liten.jpg';
+import havbrukImg from '../assets/havbrukssenter.jpg';
+import { season } from '../data/season.js';
+
+const s = season.no;
 ---
 
 <Layout title="Opplev øya vår" description="Turer, bading, historiske steder, mat og overnatting på Røvær." page="explore">
@@ -41,7 +44,7 @@ import havbrukImg from '../assets/151117-Modul-1C-1920x1015-500x264.jpg';
 
     <div class="section">
       <h2 class="section-title">Vikingtufter i Grønasvika</h2>
-      <Image class="section-img" src={naturImg} alt="Natur på Røvær" loading="lazy" />
+      <Image class="section-img" src={naturImg} widths={[672, 975]} sizes="(max-width: 768px) 100vw, 672px" alt="Natur på Røvær" loading="lazy" />
       <p>
         I Grønasvika er det vikingtufter og noe enklere kår, men stadig et
         nydelig lite sted.
@@ -68,7 +71,7 @@ import havbrukImg from '../assets/151117-Modul-1C-1920x1015-500x264.jpg';
 
     <div class="section">
       <h2 class="section-title">Røvær Havbrukssenter</h2>
-      <Image class="section-img" src={havbrukImg} alt="Røvær Havbrukssenter" loading="lazy" />
+      <Image class="section-img" src={havbrukImg} widths={[672, 1344]} sizes="(max-width: 768px) 100vw, 672px" alt="Røvær Havbrukssenter" loading="lazy" />
       <p>
         På Røvær Havbrukssenter får du vite mer om havnasjonen Norge, og hvordan
         vi har utviklet oss til å bli en verdensledende produsent av laks.
@@ -88,7 +91,7 @@ import havbrukImg from '../assets/151117-Modul-1C-1920x1015-500x264.jpg';
       <h2 class="section-title">Visningstur til laksemerd</h2>
       <p>
         Vi arrangerer visningstur i RIB ut til laksemerdene hver dag i sommer
-        frem til 16. august. Avgang kl. 11.30 og 14.15. Varighet ca. 45 min,
+        frem til {s.end}. Avgang kl. {s.ribDepartures}. Varighet ca. 45 min,
         dette er inkludert påkledning.
       </p>
       <p>Pris: 100 kr for voksne og 50 kr for barn.</p>
@@ -98,8 +101,8 @@ import havbrukImg from '../assets/151117-Modul-1C-1920x1015-500x264.jpg';
         <li>Barn under 18 år må ha skriftlig tillatelse fra foresatte.</li>
       </ul>
       <p>
-        Påmelding på Røvær Sjøhus (åpent daglig 11.00 – 16.00 frem til
-        16. august), <a href="mailto:post@rovarhavbrukssenter.no">post@rovarhavbrukssenter.no</a>
+        Påmelding på Røvær Sjøhus (åpent daglig {s.sjohusSummer} frem til
+        {s.end}), <a href="mailto:post@rovarhavbrukssenter.no">post@rovarhavbrukssenter.no</a>
         eller på telefon 960 94 450. Betaling på Røvær Sjøhus eller på VIPPS.
       </p>
     </div>
@@ -117,7 +120,7 @@ import havbrukImg from '../assets/151117-Modul-1C-1920x1015-500x264.jpg';
         hender.
       </p>
       <p>
-        <a href="https://www.visithaugesund.no/opplevelser/hiltahuset-rovaers-eldste-hus-og-oyas-museum-p876523" target="_blank" rel="noopener">Les mer om priser og åpningstider for Hiltahuset.</a>
+        <a href="https://www.fjordnorway.com/no/se-og-gjore/hiltahuset-pa-rovaer" target="_blank" rel="noopener">Les mer om priser og åpningstider for Hiltahuset.</a>
       </p>
     </div>
 
@@ -126,13 +129,12 @@ import havbrukImg from '../assets/151117-Modul-1C-1920x1015-500x264.jpg';
       <div class="info-box">
         <h3>Røvær Sjøhus</h3>
         <p>
-          Røvær Sjøhus har sommeren 2026 åpent hver dag kl. 11.00 – 16.00 frem
-          til 16. august. Her er det turistinformasjon og salg av kaffe, brus,
+          Røvær Sjøhus har sommeren {season.year} åpent hver dag kl. {s.sjohusSummer} frem
+          til {s.end}. Her er det turistinformasjon og salg av kaffe, brus,
           is og søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
         </p>
         <p>
-          Etter 16. august er det åpent lørdag og søndag kl. 11.00 – 15.00 ut
-          september.
+          Etter {s.end} er det åpent lørdag og søndag kl. {s.sjohusAutumn} {s.autumnEnd}.
         </p>
         <p>
           For mer info, sjekk ut
@@ -143,11 +145,11 @@ import havbrukImg from '../assets/151117-Modul-1C-1920x1015-500x264.jpg';
         <h3>Røvær Havhotell</h3>
         <p>
           Restauranten på Røvær Havhotell har åpent hele sommeren frem til
-          16. august. Søndag til onsdag er det åpent kl. 12.00 – 20.00 med
-          matservering kl. 12.30 – 19.00. Torsdag til lørdag er det åpent
-          kl. 12.00 – 21.00 med matservering kl. 12.30 – 20.00. (Etter
-          16. august er det åpent i restauranten hver lørdag og søndag
-          kl. 12.00 – 16.30 ut september.)
+          {s.end}. Søndag til onsdag er det åpent kl. {s.hotelSunWed} med
+          matservering kl. {s.hotelSunWedFood}. Torsdag til lørdag er det åpent
+          kl. {s.hotelThuSat} med matservering kl. {s.hotelThuSatFood}. (Etter
+          {s.end} er det åpent i restauranten hver lørdag og søndag
+          kl. {s.hotelAutumn} {s.autumnEnd}.)
         </p>
         <p>
           Menyen finner du

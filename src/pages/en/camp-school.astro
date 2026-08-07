@@ -1,8 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { Image } from 'astro:assets';
-import elevImg from '../../assets/Rvr_DSC0084-Edit-500x325.jpg';
-import sjohusImg from '../../assets/Sjohus-500x333.jpg';
+import elevImg from '../../assets/Rvr_DSC0084-Edit.jpg';
+import sjohusImg from '../../assets/Sjohus.jpg';
 ---
 
 <Layout title="Camp school" description="Camp school on Røvær since 1986. A briny meeting with coastal culture, where sea meets sky." lang="en" page="campSchool">
@@ -19,7 +19,7 @@ import sjohusImg from '../../assets/Sjohus-500x333.jpg';
 
     <div class="section">
       <h2 class="section-title">Theory and practice in beautiful natural surroundings</h2>
-      <Image class="section-img" src={elevImg} alt="Pupils on the sea at Røvær" />
+      <Image class="section-img" src={elevImg} widths={[672, 1344]} sizes="(max-width: 768px) 100vw, 672px" alt="Pupils on the sea at Røvær" />
       <p>
         Most of the time, pupils and teachers are out under the open sky,
         surrounded by the shapes and colours, sounds and smells of nature. In
@@ -39,7 +39,7 @@ import sjohusImg from '../../assets/Sjohus-500x333.jpg';
 
     <div class="section">
       <h2 class="section-title">Practical information</h2>
-      <Image class="section-img" src={sjohusImg} alt="Sjøhuset on Røvær" />
+      <Image class="section-img" src={sjohusImg} widths={[672, 1300]} sizes="(max-width: 768px) 100vw, 672px" alt="Sjøhuset on Røvær" />
       <p>
         The camp school season lasts from the beginning of March to the end of
         October. The pupils stay in rooms for 6–8 in Sjøhuset, a renovated
