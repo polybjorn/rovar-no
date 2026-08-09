@@ -10,7 +10,7 @@ import '../styles/global.css';
 import { Image, getImage } from 'astro:assets';
 import logoImg from '../assets/rovar-logo.png';
 import heroImg from '../assets/rovar-frontpage.png';
-import { t, routes, langFlags, langLabels } from '../data/translations.js';
+import { t, routes, langLabels } from '../data/translations.js';
 
 const { title, description = "Øya utenfor Haugesund", lang = "no", page = "home" } = Astro.props;
 const tr = t[lang];
@@ -76,15 +76,26 @@ const langOrder = ['no', 'en', 'de'];
           </li>
         ))}
         <li class="lang-switcher">
-          {langOrder.map(l => l === lang ? (
-            <span class="lang-current" aria-label={langLabels[l]}>
-              <img src={langFlags[l]} alt={langLabels[l]} width="20" height="15">
-            </span>
-          ) : (
-            <a href={pageRoutes[l]} class="lang-link" aria-label={langLabels[l]}>
-              <img src={langFlags[l]} alt={langLabels[l]} width="20" height="15">
-            </a>
-          ))}
+          <details class="lang-menu">
+            <summary aria-label={tr.langLabel}>
+              <svg class="lang-globe" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <span class="lang-code">{lang.toUpperCase()}</span>
+            </summary>
+            <ul class="lang-list">
+              {langOrder.map(l => (
+                <li>
+                  {l === lang ? (
+                    <span class="lang-option" aria-current="true">{langLabels[l]}</span>
+                  ) : (
+                    <a href={pageRoutes[l]} class="lang-option" lang={l} hreflang={l}>{langLabels[l]}</a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </details>
         </li>
       </ul>
     </div>

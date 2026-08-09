@@ -6,6 +6,7 @@ export const t = {
     navHistory: "Historie",
     skipLink: "Hopp til innhold",
     menuLabel: "Meny",
+    langLabel: "Velg språk",
     footerHeading: "Kontakt",
     footerPre: "Har du lyst til å komme i kontakt med noen på Røvær? Ta kontakt med",
     footerPost: "– så skal vi hjelpe deg så godt vi kan.",
@@ -17,6 +18,7 @@ export const t = {
     navHistory: "History",
     skipLink: "Skip to content",
     menuLabel: "Menu",
+    langLabel: "Choose language",
     footerHeading: "Contact",
     footerPre: "Would you like to get in touch with someone on Røvær? Contact",
     footerPost: "– and we will help you as best we can.",
@@ -28,6 +30,7 @@ export const t = {
     navHistory: "Geschichte",
     skipLink: "Zum Inhalt springen",
     menuLabel: "Menü",
+    langLabel: "Sprache wählen",
     footerHeading: "Kontakt",
     footerPre: "Möchten Sie mit jemandem auf Røvær in Kontakt treten? Schreiben Sie an",
     footerPost: "– wir helfen Ihnen so gut wir können.",
@@ -40,12 +43,6 @@ export const routes = {
   ferry:      { no: "/rutebaten/",        en: "/en/ferry/",        de: "/de/ferry/" },
   campSchool: { no: "/leirskolen/",       en: "/en/camp-school/",  de: "/de/camp-school/" },
   history:    { no: "/rovaers-historie/", en: "/en/history/",      de: "/de/history/" },
-};
-
-export const langFlags = {
-  no: "/images/flags/no.svg",
-  en: "/images/flags/gb.svg",
-  de: "/images/flags/de.svg",
 };
 
 export const langLabels = {

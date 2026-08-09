@@ -161,35 +161,69 @@ a:hover {
 .lang-switcher {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
   margin-left: auto;
   padding-left: 0.75rem;
   border-left: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.lang-switcher a.lang-link,
-.lang-switcher .lang-current {
-  display: block;
-  padding: 0.3rem;
+.lang-menu {
+  position: relative;
+}
+
+.lang-menu summary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem;
   border-radius: 4px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.85rem;
 }
 
-.lang-switcher img {
-  width: 20px;
-  height: 15px;
-  border-radius: 2px;
-  display: block;
+.lang-menu summary::-webkit-details-marker {
+  display: none;
 }
 
-.lang-link {
-  opacity: 0.4;
-  transition: opacity 0.15s;
-}
-
-.lang-link:hover {
-  opacity: 1;
-  text-decoration: none;
+.lang-menu summary:hover,
+.lang-menu[open] summary {
   background: rgba(255, 255, 255, 0.12);
+}
+
+.lang-globe {
+  flex-shrink: 0;
+}
+
+.lang-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  min-width: 9rem;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: var(--color-ocean-dark);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.lang-option {
+  display: block;
+  padding: 0.45rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+a.lang-option:hover {
+  background: rgba(255, 255, 255, 0.12);
+  text-decoration: none;
+}
+
+span.lang-option[aria-current="true"] {
+  opacity: 0.55;
 }
 
 @media (max-width: 700px) {
@@ -231,6 +265,19 @@ a:hover {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding-top: 0.5rem;
     margin-top: 0.25rem;
+  }
+
+  .lang-menu {
+    width: 100%;
+  }
+
+  .lang-list {
+    position: static;
+    min-width: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    padding: 0 0 0 0.5rem;
   }
 }
 

@@ -13,3 +13,16 @@ if (toggle && links) {
     }
   });
 }
+
+const langMenu = document.querySelector('.lang-menu');
+if (langMenu) {
+  document.addEventListener('click', (e) => {
+    if (langMenu.open && !langMenu.contains(e.target)) langMenu.open = false;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && langMenu.open) {
+      langMenu.open = false;
+      langMenu.querySelector('summary').focus();
+    }
+  });
+}
