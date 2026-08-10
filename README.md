@@ -18,7 +18,9 @@ Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær i
 |---|---|---|---|---|---|
 | Norsk | none (root) | `██████████` 100% | 5/5 | 34/34 | source text |
 | English | `/en/` | `██████████` 100% | 5/5 | 34/34 | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `██████████` 100% | 5/5 | 34/34 | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | 5/5 ▒ | 34/34 ▒ | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+
+`█` reviewed by a speaker · `▒` machine-translated, not yet reviewed · `░` not translated
 
 Deutsch: 5 pages and the UI catalog machine-translated, awaiting review.
 <!-- i18n-status:end -->

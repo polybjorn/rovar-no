@@ -64,8 +64,15 @@ const stats = locales.map(({ code, endonym, root }) => {
     broken = true;
   }
 
-  const done = present.length + (referenceKeys.length - missingKeys.length);
+  const keysDone = referenceKeys.length - missingKeys.length;
   const total = contentKeys.length + referenceKeys.length;
+
+  // Present and reviewed are different things, and only the second one means
+  // the language is done. A scaffolded language is 100% present the day it is
+  // created: every page and string exists, none of it has been read by anyone
+  // who speaks it. Counting presence alone would report that as complete.
+  const drafted = drafts.length + (catalogDraft ? keysDone : 0);
+  const reviewed = present.length + keysDone - drafted;
 
   return {
     code,
@@ -77,9 +84,12 @@ const stats = locales.map(({ code, endonym, root }) => {
     drafts,
     catalogDraft,
     missingKeys,
-    keysDone: referenceKeys.length - missingKeys.length,
-    // Floor, so an incomplete language never rounds up to a full bar or 100%.
-    percent: Math.floor((done / total) * 100),
+    keysDone,
+    drafted,
+    reviewed,
+    total,
+    // Floor, so an unfinished language never rounds up to a full bar or 100%.
+    percent: Math.floor((reviewed / total) * 100),
     notes,
   };
 });
@@ -87,8 +97,15 @@ const stats = locales.map(({ code, endonym, root }) => {
 if (!quiet) {
   for (const s of stats) {
     const pageCount = `${s.present.length}/${contentKeys.length} pages`;
-    const keyCount = s.missingKeys.length ? `${s.missingKeys.length} UI strings missing` : 'UI complete';
-    console.log(`${s.code}  ${s.endonym.padEnd(12)} ${pageCount.padEnd(12)} ${keyCount}`);
+    const keyCount = s.missingKeys.length
+      ? `${s.missingKeys.length} UI strings missing`
+      : s.catalogDraft
+        ? 'UI translated, unreviewed'
+        : 'UI complete';
+    // "5/5 pages, UI complete" is true of a language nobody has read yet, so
+    // say which of it has actually been reviewed.
+    const state = s.reviewed === s.total ? 'reviewed' : `${s.percent}% reviewed`;
+    console.log(`${s.code}  ${s.endonym.padEnd(12)} ${pageCount.padEnd(12)} ${keyCount.padEnd(26)} ${state}`);
 
     if (s.missingPages.length) console.log(`     missing pages: ${s.missingPages.join(', ')}`);
     if (s.missingKeys.length && s.missingKeys.length <= 12)
@@ -105,10 +122,25 @@ if (!quiet) {
 }
 
 if (write || check) {
-  const bar = (percent) => {
-    const filled = Math.floor((percent / 100) * 10);
-    return '█'.repeat(filled) + '░'.repeat(10 - filled);
+  // Three states, because a language has three: reviewed, machine-translated
+  // and waiting for a human, and not there at all.
+  const cells = 10;
+  const bar = (s) => {
+    const full = Math.floor((s.reviewed / s.total) * cells);
+    const draft = Math.min(cells - full, Math.ceil((s.drafted / s.total) * cells));
+    return '█'.repeat(full) + '▒'.repeat(draft) + '░'.repeat(cells - full - draft);
   };
+
+  // The number next to the bar counts reviewed content only, so it never says
+  // 100% for a language nobody has read.
+  const progress = (s) => {
+    if (s.reviewed === s.total) return '100%';
+    if (!s.reviewed && s.drafted) return 'machine-translated';
+    return `${s.percent}% reviewed`;
+  };
+
+  // A count that includes drafts is marked, so 5/5 never reads as 5 finished.
+  const count = (done, of, isDraft) => `${done}/${of}${isDraft ? ' ▒' : ''}`;
 
   // The default language is the source text, not a translation: it gets no
   // "improve this" link, because the page copy is the original rovar.no wording.
@@ -120,8 +152,9 @@ if (write || check) {
 
   const rows = stats.map(
     (s) =>
-      `| ${s.endonym} | ${s.prefix} | \`${bar(s.percent)}\` ${s.percent}% |` +
-      ` ${s.present.length}/${contentKeys.length} | ${s.keysDone}/${referenceKeys.length} |` +
+      `| ${s.endonym} | ${s.prefix} | \`${bar(s)}\` ${progress(s)} |` +
+      ` ${count(s.present.length, contentKeys.length, s.drafts.length)} |` +
+      ` ${count(s.keysDone, referenceKeys.length, s.catalogDraft)} |` +
       ` ${contribute(s)} |`
   );
 
@@ -134,13 +167,18 @@ if (write || check) {
     return `\n${s.endonym}: ${parts.join(' and ')} machine-translated, awaiting review.`;
   });
 
+  const key = reviewing.length
+    ? '\n`█` reviewed by a speaker · `▒` machine-translated, not yet reviewed ·' +
+      ' `░` not translated\n'
+    : '';
+
   const table = [
     '| Language | Prefix | Progress | Pages | UI strings | Improve |',
     '|---|---|---|---|---|---|',
     ...rows,
   ].join('\n');
 
-  const block = `${startMarker}\n\n${table}\n${footnotes.join('')}\n${endMarker}`;
+  const block = `${startMarker}\n\n${table}\n${key}${footnotes.join('')}\n${endMarker}`;
   const readme = readFileSync(readmePath, 'utf8');
   const pattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
 
