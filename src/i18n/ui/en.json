@@ -18,7 +18,7 @@
   },
   "notFound": {
     "title": "Page not found",
-    "intro": "The page you are looking for does not exist, or it may have been moved.",
+    "intro": "It may have been moved, or the address may be misspelled.",
     "homeLink": "Go to the English front page"
   },
   "ferry": {
@@ -29,7 +29,7 @@
     "legend": "May require advance booking. Book via {{bookingSiteLink}} or call {{kolumbusPhone}}.",
     "credit": "Real-time data from {{enturLink}}, updated every minute.",
     "kolumbus": {
-      "label": "View schedules on Kolumbus",
+      "label": "View schedules at Kolumbus",
       "line": "{{kolumbusLink}} (line {{ferryLine}})"
     },
     "board": {

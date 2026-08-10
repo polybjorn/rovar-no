@@ -19,7 +19,7 @@
   },
   "notFound": {
     "title": "Seite nicht gefunden",
-    "intro": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "intro": "Vielleicht wurde sie verschoben, oder die Adresse ist falsch geschrieben.",
     "homeLink": "Zur deutschen Startseite"
   },
   "ferry": {
@@ -30,7 +30,7 @@
     "legend": "Kann Vorausbuchung erfordern. Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
     "credit": "Echtzeitdaten von {{enturLink}}, jede Minute aktualisiert.",
     "kolumbus": {
-      "label": "Fahrpläne auf Kolumbus",
+      "label": "Fahrpläne bei Kolumbus",
       "line": "{{kolumbusLink}} (Linie {{ferryLine}})"
     },
     "board": {

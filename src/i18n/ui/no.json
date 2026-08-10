@@ -18,7 +18,7 @@
   },
   "notFound": {
     "title": "Siden finnes ikke",
-    "intro": "Siden du leter etter finnes ikke, eller den kan ha blitt flyttet.",
+    "intro": "Den kan ha blitt flyttet, eller adressen kan være feilskrevet.",
     "homeLink": "Til den norske forsiden"
   },
   "ferry": {
@@ -29,7 +29,7 @@
     "legend": "Kan kreve forhåndsbestilling. Bestill via {{bookingSiteLink}} eller ring {{kolumbusPhone}}.",
     "credit": "Sanntidsdata fra {{enturLink}}, oppdateres hvert minutt.",
     "kolumbus": {
-      "label": "Se ruter på Kolumbus",
+      "label": "Se rutetider hos Kolumbus",
       "line": "{{kolumbusLink}} (linje {{ferryLine}})"
     },
     "board": {
