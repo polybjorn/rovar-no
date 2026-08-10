@@ -4,7 +4,11 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://rovar.no',
+  // Preview deployment on GitHub Pages. At launch: site back to
+  // 'https://rovar.no' and drop `base` (links go through routes/BASE_URL,
+  // so no other change is needed).
+  site: 'https://polybjorn.github.io',
+  base: '/rovar-no',
   integrations: [
     sitemap({
       filter: (page) => !page.includes('/404'),

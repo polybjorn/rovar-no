@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { routes } from '../data/translations.js';
 import { Image, getImage } from 'astro:assets';
 import heroImg from '../assets/rovar-frontpage.png';
 import jenterImg from '../assets/Jenter_forside_frontpage-1.jpg';
@@ -20,28 +21,28 @@ const heroBg = await getImage({ src: heroImg, format: 'webp', width: 1600 });
 
   <div class="page page-wide">
     <div class="card-grid">
-      <a href="/opplev-oya-var/" class="card">
+      <a href={routes.explore.no} class="card">
         <Image class="card-img" src={jenterImg} alt="Jenter på Røvær" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="eager" />
         <div class="card-body">
           <h2>Opplev øya vår</h2>
           <p>Turer, strender, museum og mat</p>
         </div>
       </a>
-      <a href="/rutebaten/" class="card">
+      <a href={routes.ferry.no} class="card">
         <Image class="card-img" src={boatImg} alt="Hurtigbåten Fjordled" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="eager" />
         <div class="card-body">
           <h2>Rutebåten</h2>
           <p>Avganger i dag mellom Haugesund og Røvær</p>
         </div>
       </a>
-      <a href="/leirskolen/" class="card">
+      <a href={routes.campSchool.no} class="card">
         <Image class="card-img" src={hotellImg} alt="Røvær kveldsstemning" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="lazy" />
         <div class="card-body">
           <h2>Leirskolen</h2>
           <p>Friluftsliv og kystkultur for skoleelever</p>
         </div>
       </a>
-      <a href="/rovaers-historie/" class="card">
+      <a href={routes.history.no} class="card">
         <Image class="card-img" src={suggevagenImg} alt="Kystlandskap på Røvær" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="lazy" />
         <div class="card-body">
           <h2>Røværs historie</h2>

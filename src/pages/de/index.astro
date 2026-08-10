@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { routes } from '../../data/translations.js';
 import { Image, getImage } from 'astro:assets';
 import heroImg from '../../assets/rovar-frontpage.png';
 import jenterImg from '../../assets/Jenter_forside_frontpage-1.jpg';
@@ -20,28 +21,28 @@ const heroBg = await getImage({ src: heroImg, format: 'webp', width: 1600 });
 
   <div class="page page-wide">
     <div class="card-grid">
-      <a href="/de/explore/" class="card">
+      <a href={routes.explore.de} class="card">
         <Image class="card-img" src={jenterImg} alt="Mädchen auf Røvær" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="eager" />
         <div class="card-body">
           <h2>Die Insel entdecken</h2>
           <p>Wanderungen, Strände, Museum und Essen</p>
         </div>
       </a>
-      <a href="/de/ferry/" class="card">
+      <a href={routes.ferry.de} class="card">
         <Image class="card-img" src={boatImg} alt="Das Schnellboot Fjordled" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="eager" />
         <div class="card-body">
           <h2>Fähre</h2>
           <p>Heutige Abfahrten zwischen Haugesund und Røvær</p>
         </div>
       </a>
-      <a href="/de/camp-school/" class="card">
+      <a href={routes.campSchool.de} class="card">
         <Image class="card-img" src={hotellImg} alt="Røvær Abendstimmung" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="lazy" />
         <div class="card-body">
           <h2>Schullandheim</h2>
           <p>Outdoor-Leben und Küstenkultur für Schüler</p>
         </div>
       </a>
-      <a href="/de/history/" class="card">
+      <a href={routes.history.de} class="card">
         <Image class="card-img" src={suggevagenImg} alt="Küstenlandschaft auf Røvær" width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" loading="lazy" />
         <div class="card-body">
           <h2>Geschichte von Røvær</h2>

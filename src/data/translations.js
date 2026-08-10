@@ -37,12 +37,15 @@ export const t = {
   },
 };
 
+// BASE_URL is "/" at rovar.no and "/rovar-no" on the GitHub Pages preview.
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 export const routes = {
-  home:       { no: "/",                  en: "/en/",              de: "/de/" },
-  explore:    { no: "/opplev-oya-var/",   en: "/en/explore/",      de: "/de/explore/" },
-  ferry:      { no: "/rutebaten/",        en: "/en/ferry/",        de: "/de/ferry/" },
-  campSchool: { no: "/leirskolen/",       en: "/en/camp-school/",  de: "/de/camp-school/" },
-  history:    { no: "/rovaers-historie/", en: "/en/history/",      de: "/de/history/" },
+  home:       { no: `${base}/`,                  en: `${base}/en/`,              de: `${base}/de/` },
+  explore:    { no: `${base}/opplev-oya-var/`,   en: `${base}/en/explore/`,      de: `${base}/de/explore/` },
+  ferry:      { no: `${base}/rutebaten/`,        en: `${base}/en/ferry/`,        de: `${base}/de/ferry/` },
+  campSchool: { no: `${base}/leirskolen/`,       en: `${base}/en/camp-school/`,  de: `${base}/de/camp-school/` },
+  history:    { no: `${base}/rovaers-historie/`, en: `${base}/en/history/`,      de: `${base}/de/history/` },
 };
 
 export const langLabels = {

@@ -16,6 +16,10 @@ const { title, description = "Øya utenfor Haugesund", lang = "no", page = "home
 const tr = t[lang];
 const currentPath = Astro.url.pathname;
 const site = (Astro.site?.href ?? 'https://rovar.no/').replace(/\/$/, '');
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// Keep preview deployments out of search indexes; disappears automatically
+// once `site` is rovar.no again.
+const isPreview = !site.includes('rovar.no');
 const canonical = `${site}${currentPath}`;
 const pageTitle = page === 'home' ? title : `${title} | Røvær`;
 const ogLocales = { no: 'nb_NO', en: 'en_GB', de: 'de_DE' };
@@ -42,9 +46,10 @@ const langOrder = ['no', 'en', 'de'];
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{pageTitle}</title>
   <meta name="description" content={description}>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`}>
   <link rel="canonical" href={canonical}>
-  <link rel="sitemap" href="/sitemap-index.xml">
+  <link rel="sitemap" href={`${base}/sitemap-index.xml`}>
+  {isPreview && <meta name="robots" content="noindex">}
   {page === 'home' && <link rel="preload" as="image" href={ogImage.src} />}
   {Object.entries(pageRoutes).map(([l, path]) => (
     <link rel="alternate" hreflang={l} href={`${site}${path}`} />
