@@ -203,8 +203,14 @@ function render(containerId, calls) {
       noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="${esc(S.infoLabel)}">${infoIcon}</button>`;
     }
     const detailHtml = allTexts.length ? `<div class="dep-detail" id="${noticeId}"><div class="dep-detail-inner">${esc(allTexts.join(' '))}</div></div>` : '';
+    // Only the next departure carries a countdown, in the row's right-hand
+    // column so a long via list can never stretch the line.
+    // Urgency is colour on top of the wording, never colour alone: the text
+    // says the same thing for anyone who cannot see the difference.
+    const mins = depMinutes - nowMinutes;
+    const urgency = mins <= 10 ? ' is-imminent' : mins <= 30 ? ' is-soon' : '';
     const countdownHtml = isNext
-      ? `<p class="dep-countdown">${esc(fmtCountdown(depMinutes - nowMinutes))}</p>`
+      ? `<p class="dep-countdown${urgency}">${esc(fmtCountdown(mins))}</p>`
       : '';
 
     return `<li class="${cls}">
@@ -213,10 +219,9 @@ function render(containerId, calls) {
           <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
         </div>
         <div class="dep-info">
-          ${noticeHtml}${durationHtml}
+          ${noticeHtml}${durationHtml}${countdownHtml}
         </div>
       </div>
-      ${countdownHtml}
       ${detailHtml}
     </li>`;
   }).join("");

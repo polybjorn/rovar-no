@@ -22,6 +22,8 @@
   --color-sand-dark: #e8dfd2;
   --color-foam: #ffffff;
   --color-kelp: #2e7d5b;
+  --color-warn: #9a5000;
+  --color-urgent: #b3261e;
   --color-text: #1f2d3a;
   --color-text-light: #4a5a68;
   /* Every bit of text on the dark blue surfaces uses this one white. */

@@ -423,22 +423,43 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   }
 
   .dep-direction :global(.dep-via) {
-    font-size: 0.75rem;
-    color: var(--color-text-light);
+    font-size: 0.85rem;
+    color: var(--color-text);
   }
 
   .dep-direction :global(.dep-info) {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 0.5rem;
     flex-shrink: 0;
   }
 
-  .dep-direction :global(.dep-duration) {
-    font-size: 0.8rem;
-    color: var(--color-text-light);
+  /* Own line under the duration, so the row never grows sideways with it. */
+  .dep-direction :global(.dep-countdown) {
+    flex-basis: 100%;
+    margin: -0.15rem 0 0;
+    text-align: right;
+    font-weight: 600;
+  }
+
+  .dep-direction :global(.dep-duration),
+  .dep-direction :global(.dep-countdown) {
+    font-size: 0.9rem;
+    color: var(--color-text);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+  }
+
+  /* Half an hour out, then ten minutes out - the point where you have to
+     leave for the quay. The wording carries the same information. */
+  .dep-direction :global(.dep-countdown.is-soon) {
+    color: var(--color-warn);
+  }
+
+  .dep-direction :global(.dep-countdown.is-imminent) {
+    color: var(--color-urgent);
   }
 
   .dep-direction :global(.dep-notice) {
@@ -486,7 +507,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   .dep-direction :global(.passed .dep-arr),
   .dep-direction :global(.passed .dep-via),
   .dep-direction :global(.passed .dep-duration) {
-    opacity: 0.35;
+    opacity: 0.5;
   }
 
   .dep-direction :global(.next) {
@@ -503,15 +524,6 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
 
   .dep-direction :global(.next .dep-arr) {
     color: var(--color-text);
-  }
-
-  /* Own line, so a long via list can never crowd it on a narrow screen. */
-  .dep-direction :global(.dep-countdown) {
-    margin: 0.15rem 0 0;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--color-ocean);
-    font-variant-numeric: tabular-nums;
   }
 
   .dep-direction :global(.dep-loading),
