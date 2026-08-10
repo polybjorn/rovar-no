@@ -12,11 +12,15 @@ Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær i
 
 ## Languages
 
-| Language | Prefix | Pages | UI strings |
-|---|---|---|---|
-| Norsk | none (root) | 5/5 | complete |
-| English | `/en/` | 5/5 | complete |
-| Deutsch | `/de/` | 5/5 | complete |
+<!-- i18n-status:start -->
+
+| Language | Prefix | Progress | Pages | UI strings |
+|---|---|---|---|---|
+| Norsk | none (root) | `██████████` 100% | 5/5 | 38/38 |
+| English | `/en/` | `██████████` 100% | 5/5 | 38/38 |
+| Deutsch | `/de/` | `██████████` 100% | 5/5 | 38/38 |
+
+<!-- i18n-status:end -->
 
 Adding a language is one entry in `src/i18n/locales.js`, one UI catalog
 (`src/i18n/ui/<code>.json`) and one content folder
@@ -26,6 +30,7 @@ Untranslated pages are simply not built for that language and drop out of the
 switcher; missing UI strings fall back per key.
 
 - `npm run i18n:check` - per language: missing pages, missing strings, pages awaiting review
+- `npm run i18n:check -- --write` - same, and regenerates the table above
 - `npm run i18n:new -- <code>` - scaffold a new language
 
 ## Tech

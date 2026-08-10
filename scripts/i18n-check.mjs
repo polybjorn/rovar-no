@@ -1,14 +1,20 @@
-// npm run i18n:check
+// npm run i18n:check          report to the terminal
+// npm run i18n:check -- --write  also rewrite the table in README.md
 // Reports, per language: which pages are missing, which UI strings are missing,
 // and which pages are still machine-translated drafts. At 15 languages some
 // will always lag; this is what says how far behind they are.
 
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { locales, defaultLocale } from '../src/i18n/locales.js';
 import { pages } from '../src/i18n/pages.js';
 
 const contentDir = 'src/content/pages';
 const uiDir = 'src/i18n/ui';
+const readmePath = 'README.md';
+const startMarker = '<!-- i18n-status:start -->';
+const endMarker = '<!-- i18n-status:end -->';
+
+const write = process.argv.includes('--write');
 
 const contentKeys = pages.map((p) => p.key);
 
@@ -24,7 +30,7 @@ const referenceKeys = flatten(readJson(`${uiDir}/${defaultLocale}.json`));
 
 let broken = false;
 
-for (const { code, endonym } of locales) {
+const stats = locales.map(({ code, endonym, root }) => {
   const notes = [];
 
   const dir = `${contentDir}/${code}`;
@@ -47,20 +53,77 @@ for (const { code, endonym } of locales) {
     broken = true;
   }
 
-  const pageCount = `${present.length}/${contentKeys.length} pages`;
-  const keyCount = missingKeys.length ? `${missingKeys.length} UI strings missing` : 'UI complete';
-  console.log(`${code}  ${endonym.padEnd(12)} ${pageCount.padEnd(12)} ${keyCount}`);
+  const done = present.length + (referenceKeys.length - missingKeys.length);
+  const total = contentKeys.length + referenceKeys.length;
 
-  if (missingPages.length) console.log(`     missing pages: ${missingPages.join(', ')}`);
-  if (missingKeys.length && missingKeys.length <= 12)
-    console.log(`     missing strings: ${missingKeys.join(', ')}`);
-  if (drafts.length) console.log(`     awaiting review: ${drafts.join(', ')}`);
-  for (const note of notes) console.log(`     ${note}`);
+  return {
+    code,
+    endonym,
+    prefix: root ? 'none (root)' : `\`/${code}/\``,
+    present,
+    missingPages,
+    drafts,
+    missingKeys,
+    keysDone: referenceKeys.length - missingKeys.length,
+    // Floor, so an incomplete language never rounds up to a full bar or 100%.
+    percent: Math.floor((done / total) * 100),
+    notes,
+  };
+});
+
+for (const s of stats) {
+  const pageCount = `${s.present.length}/${contentKeys.length} pages`;
+  const keyCount = s.missingKeys.length ? `${s.missingKeys.length} UI strings missing` : 'UI complete';
+  console.log(`${s.code}  ${s.endonym.padEnd(12)} ${pageCount.padEnd(12)} ${keyCount}`);
+
+  if (s.missingPages.length) console.log(`     missing pages: ${s.missingPages.join(', ')}`);
+  if (s.missingKeys.length && s.missingKeys.length <= 12)
+    console.log(`     missing strings: ${s.missingKeys.join(', ')}`);
+  if (s.drafts.length) console.log(`     awaiting review: ${s.drafts.join(', ')}`);
+  for (const note of s.notes) console.log(`     ${note}`);
 }
 
 console.log(
   '\nMissing pages and strings fall back to the chain in src/i18n/locales.js;' +
     ' untranslated pages are left out of the language switcher.'
 );
+
+if (write) {
+  const bar = (percent) => {
+    const filled = Math.floor((percent / 100) * 10);
+    return '█'.repeat(filled) + '░'.repeat(10 - filled);
+  };
+
+  const rows = stats.map(
+    (s) =>
+      `| ${s.endonym} | ${s.prefix} | \`${bar(s.percent)}\` ${s.percent}% |` +
+      ` ${s.present.length}/${contentKeys.length} | ${s.keysDone}/${referenceKeys.length} |`
+  );
+
+  const reviewing = stats.filter((s) => s.drafts.length);
+  const footnotes = reviewing.map(
+    (s) =>
+      `\n${s.endonym}: ${s.drafts.length} machine-translated ` +
+      `${s.drafts.length === 1 ? 'page' : 'pages'} awaiting review.`
+  );
+
+  const table = [
+    '| Language | Prefix | Progress | Pages | UI strings |',
+    '|---|---|---|---|---|',
+    ...rows,
+  ].join('\n');
+
+  const block = `${startMarker}\n\n${table}\n${footnotes.join('')}\n${endMarker}`;
+  const readme = readFileSync(readmePath, 'utf8');
+  const pattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
+
+  if (!pattern.test(readme)) {
+    console.error(`\n${readmePath} has no ${startMarker} / ${endMarker} block`);
+    process.exit(1);
+  }
+
+  writeFileSync(readmePath, readme.replace(pattern, block));
+  console.log(`\nWrote the status table to ${readmePath}`);
+}
 
 process.exit(broken ? 1 : 0);
