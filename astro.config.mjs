@@ -49,4 +49,10 @@ export default defineConfig({
   // while the build still reported success. Keep the pre-7 behaviour rather
   // than hand-placing {" "} at every affected boundary.
   compressHTML: true,
+  vite: {
+    // Astro inlines small hoisted scripts into the HTML, which the CSP in
+    // Layout.astro (script-src 'self') then blocks. Keep every script an
+    // external file.
+    build: { assetsInlineLimit: 0 },
+  },
 });
