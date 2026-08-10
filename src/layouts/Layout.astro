@@ -73,7 +73,7 @@ const pageLocales = localesWithPage(page);
   <a href="#main" class="skip-link">{t.chrome.skipLink}</a>
   <nav class="nav">
     <div class="nav-inner">
-      <a href={homeHref} class="nav-logo"><Image src={logoImg} alt="Røvær" height={58} layout="none" class="nav-logo-img" loading="eager" /></a>
+      <a href={homeHref} class="nav-logo"><Image src={logoImg} alt={t.chrome.homeLabel} height={58} layout="none" class="nav-logo-img" loading="eager" /></a>
       <button class="nav-toggle" aria-label={t.chrome.menuLabel} aria-expanded="false" aria-controls="nav-links"><span class="nav-toggle-bars" aria-hidden="true"></span></button>
       <ul class="nav-links" id="nav-links">
         {nav.map(({ href, label, lang: linkLang }) => (

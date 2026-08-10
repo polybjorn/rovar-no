@@ -6,6 +6,7 @@
     "history": "Historie"
   },
   "chrome": {
+    "homeLabel": "Røvær, til forsiden",
     "skipLink": "Hopp til innhold",
     "menuLabel": "Meny",
     "langLabel": "Velg språk",
@@ -25,17 +26,17 @@
     "nextDay": "Neste dag",
     "pickDate": "Velg dato",
     "boatAlt": "Hurtigbåten Fjordled (Kolumbus)",
-    "legend": "= Kan kreve forhåndsbestilling. Bestill via {{bookingSiteLink}} eller ring {{kolumbusPhone}}.",
+    "legend": "Kan kreve forhåndsbestilling. Bestill via {{bookingSiteLink}} eller ring {{kolumbusPhone}}.",
     "credit": "Sanntidsdata fra {{enturLink}}, oppdateres hvert minutt.",
     "kolumbus": {
       "label": "Se ruter på Kolumbus",
-      "line": "{{kolumbusLink}} (linje 700)"
+      "line": "{{kolumbusLink}} (linje {{ferryLine}})"
     },
     "board": {
       "loading": "Henter avganger...",
       "empty": "Ingen avganger denne dagen",
       "error": "Kunne ikke hente rutedata",
-      "lastNotice": "Siste avgang – dette er ofte en bestillingsrute.",
+      "lastNotice": "Siste avgang. Dette er ofte en bestillingsrute.",
       "bookingNotice": "Bestillingsrute. Bestill via {{kolumbusBookingHost}} eller ring {{kolumbusPhone}}.",
       "now": "nå",
       "relative": "om {{time}}",

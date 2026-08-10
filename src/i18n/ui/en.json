@@ -6,6 +6,7 @@
     "history": "History"
   },
   "chrome": {
+    "homeLabel": "Røvær, to the front page",
     "skipLink": "Skip to content",
     "menuLabel": "Menu",
     "langLabel": "Choose language",
@@ -25,18 +26,18 @@
     "nextDay": "Next day",
     "pickDate": "Choose date",
     "boatAlt": "The express boat Fjordled (Kolumbus)",
-    "legend": "= May require advance booking. Book via {{bookingSiteLink}} or call {{kolumbusPhone}}.",
+    "legend": "May require advance booking. Book via {{bookingSiteLink}} or call {{kolumbusPhone}}.",
     "credit": "Real-time data from {{enturLink}}, updated every minute.",
     "kolumbus": {
       "label": "View schedules on Kolumbus",
-      "line": "{{kolumbusLink}} (line 700)"
+      "line": "{{kolumbusLink}} (line {{ferryLine}})"
     },
     "board": {
       "loading": "Loading departures...",
       "empty": "No departures this day",
       "error": "Could not load schedule",
-      "lastNotice": "Last departure – this is often a booking route.",
-      "bookingNotice": "Booking required. Book at {{kolumbusBookingHost}} or call {{kolumbusPhone}}.",
+      "lastNotice": "Last departure. This one often has to be booked in advance.",
+      "bookingNotice": "Advance booking required. Book via {{kolumbusBookingHost}} or call {{kolumbusPhone}}.",
       "now": "now",
       "relative": "in {{time}}",
       "hourUnit": "h",

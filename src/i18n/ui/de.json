@@ -7,6 +7,7 @@
     "history": "Geschichte"
   },
   "chrome": {
+    "homeLabel": "Røvær, zur Startseite",
     "skipLink": "Zum Inhalt springen",
     "menuLabel": "Menü",
     "langLabel": "Sprache wählen",
@@ -26,18 +27,18 @@
     "nextDay": "Nächster Tag",
     "pickDate": "Datum wählen",
     "boatAlt": "Das Schnellboot Fjordled (Kolumbus)",
-    "legend": "= Kann Vorausbuchung erfordern. Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
+    "legend": "Kann Vorausbuchung erfordern. Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
     "credit": "Echtzeitdaten von {{enturLink}}, jede Minute aktualisiert.",
     "kolumbus": {
       "label": "Fahrpläne auf Kolumbus",
-      "line": "{{kolumbusLink}} (Linie 700)"
+      "line": "{{kolumbusLink}} (Linie {{ferryLine}})"
     },
     "board": {
       "loading": "Abfahrten werden geladen...",
       "empty": "Keine Abfahrten an diesem Tag",
       "error": "Fahrplandaten konnten nicht geladen werden",
-      "lastNotice": "Letzte Abfahrt – oft nur mit Reservierung.",
-      "bookingNotice": "Reservierung erforderlich. Buchen Sie über {{kolumbusBookingHost}} oder rufen Sie {{kolumbusPhone}} an.",
+      "lastNotice": "Letzte Abfahrt. Oft nur mit Vorausbuchung.",
+      "bookingNotice": "Vorausbuchung erforderlich. Buchen Sie über {{kolumbusBookingHost}} oder rufen Sie {{kolumbusPhone}} an.",
       "now": "jetzt",
       "relative": "in {{time}}",
       "hourUnit": "Std.",

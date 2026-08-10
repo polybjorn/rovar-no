@@ -36,6 +36,7 @@ export const facts = {
   campSchoolPhone: '992 52 179',
 
   // Kolumbus, for the departure board
+  ferryLine: '700',
   kolumbusPhone: '482 21 780',
   kolumbusBookingHost: 'billetter.kolumbus.no',
   kolumbusBookingUrl: 'https://billetter.kolumbus.no',

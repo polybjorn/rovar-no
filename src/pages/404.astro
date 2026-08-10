@@ -4,19 +4,24 @@ import { locales, defaultLocale } from '../i18n/locales.js';
 import { pathFor } from '../i18n/routes.js';
 import { ui } from '../i18n/ui.js';
 
+// One 404 page serves every language, since the host has no way of knowing
+// which one the visitor was after. So each language says its own piece: the
+// default language heads the page, the rest follow in full.
 const t = ui(defaultLocale).notFound;
 ---
 
 <Layout title={t.title} description={t.intro} page="home">
   <div class="page">
-    <h1 class="page-title">{t.title}</h1>
-    <p class="page-intro">{t.intro}</p>
-    <div class="section">
-      {locales.map((l) => (
-        <p lang={l.code}>
-          <a href={pathFor('home', l.code)} hreflang={l.code}>{ui(l.code).notFound.homeLink}</a>
-        </p>
-      ))}
-    </div>
+    {locales.map((l) => {
+      const n = ui(l.code).notFound;
+      const isDefault = l.code === defaultLocale;
+      return (
+        <section lang={l.code} class="section">
+          {isDefault ? <h1 class="page-title">{n.title}</h1> : <h2>{n.title}</h2>}
+          <p class="page-intro">{n.intro}</p>
+          <p><a href={pathFor('home', l.code)} hreflang={l.code}>{n.homeLink}</a></p>
+        </section>
+      );
+    })}
   </div>
 </Layout>
