@@ -12,7 +12,7 @@
     "i18n:new": "node scripts/i18n-new.mjs",
     "i18n:verify": "node scripts/i18n-check.mjs --check",
     "prebuild": "npm run i18n:verify",
-    "test": "node --test \"test/*.test.mjs\"",
+    "test": "node --test \"test/*.test.mjs\" && TZ=Pacific/Auckland node --test \"test/*.test.mjs\"",
     "pretest": "npm run i18n:verify"
   },
   "dependencies": {
