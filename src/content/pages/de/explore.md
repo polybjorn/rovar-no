@@ -1,4 +1,5 @@
 ---
+machineTranslated: true
 title: "Erkunden Sie unsere Insel"
 description: "Wandern, Baden, historische Stätten, Essen und Unterkunft auf Røvær."
 ---

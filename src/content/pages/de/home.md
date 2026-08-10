@@ -1,4 +1,5 @@
 ---
+machineTranslated: true
 title: "Røvær – Insel der Möglichkeiten"
 description: "Die kleine Inselgemeinschaft Røvær liegt eine kurze Bootsfahrt von Haugesund entfernt."
 hero:

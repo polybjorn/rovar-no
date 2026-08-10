@@ -1,4 +1,5 @@
 ---
+machineTranslated: true
 title: "Schullandheim"
 description: "Schullandheim auf Røvær seit 1986. Eine salzige Begegnung mit der Küstenkultur, wo Meer und Himmel sich treffen."
 ---

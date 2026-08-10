@@ -1,4 +1,5 @@
 ---
+machineTranslated: true
 title: "Geschichte von Røvær"
 description: "Archäologische Funde, die Fischergemeinschaft und das Unglück von 1899. Die Geschichte von Røvær."
 ---

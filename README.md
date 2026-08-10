@@ -20,6 +20,7 @@ Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær i
 | English | `/en/` | `██████████` 100% | 5/5 | 38/38 |
 | Deutsch | `/de/` | `██████████` 100% | 5/5 | 38/38 |
 
+Deutsch: 5 machine-translated pages awaiting review.
 <!-- i18n-status:end -->
 
 Adding a language is one entry in `src/i18n/locales.js`, one UI catalog
