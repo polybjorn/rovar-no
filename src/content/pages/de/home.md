@@ -9,18 +9,18 @@ cards:
   explore:
     heading: "Die Insel entdecken"
     text: "Wanderungen, Strände, Museum und Essen"
-    alt: "Mädchen auf Røvær"
+    alt: "Zwei Mädchen lachen und rennen im Gras"
   ferry:
     heading: "Fähre"
     text: "Heutige Abfahrten zwischen Haugesund und Røvær"
-    alt: "Das Schnellboot Fjordled"
+    alt: "Das Schnellboot Fjordled bei der Einfahrt"
   camp-school:
     heading: "Schullandheim"
     text: "Outdoor-Leben und Küstenkultur für Schüler"
-    alt: "Røvær Abendstimmung"
+    alt: "Hotell Mørk spiegelt sich im Meer am Kai"
   history:
     heading: "Geschichte von Røvær"
     text: "Von der Steinzeit zur Fischergemeinschaft"
-    alt: "Küstenlandschaft auf Røvær"
+    alt: "Suggevågen, unser Hafen, bei Sonnenuntergang"
 mapLink: "Røvær auf der Karte ansehen"
 ---

@@ -8,18 +8,18 @@ cards:
   explore:
     heading: "Opplev øya vår"
     text: "Turer, strender, museum og mat"
-    alt: "Jenter på Røvær"
+    alt: "To jenter ler og løper i gresset"
   ferry:
     heading: "Rutebåten"
     text: "Avganger i dag mellom Haugesund og Røvær"
-    alt: "Hurtigbåten Fjordled"
+    alt: "Hurtigbåten Fjordled på vei inn"
   camp-school:
     heading: "Leirskolen"
     text: "Friluftsliv og kystkultur for skoleelever"
-    alt: "Røvær kveldsstemning"
+    alt: "Hotell Mørk speiler seg i sjøen ved kaien"
   history:
     heading: "Røværs historie"
     text: "Fra steinalder til fiskerisamfunn"
-    alt: "Kystlandskap på Røvær"
+    alt: "Havna vår Suggevågen i solnedgang"
 mapLink: "Se Røvær på kartet"
 ---

@@ -8,18 +8,18 @@ cards:
   explore:
     heading: "Explore the island"
     text: "Hikes, beaches, museum and food"
-    alt: "Girls on Røvær"
+    alt: "Two girls laughing and running in the grass"
   ferry:
     heading: "Ferry"
     text: "Today's departures between Haugesund and Røvær"
-    alt: "The express boat Fjordled"
+    alt: "The express boat Fjordled coming in"
   camp-school:
     heading: "Camp school"
     text: "Outdoor life and coastal culture for pupils"
-    alt: "Røvær evening mood"
+    alt: "Hotell Mørk reflected in the sea by the quay"
   history:
     heading: "History of Røvær"
     text: "From the Stone Age to a fishing community"
-    alt: "Coastal landscape on Røvær"
+    alt: "Suggevågen, our harbour, at sunset"
 mapLink: "View Røvær on the map"
 ---

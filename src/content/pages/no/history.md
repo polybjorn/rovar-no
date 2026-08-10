@@ -32,7 +32,7 @@ folk slo seg til her.
 
 ## Tragisk ulykke i 1899
 
-![Sjøsprøyt ved Røvær](sjosproyt)
+![Bølger slår inn over svabergene på en grå dag](sjosproyt)
 
 Den 13. oktober 1899 forandret med et slag livet på Røvær, og gjorde
 øyas navn kjent utover hele landet. Av øyas omlag 130 innbyggere, omkom

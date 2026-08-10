@@ -11,7 +11,7 @@ møter himmel. Både i teori og praksis. Mye praksis.
 
 ## Teori og praksis i flotte naturomgivelser
 
-![Elever på sjøen ved Røvær](elever)
+![Voksen og barn ligger på flytebrygga og ser ned i sjøen gjennom vannkikkert](elever)
 
 Det aller meste av tiden oppholder elever og lærere seg under åpen
 himmel; omgitt av naturens former og farger, lyder og lukter. I sol og
@@ -28,7 +28,7 @@ omgangsformer.
 
 ## Praktisk informasjon
 
-![Sjøhuset på Røvær](sjohus)
+![Røvær Sjøhus](sjohus)
 
 Leirskolesesongen varer fra begynnelsen av mars til slutten av oktober.
 Elevene bor i 6-8-manns rom på Sjøhuset, et renovert sildesalteri fra

@@ -10,7 +10,7 @@ bright light…
 
 ## Walking and biking
 
-![Cycling on Røvær](sykkel)
+![Young people cycling on the island](sykkel)
 
 Bråvarden, the island's highest point with its 4600 centimeters above
 sea level, provides breathtaking views on a clear day, and if you get
@@ -32,7 +32,7 @@ football court close by.
 
 ## Swimming, barbecue and sand volleyball
 
-![Snorkelling at Røvær](snorkling)
+![Snorkelling is fun](snorkling)
 
 Lothastranda and Grønasvika are the two most popular places to go for a
 swim or sunbathe. In Lothastranda there is a somewhat sandy beach and a
@@ -44,7 +44,7 @@ afterwards.
 
 ## Røvær Aquaculture Centre
 
-![Røvær Aquaculture Centre](havbruk)
+![From the exhibition at Røvær Havbrukssenter](havbruk)
 
 At Røvær Havbrukssenter you can learn more about Norway as an ocean
 nation, and how we have developed into a world-leading producer of
@@ -76,7 +76,7 @@ or by phone on {{havbrukPhone}}. Payment at Røvær Sjøhus or by Vipps.
 
 ## Hiltahuset Museum
 
-![Nature on Røvær](natur)
+![A child in a red suit crouching at the water's edge on the shore](natur)
 
 Our museum, Hiltahuset, can be opened for visitors after appointment –
 a skillful guide will fill you in on the story of our island.

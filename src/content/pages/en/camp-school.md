@@ -12,7 +12,7 @@ both theory and practice. Mostly practice.
 
 ## Theory and practice in beautiful natural surroundings
 
-![Pupils on the sea at Røvær](elever)
+![An adult and a child lying on the floating dock, looking into the sea through a water scope](elever)
 
 Most of the time, pupils and teachers are out under the open sky,
 surrounded by the shapes and colours, sounds and smells of nature. In
@@ -29,7 +29,7 @@ ropework and knots, birdlife, teamwork and social skills.
 
 ## Practical information
 
-![Sjøhuset on Røvær](sjohus)
+![Røvær Sjøhus](sjohus)
 
 The camp school season lasts from the beginning of March to the end of
 October. The pupils stay in rooms for 6–8 in Sjøhuset, a renovated

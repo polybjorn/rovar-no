@@ -13,7 +13,7 @@ Theorie und Praxis. Vor allem Praxis.
 
 ## Theorie und Praxis in herrlicher Natur
 
-![Schüler auf dem Meer bei Røvær](elever)
+![Ein Erwachsener und ein Kind liegen auf dem Schwimmsteg und schauen durch ein Wasserfernrohr ins Meer](elever)
 
 Die allermeiste Zeit verbringen Schüler und Lehrer unter freiem Himmel,
 umgeben von den Formen und Farben, Klängen und Gerüchen der Natur. Bei
@@ -32,7 +32,7 @@ soziale Umgangsformen.
 
 ## Praktische Informationen
 
-![Sjøhuset auf Røvær](sjohus)
+![Røvær Sjøhus](sjohus)
 
 Die Schullandheim-Saison dauert von Anfang März bis Ende Oktober. Die
 Schüler wohnen in Zimmern für 6 bis 8 Personen im Sjøhuset, einer

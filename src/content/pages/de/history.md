@@ -34,7 +34,7 @@ Grund, warum sich neue Menschen hier niederließen.
 
 ## Tragisches Unglück im Jahr 1899
 
-![Gischt bei Røvær](sjosproyt)
+![Wellen brechen an einem grauen Tag über die Felsen](sjosproyt)
 
 Der 13. Oktober 1899 veränderte das Leben auf Røvær mit einem Schlag
 und machte den Namen der Insel im ganzen Land bekannt. Von den etwa 130

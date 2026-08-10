@@ -32,7 +32,7 @@ and the harbour excellent. That is why new people settled here.
 
 ## Tragic accident in 1899
 
-![Sea spray at Røvær](sjosproyt)
+![Waves breaking over the smooth coastal rocks on a grey day](sjosproyt)
 
 The 13th of October 1899 changed life on Røvær in an instant, and made
 the island's name known across the whole country. Of the island's
