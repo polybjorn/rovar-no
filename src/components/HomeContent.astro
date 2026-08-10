@@ -1,0 +1,46 @@
+---
+interface Props {
+  lang: string;
+  data: Record<string, any>;
+}
+
+import { Image, getImage } from 'astro:assets';
+import { asset } from '../data/media.js';
+import { homeCards, mapUrl } from '../data/home.js';
+import { resolveRoute } from '../i18n/routes.js';
+
+const { lang, data } = Astro.props;
+const heroBg = await getImage({ src: asset('hero'), format: 'webp', width: 1600 });
+---
+
+<div class="hero" style={`background-image: url('${heroBg.src}');`}>
+  <div class="hero-overlay">
+    <h1>{data.hero.heading}</h1>
+    <p>{data.hero.text}</p>
+  </div>
+</div>
+
+<div class="page page-wide">
+  <div class="card-grid">
+    {homeCards.map((card) => {
+      const text = data.cards?.[card.page];
+      if (!text) return null;
+      return (
+        <a href={resolveRoute(card.page, lang).href} class="card">
+          <Image class="card-img" src={asset(card.image)} alt={text.alt} width={800} widths={[480, 800]} sizes="(max-width: 600px) 100vw, 460px" layout="none" loading={card.loading} />
+          <div class="card-body">
+            <h2>{text.heading}</h2>
+            <p>{text.text}</p>
+          </div>
+        </a>
+      );
+    })}
+  </div>
+
+  <p class="map-link">
+    <a href={mapUrl} target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" class="map-icon" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+      {data.mapLink}
+    </a>
+  </p>
+</div>

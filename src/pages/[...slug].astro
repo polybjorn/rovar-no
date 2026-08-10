@@ -1,0 +1,51 @@
+---
+import { getEntry, render } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import DepartureBoard from '../components/DepartureBoard.astro';
+import HomeContent from '../components/HomeContent.astro';
+import TranslationNotice from '../components/TranslationNotice.astro';
+import { allRoutes } from '../i18n/routes.js';
+
+// Every page in every language comes from here. Adding a language adds routes
+// without touching this file; adding a page means one entry in
+// src/i18n/routes.js and one content file per language.
+export async function getStaticPaths() {
+  return allRoutes().map((route) => ({
+    params: { slug: route.slug || undefined },
+    props: route,
+  }));
+}
+
+const { key, locale } = Astro.props;
+
+const entry = await getEntry('pages', `${locale}/${key}`);
+const { title, description } = entry.data;
+const Content = key === 'home' ? undefined : (await render(entry)).Content;
+const notice = entry?.data.machineTranslated
+  ? `src/content/pages/${locale}/${key}.md`
+  : undefined;
+---
+
+<Layout title={title} description={description} lang={locale} page={key}>
+  {key === 'ferry' && (
+    <DepartureBoard lang={locale} title={title}>
+      {notice && <TranslationNotice lang={locale} file={notice} />}
+      <Content />
+    </DepartureBoard>
+  )}
+
+  {key === 'home' && (
+    <>
+      {notice && <div class="page page-wide"><TranslationNotice lang={locale} file={notice} /></div>}
+      <HomeContent lang={locale} data={entry.data} />
+    </>
+  )}
+
+  {Content && key !== 'ferry' && (
+    <div class="page">
+      {notice && <TranslationNotice lang={locale} file={notice} />}
+      <h1 class="page-title">{title}</h1>
+      <Content />
+    </div>
+  )}
+</Layout>

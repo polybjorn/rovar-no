@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "explore": "Explore",
+    "ferry": "Ferry",
+    "camp-school": "Camp school",
+    "history": "History"
+  },
+  "chrome": {
+    "skipLink": "Skip to content",
+    "menuLabel": "Menu",
+    "langLabel": "Choose language",
+    "footerPre": "Would you like to get in touch with someone on Røvær? Contact",
+    "footerPost": "– and we will help you as best we can."
+  },
+  "translation": {
+    "notice": "This page was machine translated and has not been proofread.",
+    "suggest": "Suggest a correction"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "intro": "The page you are looking for does not exist, or it may have been moved.",
+    "homeLink": "This page does not exist – go to the English front page"
+  },
+  "ferry": {
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "pickDate": "Choose date",
+    "boatAlt": "The express boat Fjordled (Kolumbus)",
+    "legendPre": "= May require advance booking. Book via",
+    "legendPost": "or call {{kolumbusPhone}}.",
+    "creditPre": "Real-time data from",
+    "creditPost": ", updated every minute.",
+    "kolumbusLabel": "View schedules on Kolumbus",
+    "kolumbusTail": "(line 700)",
+    "board": {
+      "loading": "Loading departures...",
+      "empty": "No departures today",
+      "error": "Could not load schedule",
+      "lastNotice": "Last departure – this is often a booking route.",
+      "bookingNotice": "Booking required. Book at {{kolumbusBookingHost}} or call {{kolumbusPhone}}.",
+      "now": "now",
+      "inPre": "in",
+      "hourUnit": "h",
+      "minUnit": "min",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "bookLabel": "Book",
+      "infoLabel": "Info",
+      "bookingWords": [
+        "book"
+      ]
+    }
+  }
+}

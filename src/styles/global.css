@@ -476,7 +476,11 @@ img.section-img {
 
 /* Contact */
 
-.contact-line {
+/* Contact details in an info box, written as a plain markdown list */
+
+.section ul.contact-list {
+  list-style: none;
+  padding-left: 0;
   font-size: 0.95rem;
   color: var(--color-text-light);
 }

@@ -10,10 +10,14 @@ import '../styles/global.css';
 import { Image, getImage } from 'astro:assets';
 import logoImg from '../assets/rovar-logo.png';
 import heroImg from '../assets/rovar-frontpage.png';
-import { t, routes, langLabels } from '../data/translations.js';
+import { locales, localeInfo, defaultLocale } from '../i18n/locales.js';
+import { pages, pathFor, resolveRoute, localesWithPage } from '../i18n/routes.js';
+import { ui } from '../i18n/ui.js';
+import { facts } from '../data/facts.js';
 
-const { title, description = "Øya utenfor Haugesund", lang = "no", page = "home" } = Astro.props;
-const tr = t[lang];
+const { title, description = "Øya utenfor Haugesund", lang = defaultLocale, page = "home" } = Astro.props;
+const t = ui(lang);
+const info = localeInfo(lang);
 const currentPath = Astro.url.pathname;
 const site = (Astro.site?.href ?? 'https://rovar.no/').replace(/\/$/, '');
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -22,25 +26,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const isPreview = !site.includes('rovar.no');
 const canonical = `${site}${currentPath}`;
 const pageTitle = page === 'home' ? title : `${title} | Røvær`;
-const ogLocales = { no: 'nb_NO', en: 'en_GB', de: 'de_DE' };
 // Same params as the homepage hero, so the preload and the CSS background
 // resolve to one asset.
 const ogImage = await getImage({ src: heroImg, format: 'webp', width: 1600 });
 
-const nav = [
-  { href: routes.explore[lang], label: tr.navExplore },
-  { href: routes.ferry[lang], label: tr.navFerry },
-  { href: routes.campSchool[lang], label: tr.navCampSchool },
-  { href: routes.history[lang], label: tr.navHistory },
-];
+// Nav links point at the reader's language, or at the nearest translated
+// language while a translation is still missing.
+const nav = pages
+  .filter((p) => p.key !== 'home')
+  .map((p) => ({ key: p.key, label: t.nav[p.key], ...resolveRoute(p.key, lang) }));
 
-const homeHref = routes.home[lang];
-const pageRoutes = routes[page];
-const langOrder = ['no', 'en', 'de'];
+const homeHref = resolveRoute('home', lang).href;
+// Only offer languages that actually have this page.
+const pageLocales = localesWithPage(page);
 ---
 
 <!DOCTYPE html>
-<html lang={lang}>
+<html lang={lang} dir={info.dir}>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,38 +53,38 @@ const langOrder = ['no', 'en', 'de'];
   {!isPreview && <link rel="sitemap" href={`${base}/sitemap-index.xml`}>}
   {isPreview && <meta name="robots" content="noindex">}
   {page === 'home' && <link rel="preload" as="image" href={ogImage.src} />}
-  {Object.entries(pageRoutes).map(([l, path]) => (
-    <link rel="alternate" hreflang={l} href={`${site}${path}`} />
+  {pageLocales.map((l) => (
+    <link rel="alternate" hreflang={l} href={`${site}${pathFor(page, l)}`} />
   ))}
-  <link rel="alternate" hreflang="x-default" href={`${site}${pageRoutes.no}`} />
+  <link rel="alternate" hreflang="x-default" href={`${site}${pathFor(page, defaultLocale)}`} />
   <meta property="og:site_name" content="Røvær">
   <meta property="og:type" content="website">
   <meta property="og:title" content={pageTitle}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
   <meta property="og:image" content={`${site}${ogImage.src}`}>
-  <meta property="og:locale" content={ogLocales[lang]}>
+  <meta property="og:locale" content={info.og}>
   <meta name="twitter:card" content="summary_large_image">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="no-referrer">
 </head>
 <body>
-  <a href="#main" class="skip-link">{tr.skipLink}</a>
+  <a href="#main" class="skip-link">{t.chrome.skipLink}</a>
   <nav class="nav">
     <div class="nav-inner">
-      <a href={homeHref} class="nav-logo"><Image src={logoImg} alt="Røvær" height={58} class="nav-logo-img" loading="eager" /></a>
-      <button class="nav-toggle" aria-label={tr.menuLabel} aria-expanded="false" aria-controls="nav-links">&#9776;</button>
+      <a href={homeHref} class="nav-logo"><Image src={logoImg} alt="Røvær" height={58} layout="none" class="nav-logo-img" loading="eager" /></a>
+      <button class="nav-toggle" aria-label={t.chrome.menuLabel} aria-expanded="false" aria-controls="nav-links">&#9776;</button>
       <ul class="nav-links" id="nav-links">
-        {nav.map(({ href, label }) => (
+        {nav.map(({ href, label, lang: linkLang }) => (
           <li>
-            <a href={href} aria-current={currentPath === href ? "page" : undefined}>
+            <a href={href} hreflang={linkLang === lang ? undefined : linkLang} aria-current={currentPath === href ? "page" : undefined}>
               {label}
             </a>
           </li>
         ))}
         <li class="lang-switcher">
           <details class="lang-menu">
-            <summary aria-label={tr.langLabel}>
+            <summary aria-label={t.chrome.langLabel}>
               <svg class="lang-globe" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -90,12 +92,12 @@ const langOrder = ['no', 'en', 'de'];
               <span class="lang-code">{lang.toUpperCase()}</span>
             </summary>
             <ul class="lang-list">
-              {langOrder.map(l => (
+              {locales.filter((l) => pageLocales.includes(l.code)).map((l) => (
                 <li>
-                  {l === lang ? (
-                    <span class="lang-option" aria-current="true">{langLabels[l]}</span>
+                  {l.code === lang ? (
+                    <span class="lang-option" aria-current="true">{l.endonym}</span>
                   ) : (
-                    <a href={pageRoutes[l]} class="lang-option" lang={l} hreflang={l}>{langLabels[l]}</a>
+                    <a href={pathFor(page, l.code)} class="lang-option" lang={l.code} hreflang={l.code}>{l.endonym}</a>
                   )}
                 </li>
               ))}
@@ -111,7 +113,7 @@ const langOrder = ['no', 'en', 'de'];
   </main>
 
   <footer class="footer">
-    <p>{tr.footerPre} <a href="mailto:rovaroyting@rovar.no">rovaroyting@rovar.no</a> {tr.footerPost}</p>
+    <p>{t.chrome.footerPre} <a href={`mailto:${facts.oytingEmail}`}>{facts.oytingEmail}</a> {t.chrome.footerPost}</p>
   </footer>
 
   <script src="../scripts/nav.js"></script>

@@ -1,71 +1,30 @@
 ---
 import { Image } from 'astro:assets';
+import { ui } from '../i18n/ui.js';
+import { defaultLocale, localeInfo } from '../i18n/locales.js';
+import { facts } from '../data/facts.js';
 import boatImg from '../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
 
 interface Props {
   lang?: string;
+  title: string;
 }
 
-const { lang = 'no' } = Astro.props;
+// Title and intro come from the page's content file, like every other page;
+// this component owns only the board itself and its controls.
+const { lang = defaultLocale, title } = Astro.props;
 
-const text = {
-  no: {
-    title: "Rutebåten",
-    intro1: "Røvær har daglige forbindelser med hurtigbåt fra Haugesund.",
-    intro2: "Turen tar omtrent 25 minutter.",
-    prevDay: "Forrige dag",
-    nextDay: "Neste dag",
-    pickDate: "Velg dato",
-    boatAlt: "Hurtigbåten Fjordled (Kolumbus)",
-    legendPre: "= Kan kreve forhåndsbestilling. Bestill via",
-    legendPost: "eller ring 482 21 780.",
-    creditPre: "Sanntidsdata fra",
-    creditPost: ", oppdateres hvert minutt.",
-    kolumbusLabel: "Se ruter på Kolumbus",
-    kolumbusTail: "(linje 700)",
-  },
-  en: {
-    title: "Ferry",
-    intro1: "Røvær has daily express boat connections from Haugesund.",
-    intro2: "The trip takes approximately 25 minutes.",
-    prevDay: "Previous day",
-    nextDay: "Next day",
-    pickDate: "Choose date",
-    boatAlt: "The express boat Fjordled (Kolumbus)",
-    legendPre: "= May require advance booking. Book via",
-    legendPost: "or call 482 21 780.",
-    creditPre: "Real-time data from",
-    creditPost: ", updated every minute.",
-    kolumbusLabel: "View schedules on Kolumbus",
-    kolumbusTail: "(line 700)",
-  },
-  de: {
-    title: "Fähre",
-    intro1: "Røvær hat tägliche Schnellbootverbindungen von Haugesund.",
-    intro2: "Die Fahrt dauert etwa 25 Minuten.",
-    prevDay: "Vorheriger Tag",
-    nextDay: "Nächster Tag",
-    pickDate: "Datum wählen",
-    boatAlt: "Das Schnellboot Fjordled (Kolumbus)",
-    legendPre: "= Kann Vorausbuchung erfordern. Buchen Sie über",
-    legendPost: "oder rufen Sie 482 21 780 an.",
-    creditPre: "Echtzeitdaten von",
-    creditPost: ", jede Minute aktualisiert.",
-    kolumbusLabel: "Fahrpläne auf Kolumbus",
-    kolumbusTail: "(Linie 700)",
-  },
-};
+// Page strings and the strings the client script needs both come from the
+// language's UI catalog, so a new language needs no code change here.
+const t = ui(lang).ferry;
+const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
 
-const t = text[lang];
 ---
 
-<div class="page page-wide dep-page" data-lang={lang}>
+<div class="page page-wide dep-page" data-lang={lang} data-strings={JSON.stringify(boardStrings)}>
   <div class="dep-intro">
-    <h1 class="page-title">{t.title}</h1>
-    <p class="page-intro">
-      {t.intro1}<br>
-      {t.intro2}
-    </p>
+    <h1 class="page-title">{title}</h1>
+    <slot />
     <div class="dep-nav">
       <button class="dep-nav-btn" id="dep-prev" disabled aria-label={t.prevDay}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
@@ -84,7 +43,7 @@ const t = text[lang];
   </div>
 
   <div class="dep-boat-wrap">
-    <Image class="dep-boat-img" src={boatImg} alt={t.boatAlt} width={800} widths={[400, 800]} sizes="280px" />
+    <Image class="dep-boat-img" src={boatImg} alt={t.boatAlt} width={800} widths={[400, 800]} sizes="280px" layout="none" />
   </div>
 
   <div class="dep-columns">
@@ -100,7 +59,7 @@ const t = text[lang];
 
   <p class="dep-booking">
     <svg class="dep-booking-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg> {t.legendPre}
-    <a href="https://billetter.kolumbus.no" target="_blank" rel="noopener">billetter.kolumbus.no</a>
+    <a href={facts.kolumbusBookingUrl} target="_blank" rel="noopener">{facts.kolumbusBookingHost}</a>
     {t.legendPost}
   </p>
 

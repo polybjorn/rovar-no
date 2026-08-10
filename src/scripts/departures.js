@@ -1,63 +1,13 @@
-const STRINGS = {
-  no: {
-    loading: "Henter avganger...",
-    empty: "Ingen avganger i dag",
-    error: "Kunne ikke hente rutedata",
-    lastNotice: "Siste avgang \u2013 dette er ofte en bestillingsrute.",
-    bookingNotice: "Bestillingsrute. Bestill via billetter.kolumbus.no eller ring 482 21 780.",
-    now: "nå",
-    inPre: "om",
-    hourUnit: "t",
-    minUnit: "min",
-    prevMonth: "Forrige måned",
-    nextMonth: "Neste måned",
-    bookLabel: "Bestill",
-    infoLabel: "Info",
-    dateLocale: "nb-NO",
-    timeLocale: "nb-NO",
-    bookingRegex: /bestill/i,
-  },
-  en: {
-    loading: "Loading departures...",
-    empty: "No departures today",
-    error: "Could not load schedule",
-    lastNotice: "Last departure \u2013 this is often a booking route.",
-    bookingNotice: "Booking required. Book at billetter.kolumbus.no or call 482 21 780.",
-    now: "now",
-    inPre: "in",
-    hourUnit: "h",
-    minUnit: "min",
-    prevMonth: "Previous month",
-    nextMonth: "Next month",
-    bookLabel: "Book",
-    infoLabel: "Info",
-    dateLocale: "en-GB",
-    timeLocale: "en-GB",
-    bookingRegex: /bestill|book/i,
-  },
-  de: {
-    loading: "Abfahrten werden geladen...",
-    empty: "Keine Abfahrten heute",
-    error: "Fahrplandaten konnten nicht geladen werden",
-    lastNotice: "Letzte Abfahrt \u2013 oft nur mit Reservierung.",
-    bookingNotice: "Reservierung erforderlich. Buchen Sie über billetter.kolumbus.no oder rufen Sie 482 21 780 an.",
-    now: "jetzt",
-    inPre: "in",
-    hourUnit: "Std.",
-    minUnit: "Min.",
-    prevMonth: "Vorheriger Monat",
-    nextMonth: "Nächster Monat",
-    bookLabel: "Buchen",
-    infoLabel: "Info",
-    dateLocale: "de-DE",
-    timeLocale: "de-DE",
-    bookingRegex: /bestill|book|reservierung|buchen/i,
-  },
-};
-
+// All display strings come from the page: the departure board renders them
+// into data-strings from the language's UI catalog (src/i18n/ui/<lang>.json),
+// so only the active language ships to the browser.
 const depPage = document.querySelector('.dep-page');
 const LANG = depPage?.dataset.lang || 'no';
-const S = STRINGS[LANG] || STRINGS.no;
+const S = JSON.parse(depPage?.dataset.strings || '{}');
+
+// Entur's own notices are Norwegian whatever the reader's language, so
+// "bestill" always counts; each language adds its own words.
+const BOOKING_RE = new RegExp(['bestill', ...(S.bookingWords || [])].join('|'), 'i');
 
 const ENTUR_API = "https://api.entur.io/journey-planner/v3/graphql";
 const ROVAR_STOP = "NSR:StopPlace:25940";
@@ -135,7 +85,7 @@ function filterRoute(calls, direction) {
 }
 
 function fmt(dt) {
-  return dt.toLocaleTimeString(S.timeLocale, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Oslo" });
+  return dt.toLocaleTimeString(S.locale, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Oslo" });
 }
 
 function fmtCountdown(mins) {
@@ -220,14 +170,14 @@ function render(containerId, calls) {
     const situations = (c.serviceJourney.situations || []).map(s => s.summary?.map(v => v.value).join(' ') || '').filter(Boolean);
     const isLast = i === calls.length - 1;
     const allTexts = [...notices.map(n => n.text), ...situations];
-    if (isLast && !hasBooking && !allTexts.some(t => S.bookingRegex.test(t))) {
+    if (isLast && !hasBooking && !allTexts.some(t => BOOKING_RE.test(t))) {
       allTexts.push(S.lastNotice);
     }
-    if (hasBooking && !allTexts.some(t => S.bookingRegex.test(t))) {
+    if (hasBooking && !allTexts.some(t => BOOKING_RE.test(t))) {
       allTexts.push(S.bookingNotice);
     }
-    const isBooking = hasBooking || allTexts.some(t => S.bookingRegex.test(t));
-    const infoTexts = allTexts.filter(t => !S.bookingRegex.test(t));
+    const isBooking = hasBooking || allTexts.some(t => BOOKING_RE.test(t));
+    const infoTexts = allTexts.filter(t => !BOOKING_RE.test(t));
     const depH = parseInt(dt.toLocaleTimeString("en-US", { hour: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
     const depM = parseInt(dt.toLocaleTimeString("en-US", { minute: "numeric", hour12: false, timeZone: "Europe/Oslo" }));
     const depMinutes = depH * 60 + depM;
@@ -300,7 +250,7 @@ function setDate() {
   const d = new Date();
   d.setDate(d.getDate() + dayOffset);
   const opts = { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Oslo" };
-  const f = d.toLocaleDateString(S.dateLocale, opts);
+  const f = d.toLocaleDateString(S.locale, opts);
   el.textContent = f.charAt(0).toUpperCase() + f.slice(1);
 
   const prev = document.getElementById("dep-prev");
@@ -387,7 +337,7 @@ function lastSelectable() {
 function weekdayNames() {
   // 2024-01-01 was a Monday, so walking a week from it gives Monday-first names.
   return Array.from({ length: 7 }, (_, i) =>
-    new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(S.dateLocale, {
+    new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(S.locale, {
       weekday: "short", timeZone: "UTC"
     })
   );
@@ -400,7 +350,7 @@ function renderCalendar() {
 
   const [year, month] = calView.split("-").map(Number);
   const first = new Date(Date.UTC(year, month - 1, 1));
-  const label = first.toLocaleDateString(S.dateLocale, {
+  const label = first.toLocaleDateString(S.locale, {
     month: "long", year: "numeric", timeZone: "UTC"
   });
   // getUTCDay() is 0=Sunday; shift so Monday is column 0.

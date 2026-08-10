@@ -6,14 +6,21 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "clean": "rm -rf node_modules/.astro dist",
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "i18n:new": "node scripts/i18n-new.mjs"
   },
   "dependencies": {
+    "@astrojs/markdown-remark": "^7.2.2",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^7.1.6"
   },
   "allowScripts": {
     "esbuild@0.28.1": true,
     "fsevents@2.3.3": true
+  },
+  "devDependencies": {
+    "unist-util-visit": "^5.1.0"
   }
 }

@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "explore": "Opplev øya",
+    "ferry": "Rutebåten",
+    "camp-school": "Leirskolen",
+    "history": "Historie"
+  },
+  "chrome": {
+    "skipLink": "Hopp til innhold",
+    "menuLabel": "Meny",
+    "langLabel": "Velg språk",
+    "footerPre": "Har du lyst til å komme i kontakt med noen på Røvær? Ta kontakt med",
+    "footerPost": "– så skal vi hjelpe deg så godt vi kan."
+  },
+  "translation": {
+    "notice": "Denne siden er maskinoversatt og ikke gjennomlest.",
+    "suggest": "Foreslå en rettelse"
+  },
+  "notFound": {
+    "title": "Siden finnes ikke",
+    "intro": "Siden du leter etter finnes ikke, eller den kan ha blitt flyttet.",
+    "homeLink": "Til forsiden"
+  },
+  "ferry": {
+    "prevDay": "Forrige dag",
+    "nextDay": "Neste dag",
+    "pickDate": "Velg dato",
+    "boatAlt": "Hurtigbåten Fjordled (Kolumbus)",
+    "legendPre": "= Kan kreve forhåndsbestilling. Bestill via",
+    "legendPost": "eller ring {{kolumbusPhone}}.",
+    "creditPre": "Sanntidsdata fra",
+    "creditPost": ", oppdateres hvert minutt.",
+    "kolumbusLabel": "Se ruter på Kolumbus",
+    "kolumbusTail": "(linje 700)",
+    "board": {
+      "loading": "Henter avganger...",
+      "empty": "Ingen avganger i dag",
+      "error": "Kunne ikke hente rutedata",
+      "lastNotice": "Siste avgang – dette er ofte en bestillingsrute.",
+      "bookingNotice": "Bestillingsrute. Bestill via {{kolumbusBookingHost}} eller ring {{kolumbusPhone}}.",
+      "now": "nå",
+      "inPre": "om",
+      "hourUnit": "t",
+      "minUnit": "min",
+      "prevMonth": "Forrige måned",
+      "nextMonth": "Neste måned",
+      "bookLabel": "Bestill",
+      "infoLabel": "Info",
+      "bookingWords": []
+    }
+  }
+}

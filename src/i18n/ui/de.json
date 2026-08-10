@@ -1,0 +1,56 @@
+{
+  "nav": {
+    "explore": "Entdecken",
+    "ferry": "Fähre",
+    "camp-school": "Schullandheim",
+    "history": "Geschichte"
+  },
+  "chrome": {
+    "skipLink": "Zum Inhalt springen",
+    "menuLabel": "Menü",
+    "langLabel": "Sprache wählen",
+    "footerPre": "Möchten Sie mit jemandem auf Røvær in Kontakt treten? Schreiben Sie an",
+    "footerPost": "– wir helfen Ihnen so gut wir können."
+  },
+  "translation": {
+    "notice": "Diese Seite wurde maschinell übersetzt und nicht Korrektur gelesen.",
+    "suggest": "Korrektur vorschlagen"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "intro": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "homeLink": "Diese Seite existiert nicht – zur deutschen Startseite"
+  },
+  "ferry": {
+    "prevDay": "Vorheriger Tag",
+    "nextDay": "Nächster Tag",
+    "pickDate": "Datum wählen",
+    "boatAlt": "Das Schnellboot Fjordled (Kolumbus)",
+    "legendPre": "= Kann Vorausbuchung erfordern. Buchen Sie über",
+    "legendPost": "oder rufen Sie {{kolumbusPhone}} an.",
+    "creditPre": "Echtzeitdaten von",
+    "creditPost": ", jede Minute aktualisiert.",
+    "kolumbusLabel": "Fahrpläne auf Kolumbus",
+    "kolumbusTail": "(Linie 700)",
+    "board": {
+      "loading": "Abfahrten werden geladen...",
+      "empty": "Keine Abfahrten heute",
+      "error": "Fahrplandaten konnten nicht geladen werden",
+      "lastNotice": "Letzte Abfahrt – oft nur mit Reservierung.",
+      "bookingNotice": "Reservierung erforderlich. Buchen Sie über {{kolumbusBookingHost}} oder rufen Sie {{kolumbusPhone}} an.",
+      "now": "jetzt",
+      "inPre": "in",
+      "hourUnit": "Std.",
+      "minUnit": "Min.",
+      "prevMonth": "Vorheriger Monat",
+      "nextMonth": "Nächster Monat",
+      "bookLabel": "Buchen",
+      "infoLabel": "Info",
+      "bookingWords": [
+        "book",
+        "reservierung",
+        "buchen"
+      ]
+    }
+  }
+}
