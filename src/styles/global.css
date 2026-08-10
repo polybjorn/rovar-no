@@ -583,12 +583,13 @@ img.section-img {
 
 .footer {
   background: var(--color-ocean-dark);
-  color: rgba(255, 255, 255, 0.82);
+  color: #fff;
   text-align: center;
   padding: 2rem 1.5rem;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .footer a {
   color: #fff;
+  text-decoration: underline;
 }
