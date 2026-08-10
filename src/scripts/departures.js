@@ -21,6 +21,7 @@ import {
   getRouteInfo,
   bookingPattern,
   noticeState,
+  timeline,
   formatCountdown,
   urgencyClass,
   kolumbusUrl,
@@ -81,16 +82,16 @@ function render(containerId, calls) {
 
   const phoneIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>';
   const infoIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>';
+  const clockIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/></svg>';
 
-  const items = calls.map((c, i) => {
+  const rows = calls.map((c, i) => {
     const dt = new Date(c.expectedDepartureTime);
     const time = fmt(dt);
-    const { arrivalTime, duration, via, hasBooking } = getRouteInfo(c);
-    const { allTexts, isBooking, infoTexts } = noticeState({
+    const { arrivalTime, duration, via, hasBooking, bookingDeadline } = getRouteInfo(c);
+    const { isBooking, infoTexts } = noticeState({
       call: c,
       hasBooking,
       isLast: i === calls.length - 1,
-      strings: S,
       bookingRe: BOOKING_RE,
     });
     const depMinutes = osloMinutes(dt);
@@ -107,15 +108,19 @@ function render(containerId, calls) {
     const viaHtml = via.length ? `<span class="dep-via">via ${esc(via.join(', '))}</span>` : '';
     const durationHtml = duration ? `<span class="dep-duration">${duration} min</span>` : '';
 
+    // The phone is a marker, not a control: the legend under the board explains
+    // it once and the deadline row gives the time, so there is nothing left for
+    // it to open. Only real notices from Entur get an expandable button.
     let noticeHtml = '';
     const noticeId = `notice-${containerId}-${i}`;
     if (isBooking) {
-      noticeHtml = `<button class="dep-notice dep-booking-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="${esc(S.bookLabel)}">${phoneIcon}</button>`;
+      noticeHtml = `<span class="dep-notice dep-booking-mark" role="img" aria-label="${esc(S.bookLabel)}">${phoneIcon}</span>`;
     }
     if (infoTexts.length) {
       noticeHtml += `<button class="dep-notice dep-info-notice" aria-expanded="false" aria-controls="${noticeId}" aria-label="${esc(S.infoLabel)}">${infoIcon}</button>`;
     }
-    const detailHtml = allTexts.length ? `<div class="dep-detail" id="${noticeId}"><div class="dep-detail-inner">${esc(allTexts.join(' '))}</div></div>` : '';
+    const detailHtml = infoTexts.length ? `<div class="dep-detail" id="${noticeId}"><div class="dep-detail-inner">${esc(infoTexts.join(' '))}</div></div>` : '';
+
     // Only the next departure carries a countdown, in the row's right-hand
     // column so a long via list can never stretch the line.
     // Urgency is colour on top of the wording, never colour alone: the text
@@ -125,7 +130,13 @@ function render(containerId, calls) {
       ? `<p class="dep-countdown${urgencyClass(mins)}">${esc(formatCountdown(mins, S))}</p>`
       : '';
 
-    return `<li class="${cls}">
+    return {
+      minutes: depMinutes,
+      // Only a departure that is actually a bestillingsrute gets a deadline row.
+      deadlineMinutes: isBooking && bookingDeadline ? osloMinutes(bookingDeadline) : null,
+      deadlineText: bookingDeadline ? fmt(bookingDeadline) : '',
+      time,
+      html: `<li class="${cls}">
       <div class="dep-row">
         <div class="dep-route">
           <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
@@ -135,8 +146,24 @@ function render(containerId, calls) {
         </div>
       </div>
       ${detailHtml}
+    </li>`,
+    };
+  });
+
+  // A deadline row is greyed once it is past, exactly like a departure that has
+  // already sailed: same timeline, same way of showing a moment has gone.
+  const items = timeline(rows)
+    .map((row) => {
+      if (row.type === 'departure') return rows[row.index].html;
+      const dep = rows[row.forIndex];
+      const gone = dayOffset === 0 && row.minutes < nowMinutes;
+      const label = (S.bookingDeadlineRow ?? '{{time}}').replace('{{time}}', dep.time);
+      return `<li class="dep-deadline-row${gone ? ' passed' : ''}">
+      <span class="dep-deadline-time">${esc(dep.deadlineText)}</span>
+      ${clockIcon}<span class="dep-deadline-label">${esc(label)}</span>
     </li>`;
-  }).join("");
+    })
+    .join('');
 
   const openIds = new Set(
     [...container.querySelectorAll('.dep-detail.open')].map(el => el.id)

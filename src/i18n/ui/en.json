@@ -36,15 +36,14 @@
       "loading": "Loading departures...",
       "empty": "No departures this day",
       "error": "Could not load schedule",
-      "lastNotice": "Last departure. This one often has to be booked in advance.",
-      "bookingNotice": "Advance booking required. Book via {{kolumbusBookingHost}} or call {{kolumbusPhone}}.",
+      "bookingDeadlineRow": "Booking deadline for the {{time}} departure",
       "now": "now",
       "relative": "in {{time}}",
       "hourUnit": "h",
       "minUnit": "min",
       "prevMonth": "Previous month",
       "nextMonth": "Next month",
-      "bookLabel": "Book",
+      "bookLabel": "Advance booking required",
       "infoLabel": "Info"
     }
   }

@@ -17,9 +17,11 @@ import {
   parseViaFromFrontText,
   getArrivalFromPassingTimes,
   getRouteInfo,
+  bookingDeadline,
   bookingPattern,
   situationTexts,
   noticeState,
+  timeline,
   formatCountdown,
   urgencyClass,
   kolumbusUrl,
@@ -228,10 +230,6 @@ test('a zero-length trip reports no duration rather than 0 min', () => {
 
 // --- notices ----------------------------------------------------------------
 
-const strings = {
-  lastNotice: 'Siste avgang',
-  bookingNotice: 'Ring for å bestille',
-};
 const re = bookingPattern();
 
 test('the booking pattern reads the Norwegian Entur sends whatever the page language', () => {
@@ -252,36 +250,146 @@ test('bookingArrangements alone marks a departure as bestillingsrute', () => {
     call: call({ time: '2026-07-15T08:00:00+02:00' }),
     hasBooking: true,
     isLast: false,
-    strings,
     bookingRe: re,
   });
   assert.equal(state.isBooking, true);
-  assert.deepEqual(state.allTexts, [strings.bookingNotice]);
-  assert.deepEqual(state.infoTexts, [], 'the booking text is not repeated as an info notice');
+  assert.deepEqual(state.infoTexts, [], 'the marker and the legend say it; no prose on the row');
 });
 
-test('an API notice that already says bestill is not doubled up', () => {
+test('a booking notice from the API is not repeated as an info notice', () => {
+  // The marker already says it and the legend gives the number, so Entur's own
+  // wording would be the third telling on one row.
+  const state = noticeState({
+    call: call({
+      time: '2026-07-15T21:05:00+02:00',
+      notices: [{ text: 'Turen må bestilles innen kl 20' }],
+    }),
+    hasBooking: true,
+    isLast: true,
+    bookingRe: re,
+  });
+  assert.equal(state.isBooking, true);
+  assert.deepEqual(state.infoTexts, []);
+});
+
+test('minimumBookingPeriod is counted back from departure, the way Kolumbus shows it', () => {
+  // The 21:05 boat off Røvær: PT40M, so kolumbus.no says "før klokken 20:25".
+  const at = bookingDeadline(
+    { minimumBookingPeriod: 'PT40M', bookingMethods: ['online'] },
+    new Date('2026-07-15T21:05:00+02:00')
+  );
+  assert.equal(at.toISOString(), new Date('2026-07-15T20:25:00+02:00').toISOString());
+});
+
+test('an hours-and-minutes booking period is read whole', () => {
+  const at = bookingDeadline({ minimumBookingPeriod: 'PT1H30M' }, new Date('2026-07-15T21:05:00+02:00'));
+  assert.equal(at.toISOString(), new Date('2026-07-15T19:35:00+02:00').toISOString());
+});
+
+test('latestBookingTime is read as Oslo time on the departure day, not the visitor timezone', () => {
+  const at = bookingDeadline(
+    { latestBookingTime: '20:00' },
+    new Date('2026-07-15T21:05:00+02:00')
+  );
+  assert.equal(at.toISOString(), new Date('2026-07-15T20:00:00+02:00').toISOString());
+});
+
+test('a wall-clock deadline later than the departure is dropped rather than shown', () => {
+  // Entur carries 20:00 on the 08:00 boat; a deadline after the boat has left
+  // is data noise, not something to print.
+  assert.equal(bookingDeadline({ latestBookingTime: '20:00' }, new Date('2026-07-15T08:00:00+02:00')), null);
+});
+
+// --- timeline ---------------------------------------------------------------
+
+const at = (h, m = 0) => h * 60 + m;
+
+test('a deadline row lands at its own time, not next to the boat it belongs to', () => {
+  // The 21:05 boat books by 20:25, which is two departures earlier in the day.
+  const rows = timeline([
+    { minutes: at(17, 45) },
+    { minutes: at(18, 55) },
+    { minutes: at(21, 5), deadlineMinutes: at(20, 25) },
+  ]);
+  assert.deepEqual(
+    rows.map((r) => [r.minutes, r.type]),
+    [
+      [at(17, 45), 'departure'],
+      [at(18, 55), 'departure'],
+      [at(20, 25), 'deadline'],
+      [at(21, 5), 'departure'],
+    ]
+  );
+  assert.equal(rows[2].forIndex, 2, 'the deadline row still points at its own departure');
+});
+
+test('departures without a deadline pass through untouched', () => {
+  const rows = timeline([{ minutes: at(8) }, { minutes: at(9) }]);
+  assert.deepEqual(rows.map((r) => r.type), ['departure', 'departure']);
+  assert.deepEqual(rows.map((r) => r.index), [0, 1]);
+});
+
+test('a deadline falling on a departure time is listed before it', () => {
+  // Booking closes as another boat leaves: the deadline is the thing you can
+  // still act on, so it reads first.
+  const rows = timeline([
+    { minutes: at(18, 55) },
+    { minutes: at(21, 5), deadlineMinutes: at(18, 55) },
+  ]);
+  assert.deepEqual(rows.map((r) => r.type), ['deadline', 'departure', 'departure']);
+});
+
+test('several booking departures each get their own deadline row in order', () => {
+  const rows = timeline([
+    { minutes: at(20, 40) },
+    { minutes: at(22, 25), deadlineMinutes: at(21, 45) },
+    { minutes: at(23, 30), deadlineMinutes: at(22, 50) },
+  ]);
+  assert.deepEqual(
+    rows.map((r) => [r.minutes, r.type]),
+    [
+      [at(20, 40), 'departure'],
+      [at(21, 45), 'deadline'],
+      [at(22, 25), 'departure'],
+      [at(22, 50), 'deadline'],
+      [at(23, 30), 'departure'],
+    ]
+  );
+});
+
+test('a deadline before the first departure of the day still sorts to the top', () => {
+  const rows = timeline([{ minutes: at(6), deadlineMinutes: at(5, 20) }]);
+  assert.deepEqual(rows.map((r) => r.type), ['deadline', 'departure']);
+});
+
+test('no booking data at all means no deadline', () => {
+  assert.equal(bookingDeadline(null, new Date('2026-07-15T21:05:00+02:00')), null);
+  assert.equal(
+    bookingDeadline({ bookingMethods: ['online'] }, new Date('2026-07-15T21:05:00+02:00')),
+    null
+  );
+});
+
+test('notice text alone marks a departure, without booking data from the API', () => {
   const state = noticeState({
     call: call({
       time: '2026-07-15T08:00:00+02:00',
       notices: [{ text: 'Turen må bestilles innen kl 20' }],
     }),
-    hasBooking: true,
-    isLast: true,
-    strings,
+    hasBooking: false,
+    isLast: false,
     bookingRe: re,
   });
-  assert.deepEqual(state.allTexts, ['Turen må bestilles innen kl 20']);
   assert.equal(state.isBooking, true);
+  assert.deepEqual(state.infoTexts, []);
 });
 
-test('the last departure gets the soft notice only when nothing else says booking', () => {
-  const base = { call: call({ time: '2026-07-15T22:00:00+02:00' }), strings, bookingRe: re };
-  assert.deepEqual(
-    noticeState({ ...base, hasBooking: false, isLast: true }).allTexts,
-    [strings.lastNotice]
-  );
-  assert.deepEqual(noticeState({ ...base, hasBooking: false, isLast: false }).allTexts, []);
+test('the last departure of the direction is marked even with no booking data', () => {
+  // Entur withholds bookingArrangements ahead of today, and the last boat is
+  // the one that usually needs booking.
+  const base = { call: call({ time: '2026-07-15T22:00:00+02:00' }), bookingRe: re };
+  assert.equal(noticeState({ ...base, hasBooking: false, isLast: true }).isBooking, true);
+  assert.equal(noticeState({ ...base, hasBooking: false, isLast: false }).isBooking, false);
 });
 
 test('situations and notices both reach the detail text', () => {
@@ -293,11 +401,9 @@ test('situations and notices both reach the detail text', () => {
     }),
     hasBooking: false,
     isLast: false,
-    strings,
     bookingRe: re,
   });
-  assert.deepEqual(state.allTexts, ['Kun skoledager', 'Innstilt ved kuling']);
-  assert.deepEqual(state.infoTexts, state.allTexts);
+  assert.deepEqual(state.infoTexts, ['Kun skoledager', 'Innstilt ved kuling']);
   assert.equal(state.isBooking, false);
 });
 

@@ -32,7 +32,7 @@ export const query = `query departures($stopId: String!, $n: Int!, $startTime: D
         estimatedCalls {
           quay { stopPlace { name } }
           expectedDepartureTime
-          bookingArrangements { latestBookingTime bookingMethods }
+          bookingArrangements { latestBookingTime minimumBookingPeriod bookingMethods }
         }
       }
     }
@@ -117,7 +117,7 @@ export function getRouteInfo(call) {
   if (!stops || stops.length < 2) {
     const via = parseViaFromFrontText(call.destinationDisplay?.frontText || '');
     const { arrivalTime, duration } = getArrivalFromPassingTimes(call);
-    return { arrivalTime, duration, via, hasBooking: false };
+    return { arrivalTime, duration, via, hasBooking: false, bookingDeadline: null };
   }
 
   const first = new Date(stops[0].expectedDepartureTime);
@@ -126,7 +126,42 @@ export function getRouteInfo(call) {
   const via = stops.slice(1, -1).map((s) => s.quay.stopPlace.name.replace(' hurtigbåtkai', ''));
   const hasBooking = stops[0].bookingArrangements?.bookingMethods?.length > 0;
 
-  return { arrivalTime: last, duration, via, hasBooking };
+  return {
+    arrivalTime: last,
+    duration,
+    via,
+    hasBooking,
+    bookingDeadline: bookingDeadline(stops[0].bookingArrangements, first),
+  };
+}
+
+// Entur gives the booking deadline two ways and Kolumbus uses the second one:
+// latestBookingTime is a wall-clock time and is usually null, while
+// minimumBookingPeriod is an ISO 8601 duration counted back from departure
+// ("PT40M" on the 21:05 boat, so 20:25 - the same deadline kolumbus.no shows).
+export function bookingDeadline(arrangements, departure) {
+  if (!arrangements || !departure) return null;
+
+  const period = parseDuration(arrangements.minimumBookingPeriod);
+  if (period) return new Date(departure.getTime() - period * 60000);
+
+  const clock = /^(\d{1,2}):(\d{2})/.exec(arrangements.latestBookingTime || '');
+  if (!clock) return null;
+  // A wall-clock deadline is Oslo time on the departure's own Oslo day, and
+  // never after the departure itself. Reading it in the browser's timezone
+  // would put it hours off for a visitor abroad.
+  const day = toOsloDate(departure);
+  const hhmm = `${clock[1].padStart(2, '0')}:${clock[2]}`;
+  const at = new Date(`${day}T${hhmm}:00${osloOffset(day)}`);
+  return at > departure ? null : at;
+}
+
+// ISO 8601 duration to minutes. Entur only ever sends hours and minutes here,
+// so days and up are not worth carrying.
+function parseDuration(value) {
+  const m = /^PT(?:(\d+)H)?(?:(\d+)M)?$/.exec(value || '');
+  if (!m || (!m[1] && !m[2])) return 0;
+  return Number(m[1] || 0) * 60 + Number(m[2] || 0);
 }
 
 // --- notices ----------------------------------------------------------------
@@ -150,20 +185,41 @@ export function situationTexts(serviceJourney) {
 }
 
 // Bestillingsrute detection, in priority order: bookingArrangements from the
-// API, then notice/situation text, then a soft notice on the last departure of
-// the direction (booking data is unavailable ahead of today).
-export function noticeState({ call, hasBooking, isLast, strings = {}, bookingRe }) {
+// API, then notice/situation text, then the last departure of the direction
+// (booking data is unavailable ahead of today, and the last boat is the one
+// that usually needs booking).
+//
+// The board says "this one needs booking" exactly once per row, with the phone
+// marker, and the legend under the board explains the marker and gives the
+// site and the number. So a booking notice from the API is dropped rather than
+// shown: it is the marker again as a sentence, and the deadline row already
+// carries the one thing the marker cannot say, which is by when.
+export function noticeState({ call, hasBooking, isLast, bookingRe }) {
   const notices = call.serviceJourney.notices || [];
   const texts = [...notices.map((n) => n.text), ...situationTexts(call.serviceJourney)];
 
-  if (isLast && !hasBooking && !texts.some((t) => bookingRe.test(t))) texts.push(strings.lastNotice);
-  if (hasBooking && !texts.some((t) => bookingRe.test(t))) texts.push(strings.bookingNotice);
-
   return {
-    allTexts: texts,
-    isBooking: hasBooking || texts.some((t) => bookingRe.test(t)),
+    isBooking: hasBooking || Boolean(isLast) || texts.some((t) => bookingRe.test(t)),
     infoTexts: texts.filter((t) => !bookingRe.test(t)),
   };
+}
+
+// A booking deadline is a moment on the same timeline as the departures, so it
+// takes its own row in clock order rather than hanging off the boat it belongs
+// to - the deadline for the last boat of the day falls hours before it, and
+// reading down the column is how you see it coming. Departures come in sorted;
+// each deadline is spliced in at its own time, ahead of a departure it ties
+// with.
+export function timeline(departures) {
+  const rows = [];
+  departures.forEach((dep, index) => {
+    if (dep.deadlineMinutes != null)
+      rows.push({ type: 'deadline', minutes: dep.deadlineMinutes, forIndex: index });
+    rows.push({ type: 'departure', minutes: dep.minutes, index });
+  });
+  return rows.sort(
+    (a, b) => a.minutes - b.minutes || (a.type === b.type ? 0 : a.type === 'deadline' ? -1 : 1),
+  );
 }
 
 // --- presentation -----------------------------------------------------------

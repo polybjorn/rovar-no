@@ -37,15 +37,14 @@
       "loading": "Abfahrten werden geladen...",
       "empty": "Keine Abfahrten an diesem Tag",
       "error": "Fahrplandaten konnten nicht geladen werden",
-      "lastNotice": "Letzte Abfahrt. Oft nur mit Vorausbuchung.",
-      "bookingNotice": "Vorausbuchung erforderlich. Buchen Sie über {{kolumbusBookingHost}} oder rufen Sie {{kolumbusPhone}} an.",
+      "bookingDeadlineRow": "Buchungsfrist für die Abfahrt um {{time}}",
       "now": "jetzt",
       "relative": "in {{time}}",
       "hourUnit": "Std.",
       "minUnit": "Min.",
       "prevMonth": "Vorheriger Monat",
       "nextMonth": "Nächster Monat",
-      "bookLabel": "Buchen",
+      "bookLabel": "Vorausbuchung erforderlich",
       "infoLabel": "Info"
     }
   }

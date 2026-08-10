@@ -386,6 +386,43 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     gap: 0.75rem;
   }
 
+  /* A booking deadline is a moment in the day, so it gets a row of its own at
+     its own time rather than a note hanging off the boat hours later. Shorter
+     and quieter than a departure row: it is a warning on the way past, not a
+     boat you can board. Colour is redundant with the wording, same rule as the
+     countdown. */
+  .dep-direction :global(.dep-deadline-row) {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    color: var(--color-warn);
+    background: color-mix(in srgb, var(--color-warn) 6%, transparent);
+  }
+
+  .dep-direction :global(.dep-deadline-time) {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dep-direction :global(.dep-deadline-label) {
+    font-weight: 500;
+  }
+
+  .dep-direction :global(.dep-deadline-row svg) {
+    width: 0.95em;
+    height: 0.95em;
+    flex: none;
+  }
+
+  .dep-direction :global(.dep-deadline-row.passed) {
+    color: var(--color-text-light);
+    background: none;
+  }
+
   .dep-direction :global(.dep-detail) {
     display: grid;
     grid-template-rows: 0fr;
@@ -487,14 +524,18 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   }
 
   .dep-direction :global(.dep-notice) {
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
     border: none;
     font-family: inherit;
   }
 
-  .dep-direction :global(.dep-booking-notice) {
+  .dep-direction :global(button.dep-notice) {
+    cursor: pointer;
+  }
+
+  /* A marker, not a control - the legend under the board explains it. */
+  .dep-direction :global(.dep-booking-mark) {
     background: var(--color-kelp);
     color: var(--color-on-dark);
     border-radius: 4px;
@@ -505,7 +546,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     white-space: nowrap;
   }
 
-  .dep-direction :global(.dep-booking-notice svg) {
+  .dep-direction :global(.dep-booking-mark svg) {
     width: 0.85rem;
     height: 0.85rem;
   }

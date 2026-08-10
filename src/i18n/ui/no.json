@@ -36,15 +36,14 @@
       "loading": "Henter avganger...",
       "empty": "Ingen avganger denne dagen",
       "error": "Kunne ikke hente rutedata",
-      "lastNotice": "Siste avgang. Dette er ofte en bestillingsrute.",
-      "bookingNotice": "Bestillingsrute. Bestill via {{kolumbusBookingHost}} eller ring {{kolumbusPhone}}.",
+      "bookingDeadlineRow": "Bestillingsfrist for avgang {{time}}",
       "now": "nå",
       "relative": "om {{time}}",
       "hourUnit": "t",
       "minUnit": "min",
       "prevMonth": "Forrige måned",
       "nextMonth": "Neste måned",
-      "bookLabel": "Bestill",
+      "bookLabel": "Bestillingsrute",
       "infoLabel": "Info"
     }
   }
