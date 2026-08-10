@@ -17,19 +17,12 @@ All pages are available in Norwegian (root), English (`/en/`) and German (`/de/`
 - [Astro](https://astro.build) (static output, zero JS by default)
 - Vanilla CSS with CSS custom properties
 - [Entur JourneyPlanner API](https://entur.no/) for live departures
-- Three languages: Norwegian (default), English (`/en/`), German (`/de/`)
-
-## Development
-
-```
-npm install
-npm run dev      # http://localhost:4321
-npm run build    # Static output to dist/
-```
 
 ## Status
 
-Proposal stage. Not publicly deployed; rovar.no still runs the current site.
+Proposal stage. rovar.no still runs the current site. A preview is deployed
+at [polybjorn.github.io/rovar-no](https://polybjorn.github.io/rovar-no/)
+(noindex until launch, auto-deployed from `main` via GitHub Pages).
 
 ## License
 
