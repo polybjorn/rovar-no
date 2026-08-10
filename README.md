@@ -10,7 +10,23 @@ Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær i
 - **Leirskolen** (`/leirskolen/`) - Camp school program, practical info, contact
 - **Røværs historie** (`/rovaers-historie/`) - Archaeological finds, fishing community, the 1899 disaster
 
-All pages are available in Norwegian (root), English (`/en/`) and German (`/de/`).
+## Languages
+
+| Language | Prefix | Pages | UI strings |
+|---|---|---|---|
+| Norsk | none (root) | 5/5 | complete |
+| English | `/en/` | 5/5 | complete |
+| Deutsch | `/de/` | 5/5 | complete |
+
+Adding a language is one entry in `src/i18n/locales.js`, one UI catalog
+(`src/i18n/ui/<code>.json`) and one content folder
+(`src/content/pages/<code>/`). Nav, hreflang, `og:locale`, the sitemap and the
+language switcher all derive from that list, so no markup or code changes.
+Untranslated pages are simply not built for that language and drop out of the
+switcher; missing UI strings fall back per key.
+
+- `npm run i18n:check` - per language: missing pages, missing strings, pages awaiting review
+- `npm run i18n:new -- <code>` - scaffold a new language
 
 ## Tech
 
