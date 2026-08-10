@@ -2,10 +2,10 @@
 // import paths. In markdown: ![Alt text](sykkel). In frontmatter: image: jenter
 
 export const media = {
-  hero: 'rovar-frontpage.png',
+  hero: 'rovar-frontpage.jpg',
   jenter: 'Jenter_forside_frontpage-1.jpg',
   hurtigbat: 'Bilde-Fjorled-JMT-1-e1593513975750.jpg',
-  hotell: 'Hotell_Mork_frontpage.png',
+  hotell: 'Hotell_Mork_frontpage.jpg',
   suggevagen: 'Suggevagen_frontpage.jpg',
   sykkel: 'Sykkel-500x334.jpg',
   snorkling: 'snorkling-500x333.jpg',
