@@ -8,6 +8,8 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { locales, defaultLocale } from '../src/i18n/locales.js';
 import { pages } from '../src/i18n/pages.js';
+import { catalogIsDraft } from '../src/i18n/ui-core.js';
+import { treeUrl } from '../src/data/site.js';
 
 const contentDir = 'src/content/pages';
 const uiDir = 'src/i18n/ui';
@@ -21,12 +23,15 @@ const quiet = check && !process.argv.includes('--verbose');
 
 const contentKeys = pages.map((p) => p.key);
 
+// _meta is catalog metadata, not a string to translate: out of the counts.
 const flatten = (obj, prefix = '') =>
-  Object.entries(obj).flatMap(([k, v]) =>
-    v && typeof v === 'object' && !Array.isArray(v)
-      ? flatten(v, `${prefix}${k}.`)
-      : [`${prefix}${k}`]
-  );
+  Object.entries(obj)
+    .filter(([k]) => !k.startsWith('_'))
+    .flatMap(([k, v]) =>
+      v && typeof v === 'object' && !Array.isArray(v)
+        ? flatten(v, `${prefix}${k}.`)
+        : [`${prefix}${k}`]
+    );
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const referenceKeys = flatten(readJson(`${uiDir}/${defaultLocale}.json`));
@@ -48,9 +53,12 @@ const stats = locales.map(({ code, endonym, root }) => {
 
   const catalogPath = `${uiDir}/${code}.json`;
   let missingKeys = referenceKeys;
+  let catalogDraft = false;
   if (existsSync(catalogPath)) {
-    const own = new Set(flatten(readJson(catalogPath)));
+    const catalog = readJson(catalogPath);
+    const own = new Set(flatten(catalog));
     missingKeys = referenceKeys.filter((k) => !own.has(k));
+    catalogDraft = catalogIsDraft({ [code]: catalog }, code);
   } else {
     notes.push('no UI catalog');
     broken = true;
@@ -64,8 +72,10 @@ const stats = locales.map(({ code, endonym, root }) => {
     endonym,
     prefix: root ? 'none (root)' : `\`/${code}/\``,
     present,
+    root,
     missingPages,
     drafts,
+    catalogDraft,
     missingKeys,
     keysDone: referenceKeys.length - missingKeys.length,
     // Floor, so an incomplete language never rounds up to a full bar or 100%.
@@ -84,6 +94,7 @@ if (!quiet) {
     if (s.missingKeys.length && s.missingKeys.length <= 12)
       console.log(`     missing strings: ${s.missingKeys.join(', ')}`);
     if (s.drafts.length) console.log(`     awaiting review: ${s.drafts.join(', ')}`);
+    if (s.catalogDraft) console.log(`     awaiting review: UI catalog (${s.code}.json)`);
     for (const note of s.notes) console.log(`     ${note}`);
   }
 
@@ -99,22 +110,33 @@ if (write || check) {
     return '█'.repeat(filled) + '░'.repeat(10 - filled);
   };
 
+  // The default language is the source text, not a translation: it gets no
+  // "improve this" link, because the page copy is the original rovar.no wording.
+  const contribute = (s) =>
+    s.root
+      ? 'source text'
+      : `[pages](${treeUrl(`${contentDir}/${s.code}`)}) · ` +
+        `[UI](${treeUrl(`${uiDir}/${s.code}.json`)})`;
+
   const rows = stats.map(
     (s) =>
       `| ${s.endonym} | ${s.prefix} | \`${bar(s.percent)}\` ${s.percent}% |` +
-      ` ${s.present.length}/${contentKeys.length} | ${s.keysDone}/${referenceKeys.length} |`
+      ` ${s.present.length}/${contentKeys.length} | ${s.keysDone}/${referenceKeys.length} |` +
+      ` ${contribute(s)} |`
   );
 
-  const reviewing = stats.filter((s) => s.drafts.length);
-  const footnotes = reviewing.map(
-    (s) =>
-      `\n${s.endonym}: ${s.drafts.length} machine-translated ` +
-      `${s.drafts.length === 1 ? 'page' : 'pages'} awaiting review.`
-  );
+  const reviewing = stats.filter((s) => s.drafts.length || s.catalogDraft);
+  const footnotes = reviewing.map((s) => {
+    const parts = [];
+    if (s.drafts.length)
+      parts.push(`${s.drafts.length} ${s.drafts.length === 1 ? 'page' : 'pages'}`);
+    if (s.catalogDraft) parts.push('the UI catalog');
+    return `\n${s.endonym}: ${parts.join(' and ')} machine-translated, awaiting review.`;
+  });
 
   const table = [
-    '| Language | Prefix | Progress | Pages | UI strings |',
-    '|---|---|---|---|---|',
+    '| Language | Prefix | Progress | Pages | UI strings | Improve |',
+    '|---|---|---|---|---|---|',
     ...rows,
   ].join('\n');
 

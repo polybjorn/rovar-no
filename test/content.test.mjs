@@ -20,12 +20,16 @@ const filesFor = (code) =>
         .map((f) => f.replace(/\.md$/, ''))
     : [];
 
+// _-prefixed keys are catalog metadata (_meta.machineTranslated), not strings,
+// so they are not measured against the default language.
 const flatten = (obj, prefix = '') =>
-  Object.entries(obj).flatMap(([k, v]) =>
-    v && typeof v === 'object' && !Array.isArray(v)
-      ? flatten(v, `${prefix}${k}.`)
-      : [`${prefix}${k}`]
-  );
+  Object.entries(obj)
+    .filter(([k]) => !k.startsWith('_'))
+    .flatMap(([k, v]) =>
+      v && typeof v === 'object' && !Array.isArray(v)
+        ? flatten(v, `${prefix}${k}.`)
+        : [`${prefix}${k}`]
+    );
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 

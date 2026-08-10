@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { merge, fill, resolveCatalog } from '../src/i18n/ui-core.js';
+import { merge, fill, resolveCatalog, catalogIsDraft } from '../src/i18n/ui-core.js';
 import { defaultLocale } from '../src/i18n/locales.js';
 
 const catalogs = {
@@ -19,6 +19,7 @@ const catalogs = {
     board: { loading: 'Loading' },
   },
   de: {
+    _meta: { machineTranslated: true },
     nav: { home: 'Start' },
   },
 };
@@ -84,6 +85,16 @@ test('placeholders are filled inside nested objects and arrays', () => {
 
 test('non-string values survive filling untouched', () => {
   assert.deepEqual(fill({ n: 3, t: true, z: null }, facts), { n: 3, t: true, z: null });
+});
+
+test('catalog metadata never reaches the resolved strings', () => {
+  assert.equal(resolveCatalog(catalogs, 'de', facts)._meta, undefined);
+});
+
+test('the draft flag is the catalog own, not inherited down the chain', () => {
+  assert.equal(catalogIsDraft(catalogs, 'de'), true);
+  assert.equal(catalogIsDraft(catalogs, 'en'), false, 'a reviewed catalog stays reviewed');
+  assert.equal(catalogIsDraft(catalogs, 'fr'), false, 'no catalog at all is not a draft');
 });
 
 test('resolving a catalog does not mutate the catalogs it was given', () => {

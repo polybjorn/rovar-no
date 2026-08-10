@@ -6,3 +6,8 @@ export const repo = { owner: 'polybjorn', name: 'rovar-no', branch: 'main' };
 
 export const editUrl = (path) =>
   `https://github.com/${repo.owner}/${repo.name}/edit/${repo.branch}/${path}`;
+
+// Same idea one level up: a folder to browse and edit from, for the README's
+// per-language contribute links.
+export const treeUrl = (path) =>
+  `https://github.com/${repo.owner}/${repo.name}/tree/${repo.branch}/${path}`;

@@ -24,13 +24,27 @@ export function fill(node, facts = {}) {
   return node;
 }
 
+// Keys starting with _ are catalog metadata, not strings: they carry no
+// translation and must never reach the markup or the string counts.
+const stripMeta = (catalog) =>
+  Object.fromEntries(Object.entries(catalog).filter(([k]) => !k.startsWith('_')));
+
 // Strings for a language, with any key it is missing filled in from the
 // fallback chain. A half-translated catalog renders, it does not crash.
 export function resolveCatalog(catalogs, code, facts = {}) {
   return fill(
-    lookupOrder(code)
-      .reverse()
-      .reduce((acc, c) => merge(acc, catalogs[c]), catalogs[defaultLocale]),
+    stripMeta(
+      lookupOrder(code)
+        .reverse()
+        .reduce((acc, c) => merge(acc, catalogs[c]), catalogs[defaultLocale])
+    ),
     facts
   );
+}
+
+// Whether a language's own UI catalog is still a machine-translated draft.
+// Its own only: the flag says who wrote these strings, so it must not be
+// inherited down the fallback chain the way missing strings are.
+export function catalogIsDraft(catalogs, code) {
+  return catalogs[code]?._meta?.machineTranslated === true;
 }

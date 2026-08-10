@@ -33,11 +33,16 @@ for (const file of readdirSync(`src/content/pages/${from}`).filter((f) => f.ends
   writeFileSync(`${target}/${file}`, marked);
 }
 
-cpSync(`src/i18n/ui/${from}.json`, `src/i18n/ui/${code}.json`);
+// The catalog is copied, not translated, so it starts flagged like the pages.
+const catalog = JSON.parse(readFileSync(`src/i18n/ui/${from}.json`, 'utf8'));
+writeFileSync(
+  `src/i18n/ui/${code}.json`,
+  `${JSON.stringify({ _meta: { machineTranslated: true }, ...catalog }, null, 2)}\n`
+);
 
 console.log(`Copied ${from} -> ${code}:`);
 console.log(`  ${target}/*.md   (marked as drafts awaiting review)`);
-console.log(`  src/i18n/ui/${code}.json`);
+console.log(`  src/i18n/ui/${code}.json   (marked as a draft awaiting review)`);
 console.log('\nAdd to the list in src/i18n/locales.js:');
 console.log(
   `  { code: '${code}', endonym: 'NAME IN ITS OWN LANGUAGE', intl: 'BCP47', og: 'xx_XX', dir: 'ltr' },`

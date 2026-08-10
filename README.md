@@ -14,13 +14,13 @@ Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær i
 
 <!-- i18n-status:start -->
 
-| Language | Prefix | Progress | Pages | UI strings |
-|---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 38/38 |
-| English | `/en/` | `██████████` 100% | 5/5 | 38/38 |
-| Deutsch | `/de/` | `██████████` 100% | 5/5 | 38/38 |
+| Language | Prefix | Progress | Pages | UI strings | Improve |
+|---|---|---|---|---|---|
+| Norsk | none (root) | `██████████` 100% | 5/5 | 38/38 | source text |
+| English | `/en/` | `██████████` 100% | 5/5 | 38/38 | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `██████████` 100% | 5/5 | 38/38 | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
-Deutsch: 5 machine-translated pages awaiting review.
+Deutsch: 5 pages and the UI catalog machine-translated, awaiting review.
 <!-- i18n-status:end -->
 
 Adding a language is one entry in `src/i18n/locales.js`, one UI catalog
