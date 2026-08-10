@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { merge, fill, resolveCatalog, catalogIsDraft } from '../src/i18n/ui-core.js';
+import { merge, fill, resolveCatalog, catalogIsDraft, segments } from '../src/i18n/ui-core.js';
 import { defaultLocale } from '../src/i18n/locales.js';
 
 const catalogs = {
@@ -85,6 +85,39 @@ test('placeholders are filled inside nested objects and arrays', () => {
 
 test('non-string values survive filling untouched', () => {
   assert.deepEqual(fill({ n: 3, t: true, z: null }, facts), { n: 3, t: true, z: null });
+});
+
+test('a sentence with a link is cut into its parts, in the order it was written', () => {
+  assert.deepEqual(segments('Skriv til {{email}} – vi hjelper deg.'), [
+    { text: 'Skriv til ' },
+    { token: 'email' },
+    { text: ' – vi hjelper deg.' },
+  ]);
+});
+
+test('a translator can move the link, and the parts follow', () => {
+  assert.deepEqual(segments('{{link}} (linje 700)'), [
+    { token: 'link' },
+    { text: ' (linje 700)' },
+  ]);
+  assert.deepEqual(segments('(Zeile 700) {{link}}'), [
+    { text: '(Zeile 700) ' },
+    { token: 'link' },
+  ]);
+});
+
+test('a sentence with several links keeps them apart', () => {
+  const parts = segments('Bestill via {{bookingSite}} eller ring {{phone}}.');
+  assert.deepEqual(
+    parts.filter((p) => p.token).map((p) => p.token),
+    ['bookingSite', 'phone']
+  );
+});
+
+test('a sentence with no link is one plain part', () => {
+  assert.deepEqual(segments('Ingen avganger i dag'), [{ text: 'Ingen avganger i dag' }]);
+  assert.deepEqual(segments(''), []);
+  assert.deepEqual(segments(undefined), []);
 });
 
 test('catalog metadata never reaches the resolved strings', () => {

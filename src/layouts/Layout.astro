@@ -13,6 +13,7 @@ import heroImg from '../assets/rovar-frontpage.jpg';
 import { locales, localeInfo, defaultLocale } from '../i18n/locales.js';
 import { pages, pathFor, resolveRoute, localesWithPage } from '../i18n/routes.js';
 import { ui } from '../i18n/ui.js';
+import { segments } from '../i18n/ui-core.js';
 import { facts } from '../data/facts.js';
 
 const { title, description = "Øya utenfor Haugesund", lang = defaultLocale, page = "home" } = Astro.props;
@@ -113,7 +114,11 @@ const pageLocales = localesWithPage(page);
   </main>
 
   <footer class="footer">
-    <p>{t.chrome.footerPre} <a href={`mailto:${facts.oytingEmail}`}>{facts.oytingEmail}</a> {t.chrome.footerPost}</p>
+    <p>{segments(t.chrome.footer).map((part) =>
+      part.token === 'email'
+        ? <a href={`mailto:${facts.oytingEmail}`}>{facts.oytingEmail}</a>
+        : part.text
+    )}</p>
   </footer>
 
   <script src="../scripts/nav.js"></script>

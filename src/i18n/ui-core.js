@@ -42,6 +42,22 @@ export function resolveCatalog(catalogs, code, facts = {}) {
   );
 }
 
+// A few UI strings have a link in the middle of a sentence. They are stored as
+// one whole sentence with a {{token}} where the link goes, never as a "Pre" and
+// a "Post" fragment: fragments hardcode the default language's word order into
+// every other language, and a translator cannot move a link that is pinned by
+// the markup. segments() cuts the sentence at its tokens so the caller can
+// render its own element in each gap, wherever the translator put it.
+export function segments(template = '') {
+  return template
+    .split(/(\{\{\w+\}\})/)
+    .filter((piece) => piece !== '')
+    .map((piece) => {
+      const token = piece.match(/^\{\{(\w+)\}\}$/);
+      return token ? { token: token[1] } : { text: piece };
+    });
+}
+
 // Whether a language's own UI catalog is still a machine-translated draft.
 // Its own only: the flag says who wrote these strings, so it must not be
 // inherited down the fallback chain the way missing strings are.

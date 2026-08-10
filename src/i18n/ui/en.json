@@ -9,8 +9,7 @@
     "skipLink": "Skip to content",
     "menuLabel": "Menu",
     "langLabel": "Choose language",
-    "footerPre": "Would you like to get in touch with someone on Røvær? Send an email to",
-    "footerPost": "– and we will help you as best we can."
+    "footer": "Would you like to get in touch with someone on Røvær? Send an email to {{email}} – and we will help you as best we can."
   },
   "translation": {
     "notice": "This page was machine translated and has not been proofread.",
@@ -26,12 +25,12 @@
     "nextDay": "Next day",
     "pickDate": "Choose date",
     "boatAlt": "The express boat Fjordled (Kolumbus)",
-    "legendPre": "= May require advance booking. Book via",
-    "legendPost": "or call {{kolumbusPhone}}.",
-    "creditPre": "Real-time data from",
-    "creditPost": ", updated every minute.",
-    "kolumbusLabel": "View schedules on Kolumbus",
-    "kolumbusTail": "(line 700)",
+    "legend": "= May require advance booking. Book via {{bookingSite}} or call {{kolumbusPhone}}.",
+    "credit": "Real-time data from {{entur}}, updated every minute.",
+    "kolumbus": {
+      "label": "View schedules on Kolumbus",
+      "line": "{{link}} (line 700)"
+    },
     "board": {
       "loading": "Loading departures...",
       "empty": "No departures today",
@@ -39,7 +38,7 @@
       "lastNotice": "Last departure – this is often a booking route.",
       "bookingNotice": "Booking required. Book at {{kolumbusBookingHost}} or call {{kolumbusPhone}}.",
       "now": "now",
-      "inPre": "in",
+      "relative": "in {{time}}",
       "hourUnit": "h",
       "minUnit": "min",
       "prevMonth": "Previous month",

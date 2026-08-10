@@ -9,8 +9,7 @@
     "skipLink": "Hopp til innhold",
     "menuLabel": "Meny",
     "langLabel": "Velg språk",
-    "footerPre": "Har du lyst til å komme i kontakt med noen på Røvær? Send en e-post til",
-    "footerPost": "– så skal vi hjelpe deg så godt vi kan."
+    "footer": "Har du lyst til å komme i kontakt med noen på Røvær? Send en e-post til {{email}} – så skal vi hjelpe deg så godt vi kan."
   },
   "translation": {
     "notice": "Denne siden er maskinoversatt og ikke gjennomlest.",
@@ -26,12 +25,12 @@
     "nextDay": "Neste dag",
     "pickDate": "Velg dato",
     "boatAlt": "Hurtigbåten Fjordled (Kolumbus)",
-    "legendPre": "= Kan kreve forhåndsbestilling. Bestill via",
-    "legendPost": "eller ring {{kolumbusPhone}}.",
-    "creditPre": "Sanntidsdata fra",
-    "creditPost": ", oppdateres hvert minutt.",
-    "kolumbusLabel": "Se ruter på Kolumbus",
-    "kolumbusTail": "(linje 700)",
+    "legend": "= Kan kreve forhåndsbestilling. Bestill via {{bookingSite}} eller ring {{kolumbusPhone}}.",
+    "credit": "Sanntidsdata fra {{entur}}, oppdateres hvert minutt.",
+    "kolumbus": {
+      "label": "Se ruter på Kolumbus",
+      "line": "{{link}} (linje 700)"
+    },
     "board": {
       "loading": "Henter avganger...",
       "empty": "Ingen avganger i dag",
@@ -39,7 +38,7 @@
       "lastNotice": "Siste avgang – dette er ofte en bestillingsrute.",
       "bookingNotice": "Bestillingsrute. Bestill via {{kolumbusBookingHost}} eller ring {{kolumbusPhone}}.",
       "now": "nå",
-      "inPre": "om",
+      "relative": "om {{time}}",
       "hourUnit": "t",
       "minUnit": "min",
       "prevMonth": "Forrige måned",

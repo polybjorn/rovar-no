@@ -301,7 +301,7 @@ test('an empty situation summary is dropped rather than rendered blank', () => {
 
 // --- presentation -----------------------------------------------------------
 
-const cd = { now: 'nå', inPre: 'om', minUnit: 'min', hourUnit: 't' };
+const cd = { now: 'nå', relative: 'om {{time}}', minUnit: 'min', hourUnit: 't' };
 
 test('formatCountdown reads naturally at every scale', () => {
   assert.equal(formatCountdown(0, cd), 'nå');
@@ -311,6 +311,12 @@ test('formatCountdown reads naturally at every scale', () => {
   assert.equal(formatCountdown(60, cd), 'om 1 t');
   assert.equal(formatCountdown(95, cd), 'om 1 t 35 min');
   assert.equal(formatCountdown(120, cd), 'om 2 t');
+});
+
+test('the countdown sentence can put the duration anywhere the language wants', () => {
+  const trailing = { ...cd, relative: '{{time}} igjen' };
+  assert.equal(formatCountdown(12, trailing), '12 min igjen');
+  assert.equal(formatCountdown(95, trailing), '1 t 35 min igjen');
 });
 
 test('urgency escalates at 30 and 10 minutes', () => {

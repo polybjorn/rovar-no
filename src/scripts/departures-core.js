@@ -160,12 +160,19 @@ export function noticeState({ call, hasBooking, isLast, strings = {}, bookingRe 
 
 // --- presentation -----------------------------------------------------------
 
+// The duration is built from the units, then dropped into the language's own
+// sentence: "om {{time}}" puts it after, another language can put it first.
 export function formatCountdown(mins, s = {}) {
   if (mins <= 0) return s.now;
-  if (mins < 60) return `${s.inPre} ${mins} ${s.minUnit}`;
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  return m ? `${s.inPre} ${h} ${s.hourUnit} ${m} ${s.minUnit}` : `${s.inPre} ${h} ${s.hourUnit}`;
+  const time =
+    mins < 60
+      ? `${mins} ${s.minUnit}`
+      : m
+        ? `${h} ${s.hourUnit} ${m} ${s.minUnit}`
+        : `${h} ${s.hourUnit}`;
+  return (s.relative ?? '{{time}}').replace('{{time}}', time);
 }
 
 // Colour is redundant with the wording, never the only signal.
