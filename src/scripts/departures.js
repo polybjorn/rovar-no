@@ -267,6 +267,8 @@ function setDate() {
   }
 }
 
+let lastLoad = 0;
+
 async function loadAll() {
   setDate();
   ["from-rovar", "from-haugesund"].forEach(id => {
@@ -284,6 +286,7 @@ async function loadAll() {
     ]);
     render("from-rovar", filterRoute(rovar, "to-haugesund"));
     render("from-haugesund", filterRoute(haugesund, "to-rovar"));
+    lastLoad = Date.now();
   } catch (err) {
     ["from-rovar", "from-haugesund"].forEach(id => {
       const el = document.getElementById(id);
@@ -441,13 +444,16 @@ document.addEventListener("click", (e) => {
   if (!e.target.closest(".dep-cal-wrap")) closeCal(false);
 });
 
+const REFRESH_MS = 60000;
+
 loadAll();
 setInterval(() => {
   if (!document.hidden) loadAll();
-}, 60000);
+}, REFRESH_MS);
 
 // Coming back to a backgrounded tab, refresh at once rather than showing a
-// countdown that can be up to a minute stale.
+// countdown that can be up to a minute stale - but only once the rows are
+// older than a refresh cycle, so a quick tab switch does not redraw the board.
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) loadAll();
+  if (!document.hidden && Date.now() - lastLoad >= REFRESH_MS) loadAll();
 });
