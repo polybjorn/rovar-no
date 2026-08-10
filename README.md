@@ -45,8 +45,9 @@ switcher; missing UI strings fall back per key.
 `npm test` runs the status-table check and then the suite (`node --test`, no
 test framework). It covers the departure-board logic in
 `src/scripts/departures-core.js` - Oslo time handling, the Entur fallbacks,
-booking detection, the calendar - plus the language registry, the seasonal
-formatter and the content tree against the page registry.
+booking detection, the calendar - plus routing and the UI string fallback
+(`src/i18n/*-core.js`), the language registry, the seasonal formatter and the
+content tree against the page registry.
 
 The suite runs a second time under `TZ=Pacific/Auckland`: a departure board
 that reads the visitor's own timezone looks correct in Norway and shows the
