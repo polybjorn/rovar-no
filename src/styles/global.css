@@ -39,6 +39,9 @@
 
 html {
   scroll-behavior: smooth;
+  /* Reserve the scrollbar track even on pages short enough not to scroll, so
+     the centred nav does not jump sideways between pages. */
+  scrollbar-gutter: stable;
 }
 
 @media (prefers-reduced-motion: reduce) {
