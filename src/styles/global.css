@@ -22,8 +22,10 @@
   --color-sand-dark: #e8dfd2;
   --color-foam: #ffffff;
   --color-kelp: #2e7d5b;
-  --color-text: #2c3e50;
-  --color-text-light: #5d6d7e;
+  --color-text: #1f2d3a;
+  --color-text-light: #4a5a68;
+  /* Every bit of text on the dark blue surfaces uses this one white. */
+  --color-on-dark: #ffffff;
   --color-border: #d5cfc5;
   --max-width: 960px;
   --nav-height: 3.5rem;
@@ -89,7 +91,7 @@ a:hover {
 }
 
 .nav :focus-visible {
-  outline-color: #fff;
+  outline-color: var(--color-on-dark);
 }
 
 /* Skip link */
@@ -99,7 +101,7 @@ a:hover {
   top: -100%;
   left: 1rem;
   background: var(--color-ocean-dark);
-  color: #fff;
+  color: var(--color-on-dark);
   padding: 0.5rem 1rem;
   border-radius: 0 0 6px 6px;
   z-index: 200;
@@ -152,7 +154,7 @@ a:hover {
 }
 
 .nav-links a {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-on-dark);
   text-decoration: none;
   font-size: 0.9rem;
   padding: 0.4rem 0.75rem;
@@ -162,7 +164,7 @@ a:hover {
 
 .nav-links a:hover,
 .nav-links a[aria-current="page"] {
-  color: #fff;
+  color: var(--color-on-dark);
   background: rgba(255, 255, 255, 0.12);
   text-decoration: none;
 }
@@ -175,7 +177,7 @@ a:hover {
   height: 2.5rem;
   background: none;
   border: none;
-  color: #fff;
+  color: var(--color-on-dark);
   cursor: pointer;
   padding: 0;
 }
@@ -244,7 +246,7 @@ a:hover {
   cursor: pointer;
   list-style: none;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-on-dark);
 }
 
 .lang-menu summary::-webkit-details-marker {
@@ -253,7 +255,7 @@ a:hover {
 
 .lang-menu summary:hover,
 .lang-menu.is-open summary {
-  color: #fff;
+  color: var(--color-on-dark);
   background: rgba(255, 255, 255, 0.12);
 }
 
@@ -290,6 +292,7 @@ a:hover {
 
 .lang-option {
   display: block;
+  color: var(--color-on-dark);
   padding: 0.45rem 0.7rem;
   border-radius: 4px;
   font-size: 0.9rem;
@@ -302,7 +305,7 @@ a.lang-option:hover {
 }
 
 span.lang-option[aria-current="true"] {
-  color: #fff;
+  color: var(--color-on-dark);
   font-weight: 600;
 }
 
@@ -351,7 +354,7 @@ span.lang-option[aria-current="true"] {
   .nav-links a:hover,
   .nav-links a[aria-current="page"] {
     background: transparent;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-on-dark);
   }
 
   .lang-switcher {
@@ -498,7 +501,7 @@ img.section-img {
   background: var(--color-ocean-dark);
   background-size: cover;
   background-position: center;
-  color: #fff;
+  color: var(--color-on-dark);
   text-align: center;
   position: relative;
 }
@@ -518,7 +521,6 @@ img.section-img {
 
 .hero p {
   font-size: 1.15rem;
-  opacity: 0.9;
   max-width: 520px;
   margin: 0 auto;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
@@ -583,13 +585,13 @@ img.section-img {
 
 .footer {
   background: var(--color-ocean-dark);
-  color: #fff;
+  color: var(--color-on-dark);
   text-align: center;
   padding: 2rem 1.5rem;
   font-size: 1rem;
 }
 
 .footer a {
-  color: #fff;
+  color: var(--color-on-dark);
   text-decoration: underline;
 }
