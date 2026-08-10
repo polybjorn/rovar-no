@@ -48,7 +48,7 @@ const langOrder = ['no', 'en', 'de'];
   <meta name="description" content={description}>
   <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`}>
   <link rel="canonical" href={canonical}>
-  <link rel="sitemap" href={`${base}/sitemap-index.xml`}>
+  {!isPreview && <link rel="sitemap" href={`${base}/sitemap-index.xml`}>}
   {isPreview && <meta name="robots" content="noindex">}
   {page === 'home' && <link rel="preload" as="image" href={ogImage.src} />}
   {Object.entries(pageRoutes).map(([l, path]) => (

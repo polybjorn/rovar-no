@@ -2,14 +2,18 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
+// Preview deployment on GitHub Pages. At launch: site back to
+// 'https://rovar.no' and drop `base` (links go through routes/BASE_URL,
+// so no other change is needed). Preview builds also skip the sitemap and
+// carry a noindex meta (Layout.astro), both keyed on this check.
+const site = 'https://polybjorn.github.io';
+const isPreview = !site.includes('rovar.no');
+
 // https://astro.build/config
 export default defineConfig({
-  // Preview deployment on GitHub Pages. At launch: site back to
-  // 'https://rovar.no' and drop `base` (links go through routes/BASE_URL,
-  // so no other change is needed).
-  site: 'https://polybjorn.github.io',
+  site,
   base: '/rovar-no',
-  integrations: [
+  integrations: isPreview ? [] : [
     sitemap({
       filter: (page) => !page.includes('/404'),
       i18n: {
