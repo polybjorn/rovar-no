@@ -31,6 +31,7 @@ switcher; missing UI strings fall back per key.
 
 - `npm run i18n:check` - per language: missing pages, missing strings, pages awaiting review
 - `npm run i18n:check -- --write` - same, and regenerates the table above
+- `npm run i18n:verify` - fails if the table is stale; runs automatically before every build
 - `npm run i18n:new -- <code>` - scaffold a new language
 
 ## Tech
@@ -38,6 +39,14 @@ switcher; missing UI strings fall back per key.
 - [Astro](https://astro.build) (static output, zero JS by default)
 - Vanilla CSS with CSS custom properties
 - [Entur JourneyPlanner API](https://entur.no/) for live departures
+
+## Tests
+
+`npm test` runs the status-table check and then the suite (`node --test`, no
+test framework). It covers the language registry, the seasonal formatter and
+the content tree against the page registry: the failures that would otherwise
+ship as a silently missing page or a string quietly falling back to another
+language. CI runs it before the build.
 
 ## Status
 

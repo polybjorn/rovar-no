@@ -1,5 +1,6 @@
-// npm run i18n:check          report to the terminal
-// npm run i18n:check -- --write  also rewrite the table in README.md
+// npm run i18n:check             report to the terminal
+// npm run i18n:check -- --write  also rewrite the status table in README.md
+// npm run i18n:check -- --check  exit 1 if that table is out of date (CI, prebuild)
 // Reports, per language: which pages are missing, which UI strings are missing,
 // and which pages are still machine-translated drafts. At 15 languages some
 // will always lag; this is what says how far behind they are.
@@ -15,6 +16,8 @@ const startMarker = '<!-- i18n-status:start -->';
 const endMarker = '<!-- i18n-status:end -->';
 
 const write = process.argv.includes('--write');
+const check = process.argv.includes('--check');
+const quiet = check && !process.argv.includes('--verbose');
 
 const contentKeys = pages.map((p) => p.key);
 
@@ -71,24 +74,26 @@ const stats = locales.map(({ code, endonym, root }) => {
   };
 });
 
-for (const s of stats) {
-  const pageCount = `${s.present.length}/${contentKeys.length} pages`;
-  const keyCount = s.missingKeys.length ? `${s.missingKeys.length} UI strings missing` : 'UI complete';
-  console.log(`${s.code}  ${s.endonym.padEnd(12)} ${pageCount.padEnd(12)} ${keyCount}`);
+if (!quiet) {
+  for (const s of stats) {
+    const pageCount = `${s.present.length}/${contentKeys.length} pages`;
+    const keyCount = s.missingKeys.length ? `${s.missingKeys.length} UI strings missing` : 'UI complete';
+    console.log(`${s.code}  ${s.endonym.padEnd(12)} ${pageCount.padEnd(12)} ${keyCount}`);
 
-  if (s.missingPages.length) console.log(`     missing pages: ${s.missingPages.join(', ')}`);
-  if (s.missingKeys.length && s.missingKeys.length <= 12)
-    console.log(`     missing strings: ${s.missingKeys.join(', ')}`);
-  if (s.drafts.length) console.log(`     awaiting review: ${s.drafts.join(', ')}`);
-  for (const note of s.notes) console.log(`     ${note}`);
+    if (s.missingPages.length) console.log(`     missing pages: ${s.missingPages.join(', ')}`);
+    if (s.missingKeys.length && s.missingKeys.length <= 12)
+      console.log(`     missing strings: ${s.missingKeys.join(', ')}`);
+    if (s.drafts.length) console.log(`     awaiting review: ${s.drafts.join(', ')}`);
+    for (const note of s.notes) console.log(`     ${note}`);
+  }
+
+  console.log(
+    '\nMissing pages and strings fall back to the chain in src/i18n/locales.js;' +
+      ' untranslated pages are left out of the language switcher.'
+  );
 }
 
-console.log(
-  '\nMissing pages and strings fall back to the chain in src/i18n/locales.js;' +
-    ' untranslated pages are left out of the language switcher.'
-);
-
-if (write) {
+if (write || check) {
   const bar = (percent) => {
     const filled = Math.floor((percent / 100) * 10);
     return '█'.repeat(filled) + '░'.repeat(10 - filled);
@@ -122,8 +127,21 @@ if (write) {
     process.exit(1);
   }
 
-  writeFileSync(readmePath, readme.replace(pattern, block));
-  console.log(`\nWrote the status table to ${readmePath}`);
+  const updated = readme.replace(pattern, block);
+
+  if (check) {
+    if (updated !== readme) {
+      console.error(
+        `\n${readmePath}: the language status table is out of date.` +
+          ' Run `npm run i18n:check -- --write` and commit the result.'
+      );
+      process.exit(1);
+    }
+    if (!quiet) console.log(`\n${readmePath} status table is up to date`);
+  } else {
+    writeFileSync(readmePath, updated);
+    console.log(`\nWrote the status table to ${readmePath}`);
+  }
 }
 
 process.exit(broken ? 1 : 0);
