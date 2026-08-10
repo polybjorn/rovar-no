@@ -2,4 +2,8 @@ node_modules/
 dist/
 .astro/
 .claude/
+
+# Assistant docs live in the Vault, symlinked in; see the file-placement policy
+/CLAUDE.md
+/reference.md
 .DS_Store
