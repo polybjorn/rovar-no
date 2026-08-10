@@ -183,13 +183,24 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     border: 1px solid var(--color-border);
     border-radius: 10px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s;
   }
 
+  /* [hidden] stays the state the script reads, but collapse it with
+     visibility rather than display so the popup can animate both ways. */
   .dep-cal-pop[hidden] {
-    display: none;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(-0.35rem);
+    transition: opacity 0.18s ease, transform 0.18s ease,
+      visibility 0s linear 0.18s;
   }
 
-  .dep-cal-head {
+  /* The calendar body is built in departures.js, so its elements never carry
+     the scope attribute. Same :global() treatment as the departure rows. */
+
+  .dep-cal-pop :global(.dep-cal-head) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -197,13 +208,13 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     margin-bottom: 0.4rem;
   }
 
-  .dep-cal-month {
+  .dep-cal-pop :global(.dep-cal-month) {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--color-ocean-dark);
   }
 
-  .dep-cal-nav {
+  .dep-cal-pop :global(.dep-cal-nav) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -217,27 +228,27 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     padding: 0;
   }
 
-  .dep-cal-nav:hover:not(:disabled) {
+  .dep-cal-pop :global(.dep-cal-nav:hover:not(:disabled)) {
     background: var(--color-sand);
   }
 
-  .dep-cal-nav:disabled {
+  .dep-cal-pop :global(.dep-cal-nav:disabled) {
     opacity: 0.25;
     cursor: default;
   }
 
-  .dep-cal-nav svg {
+  .dep-cal-pop :global(.dep-cal-nav svg) {
     width: 1rem;
     height: 1rem;
   }
 
-  .dep-cal-grid {
+  .dep-cal-pop :global(.dep-cal-grid) {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 2px;
   }
 
-  .dep-cal-wd {
+  .dep-cal-pop :global(.dep-cal-wd) {
     text-align: center;
     font-size: 0.65rem;
     font-weight: 600;
@@ -246,7 +257,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     padding-bottom: 0.25rem;
   }
 
-  .dep-cal-day {
+  .dep-cal-pop :global(.dep-cal-day) {
     aspect-ratio: 1;
     border: none;
     border-radius: 6px;
@@ -258,20 +269,20 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     padding: 0;
   }
 
-  .dep-cal-day:hover:not(:disabled) {
+  .dep-cal-pop :global(.dep-cal-day:hover:not(:disabled)) {
     background: var(--color-sand);
   }
 
-  .dep-cal-day:disabled {
+  .dep-cal-pop :global(.dep-cal-day:disabled) {
     opacity: 0.25;
     cursor: default;
   }
 
-  .dep-cal-day.is-today:not(.is-selected) {
+  .dep-cal-pop :global(.dep-cal-day.is-today:not(.is-selected)) {
     box-shadow: inset 0 0 0 1px var(--color-ocean);
   }
 
-  .dep-cal-day.is-selected {
+  .dep-cal-pop :global(.dep-cal-day.is-selected) {
     background: var(--color-ocean);
     color: #fff;
     font-weight: 700;
@@ -317,6 +328,15 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     background: var(--color-ocean);
   }
 
+  /* The list is rebuilt on every day change and 60s refresh. Rows fade up in
+     a short stagger so the swap reads as a transition rather than a blink. */
+  @keyframes dep-row-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.35rem);
+    }
+  }
+
   .dep-direction :global(.dep-list) {
     list-style: none;
     padding: 0.25rem 0;
@@ -325,7 +345,15 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   .dep-direction :global(.dep-list li) {
     padding: 0.55rem 1.25rem;
     border-bottom: 1px solid var(--color-sand-dark);
+    animation: dep-row-in 0.35s ease both;
   }
+
+  .dep-direction :global(.dep-list li:nth-child(2)) { animation-delay: 0.04s; }
+  .dep-direction :global(.dep-list li:nth-child(3)) { animation-delay: 0.08s; }
+  .dep-direction :global(.dep-list li:nth-child(4)) { animation-delay: 0.12s; }
+  .dep-direction :global(.dep-list li:nth-child(5)) { animation-delay: 0.16s; }
+  .dep-direction :global(.dep-list li:nth-child(6)) { animation-delay: 0.2s; }
+  .dep-direction :global(.dep-list li:nth-child(n + 7)) { animation-delay: 0.24s; }
 
   .dep-direction :global(.dep-row) {
     display: flex;

@@ -24,13 +24,39 @@ if (toggle && links) {
 
 const langMenu = document.querySelector('.lang-menu');
 if (langMenu) {
+  // The browser hides a closed <details> outright, so its own open/close gives
+  // nothing to transition. Drive it here instead: the attribute opens a frame
+  // ahead of the .is-open class, and outlives its removal by the same 250ms
+  // the collapse takes.
+  const summary = langMenu.querySelector('summary');
+  let closeTimer;
+
+  const openLang = () => {
+    clearTimeout(closeTimer);
+    langMenu.open = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      langMenu.classList.add('is-open');
+    }));
+  };
+
+  const closeLang = () => {
+    if (!langMenu.open) return;
+    langMenu.classList.remove('is-open');
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => { langMenu.open = false; }, 250);
+  };
+
+  summary.addEventListener('click', (e) => {
+    e.preventDefault();
+    langMenu.classList.contains('is-open') ? closeLang() : openLang();
+  });
   document.addEventListener('click', (e) => {
-    if (langMenu.open && !langMenu.contains(e.target)) langMenu.open = false;
+    if (!langMenu.contains(e.target)) closeLang();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && langMenu.open) {
-      langMenu.open = false;
-      langMenu.querySelector('summary').focus();
+      closeLang();
+      summary.focus();
     }
   });
 }
