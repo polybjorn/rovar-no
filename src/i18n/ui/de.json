@@ -10,7 +10,7 @@
     "skipLink": "Zum Inhalt springen",
     "menuLabel": "Menü",
     "langLabel": "Sprache wählen",
-    "footer": "Möchten Sie mit jemandem auf Røvær in Kontakt treten? Schreiben Sie an {{email}} – wir helfen Ihnen so gut wir können."
+    "footer": "Möchten Sie mit jemandem auf Røvær in Kontakt treten? Schreiben Sie an {{emailLink}} – wir helfen Ihnen so gut wir können."
   },
   "translation": {
     "notice": "Diese Seite wurde maschinell übersetzt und nicht Korrektur gelesen.",
@@ -19,22 +19,22 @@
   "notFound": {
     "title": "Seite nicht gefunden",
     "intro": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
-    "homeLink": "Diese Seite existiert nicht – zur deutschen Startseite"
+    "homeLink": "Zur deutschen Startseite"
   },
   "ferry": {
     "prevDay": "Vorheriger Tag",
     "nextDay": "Nächster Tag",
     "pickDate": "Datum wählen",
     "boatAlt": "Das Schnellboot Fjordled (Kolumbus)",
-    "legend": "= Kann Vorausbuchung erfordern. Buchen Sie über {{bookingSite}} oder rufen Sie {{kolumbusPhone}} an.",
-    "credit": "Echtzeitdaten von {{entur}}, jede Minute aktualisiert.",
+    "legend": "= Kann Vorausbuchung erfordern. Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
+    "credit": "Echtzeitdaten von {{enturLink}}, jede Minute aktualisiert.",
     "kolumbus": {
       "label": "Fahrpläne auf Kolumbus",
-      "line": "{{link}} (Linie 700)"
+      "line": "{{kolumbusLink}} (Linie 700)"
     },
     "board": {
       "loading": "Abfahrten werden geladen...",
-      "empty": "Keine Abfahrten heute",
+      "empty": "Keine Abfahrten an diesem Tag",
       "error": "Fahrplandaten konnten nicht geladen werden",
       "lastNotice": "Letzte Abfahrt – oft nur mit Reservierung.",
       "bookingNotice": "Reservierung erforderlich. Buchen Sie über {{kolumbusBookingHost}} oder rufen Sie {{kolumbusPhone}} an.",
@@ -45,12 +45,7 @@
       "prevMonth": "Vorheriger Monat",
       "nextMonth": "Nächster Monat",
       "bookLabel": "Buchen",
-      "infoLabel": "Info",
-      "bookingWords": [
-        "book",
-        "reservierung",
-        "buchen"
-      ]
+      "infoLabel": "Info"
     }
   }
 }

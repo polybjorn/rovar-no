@@ -10,6 +10,8 @@
 
 export const ENTUR_API = 'https://api.entur.io/journey-planner/v3/graphql';
 export const ENTUR_CLIENT = 'polybjorn-rovar-no';
+// Entur's own site, credited under the board.
+export const ENTUR_SITE = 'https://entur.no/';
 export const ROVAR_STOP = 'NSR:StopPlace:25940';
 export const HAUGESUND_STOP = 'NSR:StopPlace:26090';
 export const MAX_DAY_OFFSET = 7;
@@ -129,10 +131,16 @@ export function getRouteInfo(call) {
 
 // --- notices ----------------------------------------------------------------
 
-// Entur's own notices are Norwegian whatever the reader's language, so
-// "bestill" always counts; each language adds its own words.
-export function bookingPattern(bookingWords = []) {
-  return new RegExp(['bestill', ...bookingWords].join('|'), 'i');
+// Entur's notices come back in Norwegian whatever language the page is in, so
+// the words to look for are Norwegian and live here rather than in the UI
+// catalogs: a translator has nothing useful to say about them, and words typed
+// into a catalog would land in a RegExp unescaped.
+const bookingTerms = ['bestill', 'forh[åa]ndsbestilling'];
+
+const escapeRe = (word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export function bookingPattern(extraWords = []) {
+  return new RegExp([...bookingTerms, ...extraWords.map(escapeRe)].join('|'), 'i');
 }
 
 export function situationTexts(serviceJourney) {
@@ -180,11 +188,11 @@ export function urgencyClass(mins) {
   return mins <= 10 ? ' is-imminent' : mins <= 30 ? ' is-soon' : '';
 }
 
+// Without a date this is the plain route link, which is what the page is built
+// with; the script fills the selected day in as the reader moves between days.
 export function kolumbusUrl(dateStr) {
-  return (
-    'https://reise.kolumbus.no/no/search' +
-    `?fromId=${ROVAR_STOP}&toId=${HAUGESUND_STOP}&dateTime=${dateStr}T05:00:00.000Z`
-  );
+  const route = `https://reise.kolumbus.no/no/search?fromId=${ROVAR_STOP}&toId=${HAUGESUND_STOP}`;
+  return dateStr ? `${route}&dateTime=${dateStr}T05:00:00.000Z` : route;
 }
 
 // --- calendar ---------------------------------------------------------------

@@ -229,16 +229,22 @@ test('a zero-length trip reports no duration rather than 0 min', () => {
 // --- notices ----------------------------------------------------------------
 
 const strings = {
-  bookingWords: ['booking', 'reserve'],
   lastNotice: 'Siste avgang',
   bookingNotice: 'Ring for å bestille',
 };
-const re = bookingPattern(strings.bookingWords);
+const re = bookingPattern();
 
-test('the booking pattern matches Norwegian and the language own words', () => {
+test('the booking pattern reads the Norwegian Entur sends whatever the page language', () => {
   assert.ok(re.test('Må bestilles på forhånd'));
-  assert.ok(re.test('Advance BOOKING required'));
+  assert.ok(re.test('Krever forhåndsbestilling'));
+  assert.ok(re.test('Krever forhandsbestilling'), 'and the same without the å');
   assert.ok(!re.test('Går ikke i skoleferien'));
+});
+
+test('an extra word with regex punctuation matches literally instead of throwing', () => {
+  const withPunctuation = bookingPattern(['reserve (kreves)']);
+  assert.ok(withPunctuation.test('Reserve (kreves) i forkant'));
+  assert.ok(!withPunctuation.test('reserve kreves'), 'the parentheses are literal, not a group');
 });
 
 test('bookingArrangements alone marks a departure as bestillingsrute', () => {

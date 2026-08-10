@@ -35,7 +35,7 @@ const depPage = document.querySelector('.dep-page');
 const LANG = depPage?.dataset.lang || 'no';
 const S = JSON.parse(depPage?.dataset.strings || '{}');
 
-const BOOKING_RE = bookingPattern(S.bookingWords);
+const BOOKING_RE = bookingPattern();
 
 let dayOffset = 0;
 

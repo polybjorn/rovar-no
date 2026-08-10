@@ -1,7 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import { ui } from '../i18n/ui.js';
-import { segments } from '../i18n/ui-core.js';
+import Sentence from './Sentence.astro';
+import { kolumbusUrl, ENTUR_SITE } from '../scripts/departures-core.js';
 import { defaultLocale, localeInfo } from '../i18n/locales.js';
 import { facts } from '../data/facts.js';
 import boatImg from '../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
@@ -60,25 +61,35 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
 
   <p class="dep-booking">
     <svg class="dep-booking-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>
-    {segments(t.legend).map((part) =>
-      part.token === 'bookingSite'
-        ? <a href={facts.kolumbusBookingUrl} target="_blank" rel="noopener">{facts.kolumbusBookingHost}</a>
-        : part.text
-    )}
+    <Sentence
+      text={t.legend}
+      links={{
+        bookingSiteLink: {
+          href: facts.kolumbusBookingUrl,
+          label: facts.kolumbusBookingHost,
+          external: true,
+        },
+      }}
+    />
   </p>
 
   <p class="dep-credit">
-    {segments(t.credit).map((part) =>
-      part.token === 'entur'
-        ? <a href="https://entur.no/" target="_blank" rel="noopener">Entur</a>
-        : part.text
-    )}
+    <Sentence
+      text={t.credit}
+      links={{ enturLink: { href: ENTUR_SITE, label: 'Entur', external: true } }}
+    />
     <span class="dep-kolumbus-sep">|</span>
-    {segments(t.kolumbus.line).map((part) =>
-      part.token === 'link'
-        ? <a id="kolumbus-link" href="https://reise.kolumbus.no/no/search?fromId=NSR:StopPlace:25940&toId=NSR:StopPlace:26090" target="_blank" rel="noopener">{t.kolumbus.label}</a>
-        : part.text
-    )}
+    <Sentence
+      text={t.kolumbus.line}
+      links={{
+        kolumbusLink: {
+          href: kolumbusUrl(),
+          label: t.kolumbus.label,
+          id: 'kolumbus-link',
+          external: true,
+        },
+      }}
+    />
   </p>
 </div>
 
@@ -599,7 +610,8 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     .dep-kolumbus-sep {
       display: none;
     }
-    .dep-credit a:last-child::before {
+    /* The links come from Sentence.astro, so they carry no scope attribute. */
+    .dep-credit :global(a:last-child)::before {
       content: "\A";
       white-space: pre;
     }
