@@ -349,7 +349,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
      identical everywhere. */
   .dep-header {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: center;
     gap: 0.45rem;
     padding: 0.85rem 1.25rem;
@@ -360,10 +360,15 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     background: var(--color-ocean);
   }
 
+  /* An SVG has no baseline of its own, so flexbox aligns its bottom edge to
+     the text baseline. Barlow's digits and caps stand 0.7em tall, so their
+     optical centre is 0.35em up: dropping a 1em box by 0.15em puts the arrow
+     on that centre instead of floating above it. */
   .dep-header-arrow {
     width: 1em;
     height: 1em;
     flex: none;
+    transform: translateY(0.15em);
   }
 
   /* The list is rebuilt on first load, on a day change and on every 60s
@@ -503,14 +508,17 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     color: var(--color-text);
   }
 
-  /* Same reason as the header arrow: drawn, not typed. Centred on the row
-     rather than baseline-aligned, since an SVG has no text baseline. */
+  /* Same reason as the header arrow: drawn, not typed. It carries the same
+     font-size as the time beside it, so it grows with the next departure's
+     larger type without a second size to keep in step. */
   .dep-direction :global(.dep-arrow) {
-    width: 0.85em;
-    height: 0.85em;
+    width: 1em;
+    height: 1em;
     flex: none;
-    align-self: center;
+    font-size: 1.05rem;
     color: var(--color-text-light);
+    align-self: baseline;
+    transform: translateY(0.15em);
   }
 
   .dep-direction :global(.dep-arr) {
@@ -624,8 +632,16 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     font-weight: 700;
   }
 
+  /* The next departure shows the whole crossing at the larger size, arrival
+     and arrow included, so the pair reads as one time span. */
   .dep-direction :global(.next .dep-arr) {
     color: var(--color-text);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .dep-direction :global(.next .dep-arrow) {
+    font-size: 1.25rem;
   }
 
   .dep-direction :global(.dep-loading),
