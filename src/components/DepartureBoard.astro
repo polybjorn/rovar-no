@@ -428,7 +428,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   .dep-direction :global(.dep-deadline-row) {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.3rem;
     padding-top: 0.15rem;
     padding-bottom: 0.15rem;
     font-size: 0.8rem;
@@ -499,6 +499,14 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     gap: 0.15rem 0.3rem;
     min-width: 0;
     flex: 1 1 0;
+  }
+
+  /* The departure time sits in a column wide enough for HH:MM at the next
+     departure's larger type, so every arrow - and the deadline row's clock,
+     which shares the column - starts at the same x down the whole list. */
+  .dep-direction :global(.dep-time),
+  .dep-direction :global(.dep-deadline-time) {
+    min-width: 3.45rem;
   }
 
   .dep-direction :global(.dep-time) {
