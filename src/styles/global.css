@@ -3,7 +3,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../assets/fonts/barlow-400.woff2') format('woff2');
+  src: url('../assets/fonts/barlow-regular.woff2') format('woff2');
 }
 
 /* One Bold face covers the range, so the 600 rules and the 700 ones are both an
