@@ -6,16 +6,15 @@
   src: url('../assets/fonts/barlow-400.woff2') format('woff2');
 }
 
-/* barlow-600.woff2 is in fact Barlow Bold (usWeightClass 700). Claiming the
-   600-700 range makes both the 600 rules and the 700 ones an exact match, so no
-   engine ever falls back to synthetic bold and advance widths stay stable - the
-   departure board sizes its clock column from them. */
+/* One Bold face covers the range, so the 600 rules and the 700 ones are both an
+   exact match and no engine falls back to synthetic bold - that keeps advance
+   widths stable, which the departure board sizes its clock column from. */
 @font-face {
   font-family: 'Barlow';
   font-style: normal;
   font-weight: 600 700;
   font-display: swap;
-  src: url('../assets/fonts/barlow-600.woff2') format('woff2');
+  src: url('../assets/fonts/barlow-bold.woff2') format('woff2');
 }
 
 :root {
