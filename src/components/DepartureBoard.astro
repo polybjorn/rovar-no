@@ -352,13 +352,21 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     background: var(--color-ocean);
   }
 
-  /* The list is rebuilt on every day change and 60s refresh. Rows fade up in
-     a short stagger so the swap reads as a transition rather than a blink. */
+  /* The list is rebuilt on first load, on a day change and on every 60s
+     refresh, but only the first two are a new board: those get the staggered
+     fade up (.is-fresh). A refresh that lands on the same rows must not move
+     anything, so it animates nothing; a row whose content actually changed
+     (a new time, a countdown tick, a departure that has just passed) gets a
+     plain fade of its own (.is-changed), no stagger, no travel. */
   @keyframes dep-row-in {
     from {
       opacity: 0;
       transform: translateY(0.35rem);
     }
+  }
+
+  @keyframes dep-row-change {
+    from { opacity: 0.15; }
   }
 
   .dep-direction :global(.dep-list) {
@@ -369,15 +377,22 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   .dep-direction :global(.dep-list li) {
     padding: 0.55rem 1.25rem;
     border-bottom: 1px solid var(--color-sand-dark);
+  }
+
+  .dep-direction :global(.dep-list.is-fresh li) {
     animation: dep-row-in 0.35s ease both;
   }
 
-  .dep-direction :global(.dep-list li:nth-child(2)) { animation-delay: 0.04s; }
-  .dep-direction :global(.dep-list li:nth-child(3)) { animation-delay: 0.08s; }
-  .dep-direction :global(.dep-list li:nth-child(4)) { animation-delay: 0.12s; }
-  .dep-direction :global(.dep-list li:nth-child(5)) { animation-delay: 0.16s; }
-  .dep-direction :global(.dep-list li:nth-child(6)) { animation-delay: 0.2s; }
-  .dep-direction :global(.dep-list li:nth-child(n + 7)) { animation-delay: 0.24s; }
+  .dep-direction :global(.dep-list li.is-changed) {
+    animation: dep-row-change 0.3s ease both;
+  }
+
+  .dep-direction :global(.dep-list.is-fresh li:nth-child(2)) { animation-delay: 0.04s; }
+  .dep-direction :global(.dep-list.is-fresh li:nth-child(3)) { animation-delay: 0.08s; }
+  .dep-direction :global(.dep-list.is-fresh li:nth-child(4)) { animation-delay: 0.12s; }
+  .dep-direction :global(.dep-list.is-fresh li:nth-child(5)) { animation-delay: 0.16s; }
+  .dep-direction :global(.dep-list.is-fresh li:nth-child(6)) { animation-delay: 0.2s; }
+  .dep-direction :global(.dep-list.is-fresh li:nth-child(n + 7)) { animation-delay: 0.24s; }
 
   .dep-direction :global(.dep-row) {
     display: flex;
@@ -403,7 +418,10 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     background: color-mix(in srgb, var(--color-warn) 6%, transparent);
   }
 
+  /* The time reads at the same size as a departure time, so the clock column
+     lines up down the whole list; only the label stays small. */
   .dep-direction :global(.dep-deadline-time) {
+    font-size: 1.05rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
   }

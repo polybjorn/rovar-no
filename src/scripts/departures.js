@@ -68,11 +68,17 @@ function selectedDate() {
   return toOsloDate(dateAtOffset(dayOffset));
 }
 
-function render(containerId, calls) {
+// Last markup rendered per direction, keyed by row, so a 60s refresh can tell
+// a row that changed from one that is simply being redrawn. Cleared whenever
+// the board is wiped (empty day, error), so the next list counts as new.
+const prevRows = new Map();
+
+function render(containerId, calls, fresh) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   if (!calls.length) {
+    prevRows.delete(containerId);
     container.innerHTML = `<div class="dep-empty">${esc(S.empty)}</div>`;
     return;
   }
@@ -152,23 +158,40 @@ function render(containerId, calls) {
 
   // A deadline row is greyed once it is past, exactly like a departure that has
   // already sailed: same timeline, same way of showing a moment has gone.
-  const items = timeline(rows)
-    .map((row) => {
-      if (row.type === 'departure') return rows[row.index].html;
-      const dep = rows[row.forIndex];
-      const gone = dayOffset === 0 && row.minutes < nowMinutes;
-      const label = (S.bookingDeadlineRow ?? '{{time}}').replace('{{time}}', dep.time);
-      return `<li class="dep-deadline-row${gone ? ' passed' : ''}">
+  const items = timeline(rows).map((row) => {
+    if (row.type === 'departure') {
+      const dep = rows[row.index];
+      return { key: `dep-${dep.time}`, html: dep.html };
+    }
+    const dep = rows[row.forIndex];
+    const gone = dayOffset === 0 && row.minutes < nowMinutes;
+    const label = (S.bookingDeadlineRow ?? '{{time}}').replace('{{time}}', dep.time);
+    return {
+      key: `dl-${dep.time}`,
+      html: `<li class="dep-deadline-row${gone ? ' passed' : ''}">
       <span class="dep-deadline-time">${esc(dep.deadlineText)}</span>
       ${clockIcon}<span class="dep-deadline-label">${esc(label)}</span>
-    </li>`;
-    })
-    .join('');
+    </li>`,
+    };
+  });
 
   const openIds = new Set(
     [...container.querySelectorAll('.dep-detail.open')].map(el => el.id)
   );
-  container.innerHTML = `<ul class="dep-list">${items}</ul>`;
+  const previous = prevRows.get(containerId);
+  container.innerHTML = `<ul class="dep-list">${items.map(i => i.html).join('')}</ul>`;
+
+  const list = container.querySelector('.dep-list');
+  if (fresh || !previous) {
+    list.classList.add('is-fresh');
+  } else {
+    const lis = list.children;
+    items.forEach((item, i) => {
+      if (previous.get(item.key) !== item.html) lis[i].classList.add('is-changed');
+    });
+  }
+  prevRows.set(containerId, new Map(items.map(i => [i.key, i.html])));
+
   const setOpen = (detail, isOpen) => {
     detail.classList.toggle('open', isOpen);
     detail.closest('li').querySelectorAll('.dep-notice').forEach(b =>
@@ -209,7 +232,9 @@ function setDate() {
 
 let lastLoad = 0;
 
-async function loadAll() {
+// fresh: a new board (first load, day change) animates in. A background
+// refresh passes false and only the rows that changed move.
+async function loadAll(fresh = false) {
   setDate();
   ["from-rovar", "from-haugesund"].forEach(id => {
     const el = document.getElementById(id);
@@ -225,11 +250,12 @@ async function loadAll() {
       fetchDepartures(ROVAR_STOP, startTime),
       fetchDepartures(HAUGESUND_STOP, startTime)
     ]);
-    render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate));
-    render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate));
+    render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh);
+    render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh);
     lastLoad = Date.now();
   } catch (err) {
     ["from-rovar", "from-haugesund"].forEach(id => {
+      prevRows.delete(id);
       const el = document.getElementById(id);
       if (el) el.innerHTML = `<div class="dep-error">${esc(S.error)}</div>`;
     });
@@ -237,10 +263,10 @@ async function loadAll() {
 }
 
 document.getElementById("dep-prev")?.addEventListener("click", () => {
-  if (dayOffset > 0) { dayOffset--; loadAll(); }
+  if (dayOffset > 0) { dayOffset--; loadAll(true); }
 });
 document.getElementById("dep-next")?.addEventListener("click", () => {
-  if (dayOffset < MAX_DAY_OFFSET) { dayOffset++; loadAll(); }
+  if (dayOffset < MAX_DAY_OFFSET) { dayOffset++; loadAll(true); }
 });
 
 // Hand-rolled month grid rather than <input type="date">: the native picker
@@ -322,7 +348,7 @@ document.getElementById("dep-cal-pop")?.addEventListener("click", (e) => {
   if (day && !day.disabled) {
     dayOffset = Math.min(MAX_DAY_OFFSET, Math.max(0, offsetOf(day.dataset.date)));
     closeCal(true);
-    loadAll();
+    loadAll(true);
   }
 });
 
@@ -336,7 +362,7 @@ document.addEventListener("click", (e) => {
 
 const REFRESH_MS = 60000;
 
-loadAll();
+loadAll(true);
 setInterval(() => {
   if (!document.hidden) loadAll();
 }, REFRESH_MS);
