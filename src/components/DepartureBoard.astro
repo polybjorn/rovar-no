@@ -50,11 +50,11 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
 
   <div class="dep-columns">
     <section class="dep-direction dep-to-rovar" aria-labelledby="dep-header-to-rovar">
-      <h2 class="dep-header" id="dep-header-to-rovar">Haugesund → Røvær</h2>
+      <h2 class="dep-header" id="dep-header-to-rovar">Haugesund<svg class="dep-header-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Røvær</h2>
       <div id="from-haugesund"></div>
     </section>
     <section class="dep-direction dep-to-haugesund" aria-labelledby="dep-header-to-haugesund">
-      <h2 class="dep-header" id="dep-header-to-haugesund">Røvær → Haugesund</h2>
+      <h2 class="dep-header" id="dep-header-to-haugesund">Røvær<svg class="dep-header-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Haugesund</h2>
       <div id="from-rovar"></div>
     </section>
   </div>
@@ -343,13 +343,27 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     overflow: hidden;
   }
 
+  /* Arrows are drawn, never typed: Barlow carries no U+2192, so a text arrow
+     is rendered by whatever fallback font the device picks and lands on a
+     different baseline on every platform. An inline SVG sized in em is
+     identical everywhere. */
   .dep-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
     padding: 0.85rem 1.25rem;
     font-weight: 600;
     font-size: 1rem;
     color: var(--color-on-dark);
     text-align: center;
     background: var(--color-ocean);
+  }
+
+  .dep-header-arrow {
+    width: 1em;
+    height: 1em;
+    flex: none;
   }
 
   /* The list is rebuilt on first load, on a day change and on every 60s
@@ -489,9 +503,14 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     color: var(--color-text);
   }
 
+  /* Same reason as the header arrow: drawn, not typed. Centred on the row
+     rather than baseline-aligned, since an SVG has no text baseline. */
   .dep-direction :global(.dep-arrow) {
+    width: 0.85em;
+    height: 0.85em;
+    flex: none;
+    align-self: center;
     color: var(--color-text-light);
-    font-size: 0.85rem;
   }
 
   .dep-direction :global(.dep-arr) {
