@@ -61,6 +61,8 @@ Det er GRATIS å besøke visningssenteret! Besøk nettsiden
 
 ## Visningstur til laksemerd
 
+![Guide forteller til gjestene i RIB-en ved laksemerden](laksemerd)
+
 Vi arrangerer visningstur i RIB ut til laksemerdene hver dag i sommer
 frem til {{end}}. Avgang kl. {{ribDepartures}}. Varighet ca. 45 min,
 dette er inkludert påkledning.

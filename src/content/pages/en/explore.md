@@ -60,6 +60,8 @@ Visiting the centre is FREE! Visit the website
 
 ## RIB tour to the salmon pens
 
+![A guide talks to the guests in the RIB alongside the salmon pen](laksemerd)
+
 Every day this summer until {{end}}, a RIB boat tour takes visitors
 out to the salmon pens. Departures at {{ribDepartures}}. Duration about
 45 minutes, including getting dressed for the trip.

@@ -61,6 +61,8 @@ Der Besuch des Zentrums ist KOSTENLOS! Besuchen Sie die Website
 
 ## RIB-Tour zu den Lachsgehegen
 
+![Ein Guide spricht zu den Gästen im RIB am Lachsgehege](laksemerd)
+
 Diesen Sommer fährt bis zum {{end}} täglich eine RIB-Bootstour
 hinaus zu den Lachsgehegen. Abfahrt um {{ribDepartures}} Uhr. Dauer etwa
 45 Minuten, inklusive Anziehen der Ausrüstung.

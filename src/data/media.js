@@ -11,6 +11,7 @@ export const media = {
   snorkling: 'snorkling-500x333.jpg',
   natur: 'Rvr_DSC6137_liten.jpg',
   havbruk: 'havbrukssenter.jpg',
+  laksemerd: 'Helge-pa-merd.jpg',
   elever: 'Rvr_DSC0084-Edit.jpg',
   sjohus: 'Sjohus.jpg',
   sjosproyt: 'sjosproyt_2.jpg',
