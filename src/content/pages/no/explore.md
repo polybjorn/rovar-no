@@ -19,8 +19,7 @@ rustfri i byen – kanskje også inngravert?
 
 Lothastranda og Grønasvika er de mest populære badestedene, hvor det i
 Lothastranda står bord, griller og Gapahuk, samt sandvolleyballbane og
-toalett. Stranda er langgrunn, så det passer fint å lete etter krabber,
-men det går også an å fiske etter krabber fra flytebrygga.
+toalett.
 
 ## Vikingtufter i Grønasvika
 
