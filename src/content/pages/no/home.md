@@ -22,4 +22,5 @@ cards:
     text: "Fra steinalder til fiskerisamfunn"
     alt: "Havna vår Suggevågen i solnedgang"
 mapLink: "Se Røvær på kartet"
+mapAlt: "Kart som viser Røvær vest for Haugesund"
 ---

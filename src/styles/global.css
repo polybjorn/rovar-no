@@ -545,15 +545,29 @@ img.section-img {
 
 /* Map link */
 
-.map-link {
+.map {
+  margin-top: 2rem;
   text-align: center;
-  margin-top: 1.5rem;
 }
 
-.map-link a {
-  display: inline-flex;
+.map-frame {
+  display: block;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-foam);
+}
+
+.map-frame:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.map-link {
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
+  padding: 0.6rem;
   font-size: 0.95rem;
   color: var(--color-ocean);
 }
@@ -561,6 +575,12 @@ img.section-img {
 .map-icon {
   width: 1.1rem;
   height: 1.1rem;
+}
+
+.map-credit {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
 }
 
 /* Info box */
@@ -597,6 +617,11 @@ img.section-img {
   text-align: center;
   padding: 2rem 1.5rem;
   font-size: 1rem;
+}
+
+.footer p {
+  max-width: 520px;
+  margin: 0 auto;
 }
 
 .footer a {

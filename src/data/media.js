@@ -14,6 +14,7 @@ export const media = {
   elever: 'Rvr_DSC0084-Edit.jpg',
   sjohus: 'Sjohus.jpg',
   sjosproyt: 'sjosproyt_2.jpg',
+  kart: 'kart-rovar.png',
 };
 
 const files = import.meta.glob('../assets/*.{jpg,png}', { eager: true, import: 'default' });

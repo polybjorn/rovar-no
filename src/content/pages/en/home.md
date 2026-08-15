@@ -22,4 +22,5 @@ cards:
     text: "From the Stone Age to a fishing community"
     alt: "Suggevågen, our harbour, at sunset"
 mapLink: "View Røvær on the map"
+mapAlt: "Map showing Røvær west of Haugesund"
 ---

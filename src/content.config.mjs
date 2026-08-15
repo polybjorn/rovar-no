@@ -18,6 +18,7 @@ const pages = defineCollection({
       .record(z.object({ heading: z.string(), text: z.string(), alt: z.string() }))
       .optional(),
     mapLink: z.string().optional(),
+    mapAlt: z.string().optional(),
   }),
 });
 
