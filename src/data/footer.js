@@ -10,6 +10,7 @@
 // `chrome.links.<key>` in the UI catalogs, the URL does not. A destination with
 // a per-language address (Fjord Norway, for one) stays in the content file.
 import { facts } from './facts.js';
+import { repoUrl } from './site.js';
 
 export const footerLinkGroups = [
   [
@@ -20,5 +21,6 @@ export const footerLinkGroups = [
   [
     { key: 'kolumbus', url: facts.kolumbusBookingUrl },
     { key: 'avis', url: facts.avisSearchUrl },
+    { key: 'github', url: repoUrl },
   ],
 ];
