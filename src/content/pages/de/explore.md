@@ -31,6 +31,8 @@ hinterlassen. Gleich daneben gibt es auch einen kleinen Fußballplatz.
 
 ## Baden, Grillen und Sandvolleyball
 
+![Ein Kind im roten Anzug hockt am steinigen Ufer dicht am Wasser](natur)
+
 Lothastranda und Grønasvika sind die beiden beliebtesten Orte zum
 Schwimmen und Sonnenbaden. In Lothastranda gibt es einen sandigen
 Strand und einen Unterstand, dazu ein Volleyballfeld und eine
@@ -76,8 +78,6 @@ oder telefonisch unter {{havbrukPhone}}. Bezahlung im Røvær Sjøhus oder per
 Vipps.
 
 ## Hiltahuset Museum
-
-![Ein Kind im roten Anzug hockt am Wasserrand im Watt](natur)
 
 Unser Museum, das Hiltahuset, kann nach Vereinbarung für Besucher
 geöffnet werden – ein kundiger Führer erzählt Ihnen die Geschichte

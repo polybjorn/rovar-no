@@ -30,6 +30,8 @@ football court close by.
 
 ## Swimming, barbecue and sand volleyball
 
+![A child in a red suit crouching at the water's edge on the shore](natur)
+
 Lothastranda and Grønasvika are the two most popular places to go for a
 swim or sunbathe. In Lothastranda there is a somewhat sandy beach and a
 shelter, and also a volleyball court and an outdoor toilet. While in
@@ -73,8 +75,6 @@ email to [{{havbrukEmail}}](mailto:{{havbrukEmail}})
 or by phone on {{havbrukPhone}}. Payment at Røvær Sjøhus or by Vipps.
 
 ## Hiltahuset Museum
-
-![A child in a red suit crouching at the water's edge on the shore](natur)
 
 Our museum, Hiltahuset, can be opened for visitors after appointment –
 a skillful guide will fill you in on the story of our island.
