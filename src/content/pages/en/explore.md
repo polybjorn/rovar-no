@@ -22,23 +22,31 @@ a padlock on the fence with your love! – We recommend buying a padlock
 in stainless steel in the city, maybe even have it engraved? For those
 of you more spontaneous, they also sell padlocks in the local shop.
 
+## Swimming, barbecue and sand volleyball
+
+Lothastranda and Grønasvika are the two most popular places to go for a
+swim or sunbathe. In Lothastranda there is a somewhat sandy beach and a
+shelter, and also a volleyball court and an outdoor toilet.
+
+## Viking house sites at Grønasvika
+
+In Grønasvika there are Viking house sites and a simpler standard to the
+“beach”, but still a charming and beautiful spot.
+
+## Crab catching
+
+![A child in a red suit crouching at the water's edge on the shore](natur)
+
+Both beaches are shallow, perfect for catching crabs – just remember to
+release them afterwards.
+
+## School playground and football court
+
 Right by the school and kindergarten, there is a new and lovely
 playground for the kids with the possibility of using the benches and
 tables, if you brought your own food – that is as long as you clean up
 after yourselves and leave the area in a good state. There is also a
 football court close by.
-
-## Swimming, barbecue and sand volleyball
-
-![A child in a red suit crouching at the water's edge on the shore](natur)
-
-Lothastranda and Grønasvika are the two most popular places to go for a
-swim or sunbathe. In Lothastranda there is a somewhat sandy beach and a
-shelter, and also a volleyball court and an outdoor toilet. While in
-Grønasvika there are Viking graves and a simpler standard to the
-“beach”, but still a charming and beautiful spot. Both beaches are
-shallow, perfect for catching crabs – just remember to release them
-afterwards.
 
 ## Røvær Aquaculture Centre
 

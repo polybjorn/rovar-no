@@ -24,22 +24,31 @@ Vorhängeschloss an den Zaun! – Wir empfehlen, ein rostfreies Schloss in
 der Stadt zu kaufen, vielleicht sogar graviert? Für die Spontaneren
 unter Ihnen: Auch der örtliche Laden verkauft Vorhängeschlösser.
 
-Direkt bei der Schule und dem Kindergarten gibt es einen neuen, schönen
-Spielplatz für Kinder. Mitgebrachtes Essen können Sie an den Bänken und
-Tischen verzehren – solange Sie aufräumen und den Ort in gutem Zustand
-hinterlassen. Gleich daneben gibt es auch einen kleinen Fußballplatz.
-
 ## Baden, Grillen und Sandvolleyball
-
-![Ein Kind im roten Anzug hockt am steinigen Ufer dicht am Wasser](natur)
 
 Lothastranda und Grønasvika sind die beiden beliebtesten Orte zum
 Schwimmen und Sonnenbaden. In Lothastranda gibt es einen sandigen
 Strand und einen Unterstand, dazu ein Volleyballfeld und eine
-Außentoilette. In Grønasvika finden sich Wikingergräber und ein
-einfacherer „Strand“ – aber immer noch ein charmanter, schöner Ort.
+Außentoilette.
+
+## Wikingerstätten in Grønasvika
+
+In Grønasvika finden sich Wikingerstätten und ein einfacherer „Strand“ –
+aber immer noch ein charmanter, schöner Ort.
+
+## Krabbenfangen
+
+![Ein Kind im roten Anzug hockt am steinigen Ufer dicht am Wasser](natur)
+
 Beide Strände sind flach abfallend, ideal zum Krabbenfangen – bitte
 lassen Sie die Krabben danach wieder frei.
+
+## Schulspielplatz und Fußballplatz
+
+Direkt bei der Schule und dem Kindergarten gibt es einen neuen, schönen
+Spielplatz für Kinder. Mitgebrachtes Essen können Sie an den Bänken und
+Tischen verzehren – solange Sie aufräumen und den Ort in gutem Zustand
+hinterlassen. Gleich daneben gibt es auch einen kleinen Fußballplatz.
 
 ## Røvær Havbrukssenter (Aquakulturzentrum)
 

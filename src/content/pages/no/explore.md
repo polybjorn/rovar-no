@@ -24,12 +24,12 @@ men det går også an å fiske etter krabber fra flytebrygga.
 
 ## Vikingtufter i Grønasvika
 
-![Barn i rød dress på huk ved vannkanten i fjæra](natur)
-
 I Grønasvika er det vikingtufter og noe enklere kår, men stadig et
 nydelig lite sted.
 
 ## Krabbefangst
+
+![Barn i rød dress på huk ved vannkanten i fjæra](natur)
 
 Lothastranda er langgrunn, så det passer fint å lete etter krabber, men
 det går også an å fiske etter krabber fra flytebrygga her. Grønasvika er
