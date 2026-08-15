@@ -655,12 +655,19 @@ img.section-img {
   max-width: 380px;
 }
 
-/* Two columns keep the list about as tall as the contact block beside it. */
+/* One column per group in src/data/footer.js. Two of them keep the list about
+   as tall as the contact block beside it, and wrap into one on a phone. */
 .footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 2rem;
+}
+
+.footer-links ul {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(2, auto);
-  gap: 0.3rem 2rem;
+  align-content: start;
+  gap: 0.3rem;
 }
 
 .footer a {
@@ -671,8 +678,5 @@ img.section-img {
 @media (max-width: 800px) {
   .footer-inner {
     gap: 1.75rem;
-  }
-  .footer-links {
-    grid-template-columns: auto;
   }
 }
