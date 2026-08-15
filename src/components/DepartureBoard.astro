@@ -375,8 +375,9 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
      refresh, but only the first two are a new board: those get the staggered
      fade up (.is-fresh). A refresh that lands on the same rows must not move
      anything, so it animates nothing; a row whose content actually changed
-     (a new time, a countdown tick, a departure that has just passed) gets a
-     plain fade of its own (.is-changed), no stagger, no travel. */
+     (a new time, a departure that has just passed) gets a plain fade of its
+     own (.is-changed), no stagger, no travel. A countdown tick fades only
+     the countdown text (.is-tick), the rest of the row stays still. */
   @keyframes dep-row-in {
     from {
       opacity: 0;
@@ -403,6 +404,10 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   }
 
   .dep-direction :global(.dep-list li.is-changed) {
+    animation: dep-row-change 0.3s ease both;
+  }
+
+  .dep-direction :global(.dep-countdown.is-tick) {
     animation: dep-row-change 0.3s ease both;
   }
 

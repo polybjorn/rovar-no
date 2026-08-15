@@ -139,23 +139,29 @@ function render(containerId, calls, fresh) {
       ? `<p class="dep-countdown${urgencyClass(mins)}">${esc(formatCountdown(mins, S))}</p>`
       : '';
 
+    // html and base are the same row with and without the countdown, so a
+    // refresh can tell a countdown tick (base equal, html not) from a change
+    // to the rest of the row and fade only what moved.
+    const rowHtml = (countdown) => `<li class="${cls}">
+      <div class="dep-row">
+        <div class="dep-route">
+          <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
+        </div>
+        <div class="dep-info">
+          ${noticeHtml}${durationHtml}${countdown}
+        </div>
+      </div>
+      ${detailHtml}
+    </li>`;
+
     return {
       minutes: depMinutes,
       // Only a departure that is actually a bestillingsrute gets a deadline row.
       deadlineMinutes: isBooking && bookingDeadline ? osloMinutes(bookingDeadline) : null,
       deadlineText: bookingDeadline ? fmt(bookingDeadline) : '',
       time,
-      html: `<li class="${cls}">
-      <div class="dep-row">
-        <div class="dep-route">
-          <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
-        </div>
-        <div class="dep-info">
-          ${noticeHtml}${durationHtml}${countdownHtml}
-        </div>
-      </div>
-      ${detailHtml}
-    </li>`,
+      html: rowHtml(countdownHtml),
+      base: rowHtml(''),
     };
   });
 
@@ -164,18 +170,17 @@ function render(containerId, calls, fresh) {
   const items = timeline(rows).map((row) => {
     if (row.type === 'departure') {
       const dep = rows[row.index];
-      return { key: `dep-${dep.time}`, html: dep.html };
+      return { key: `dep-${dep.time}`, html: dep.html, base: dep.base };
     }
     const dep = rows[row.forIndex];
     const gone = dayOffset === 0 && row.minutes < nowMinutes;
     const label = (S.bookingDeadlineRow ?? '{{time}}').replace('{{time}}', dep.time);
-    return {
-      key: `dl-${dep.time}`,
-      html: `<li class="dep-deadline-row${gone ? ' passed' : ''}">
+    const html = `<li class="dep-deadline-row${gone ? ' passed' : ''}">
       <span class="dep-deadline-time">${esc(dep.deadlineText)}</span>
       ${clockIcon}<span class="dep-deadline-label">${esc(label)}</span>
-    </li>`,
-    };
+    </li>`;
+    // No countdown here, so any change is a row change.
+    return { key: `dl-${dep.time}`, html, base: html };
   });
 
   const openIds = new Set(
@@ -190,10 +195,16 @@ function render(containerId, calls, fresh) {
   } else {
     const lis = list.children;
     items.forEach((item, i) => {
-      if (previous.get(item.key) !== item.html) lis[i].classList.add('is-changed');
+      const prev = previous.get(item.key);
+      if (!prev || prev.base !== item.base) {
+        lis[i].classList.add('is-changed');
+      } else if (prev.html !== item.html) {
+        // Only the countdown ticked: fade that element, leave the row still.
+        lis[i].querySelector('.dep-countdown')?.classList.add('is-tick');
+      }
     });
   }
-  prevRows.set(containerId, new Map(items.map(i => [i.key, i.html])));
+  prevRows.set(containerId, new Map(items.map(i => [i.key, { html: i.html, base: i.base }])));
 
   const setOpen = (detail, isOpen) => {
     detail.classList.toggle('open', isOpen);
