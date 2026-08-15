@@ -5,8 +5,6 @@ description: "Turer, bading, historiske steder, mat og overnatting på Røvær."
 
 ## Turer på sykkel og til fots
 
-![Ungdom sykler på øya](sykkel)
-
 Bråvarden, øyas høyeste punkt 4600 centimeter over havet byr på nydelig
 utsikt, og får du med deg et kart fra butikken eller kafeen, kan du gå i
 forskjellige turløyper rundt i utmarka på vestsiden av øya. Naturen her
@@ -18,8 +16,6 @@ hengelås på gjerdet sammen med din kjære! – Hengelåsen anbefales kjøpt
 rustfri i byen – kanskje også inngravert?
 
 ## Bading, grilling og sandvolley
-
-![Morsomt å snorkle](snorkling)
 
 Lothastranda og Grønasvika er de mest populære badestedene, hvor det i
 Lothastranda står bord, griller og Gapahuk, samt sandvolleyballbane og

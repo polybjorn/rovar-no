@@ -1,5 +1,5 @@
 // Photo keys used by content files, so translators never touch file names or
-// import paths. In markdown: ![Alt text](sykkel). In frontmatter: image: jenter
+// import paths. In markdown: ![Alt text](natur). In frontmatter: image: jenter
 
 export const media = {
   hero: 'rovar-frontpage.jpg',
@@ -7,8 +7,6 @@ export const media = {
   hurtigbat: 'Bilde-Fjorled-JMT-1-e1593513975750.jpg',
   hotell: 'Hotell_Mork_frontpage.jpg',
   suggevagen: 'Suggevagen_frontpage.jpg',
-  sykkel: 'Sykkel-500x334.jpg',
-  snorkling: 'snorkling-500x333.jpg',
   natur: 'Rvr_DSC6137_liten.jpg',
   havbruk: 'havbrukssenter.jpg',
   laksemerd: 'Helge-pa-merd.jpg',

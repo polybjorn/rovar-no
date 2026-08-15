@@ -11,8 +11,6 @@ seinem klaren, hellen Licht …
 
 ## Wandern und Radfahren
 
-![Jugendliche radeln auf der Insel](sykkel)
-
 Bråvarden, der höchste Punkt der Insel mit seinen 4600 Zentimetern über
 dem Meeresspiegel, bietet an klaren Tagen atemberaubende Ausblicke. Mit
 einer kostenlosen Karte aus dem örtlichen Laden können Sie auf den
@@ -32,8 +30,6 @@ Tischen verzehren – solange Sie aufräumen und den Ort in gutem Zustand
 hinterlassen. Gleich daneben gibt es auch einen kleinen Fußballplatz.
 
 ## Baden, Grillen und Sandvolleyball
-
-![Schnorcheln macht Spaß](snorkling)
 
 Lothastranda und Grønasvika sind die beiden beliebtesten Orte zum
 Schwimmen und Sonnenbaden. In Lothastranda gibt es einen sandigen

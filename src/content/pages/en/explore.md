@@ -10,8 +10,6 @@ bright light…
 
 ## Walking and biking
 
-![Young people cycling on the island](sykkel)
-
 Bråvarden, the island's highest point with its 4600 centimeters above
 sea level, provides breathtaking views on a clear day, and if you get
 your hands on a free map from the local shop, you can go for a hike on
@@ -31,8 +29,6 @@ after yourselves and leave the area in a good state. There is also a
 football court close by.
 
 ## Swimming, barbecue and sand volleyball
-
-![Snorkelling is fun](snorkling)
 
 Lothastranda and Grønasvika are the two most popular places to go for a
 swim or sunbathe. In Lothastranda there is a somewhat sandy beach and a
