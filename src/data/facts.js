@@ -35,6 +35,10 @@ export const facts = {
   campSchoolEmail: 'espen.martens@haugesund.kommune.no',
   campSchoolPhone: '992 52 179',
 
+  // Haugesunds Avis, the local paper: a search rather than a tag page, so it
+  // keeps working if they retire the tag
+  avisSearchUrl: 'https://www.h-avis.no/sok?keyword=R%C3%B8v%C3%A6r',
+
   // Kolumbus, for the departure board
   ferryLine: '700',
   kolumbusPhone: '482 21 780',

@@ -624,17 +624,46 @@ img.section-img {
 .footer {
   background: var(--color-ocean-dark);
   color: var(--color-on-dark);
-  text-align: center;
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 1.5rem;
   font-size: 1rem;
 }
 
-.footer p {
-  max-width: 520px;
+.footer-inner {
+  max-width: var(--max-width);
   margin: 0 auto;
+  display: grid;
+  /* The logo column takes what it needs, the two text columns share the rest. */
+  grid-template-columns: auto 1fr 1fr;
+  gap: 2rem 3rem;
+  align-items: start;
+}
+
+.footer-col h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.footer-logo {
+  height: 2.4rem;
+  width: auto;
+  filter: invert(1);
+}
+
+.footer-links {
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
 }
 
 .footer a {
   color: var(--color-on-dark);
   text-decoration: underline;
+}
+
+@media (max-width: 800px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
 }

@@ -11,7 +11,16 @@
     "skipLink": "Zum Inhalt springen",
     "menuLabel": "Menü",
     "langLabel": "Sprache wählen",
-    "footer": "Möchten Sie mit jemandem auf Røvær in Kontakt treten? Schreiben Sie an {{emailLink}} – wir helfen Ihnen so gut wir können."
+    "contactHeading": "Kontakt",
+    "footer": "Möchten Sie mit jemandem auf Røvær in Kontakt treten? Schreiben Sie an {{emailLink}} – wir helfen Ihnen so gut wir können.",
+    "linksHeading": "Nützliche Links",
+    "links": {
+      "havhotell": "Røvær Havhotell",
+      "sjohus": "Røvær Sjøhus",
+      "havbruk": "Røvær Havbrukssenter",
+      "kolumbus": "Tickets für das Schnellboot (Kolumbus)",
+      "avis": "Røvær in der Haugesunds Avis"
+    }
   },
   "translation": {
     "notice": "Diese Seite wurde maschinell übersetzt und nicht Korrektur gelesen.",

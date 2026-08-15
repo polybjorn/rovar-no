@@ -15,6 +15,7 @@ import { pages, pathFor, resolveRoute, localesWithPage } from '../i18n/routes.js
 import { ui } from '../i18n/ui.js';
 import Sentence from '../components/Sentence.astro';
 import { facts } from '../data/facts.js';
+import { footerLinks } from '../data/footer.js';
 
 const { title, description = "Øya utenfor Haugesund", lang = defaultLocale, page = "home" } = Astro.props;
 const t = ui(lang);
@@ -114,12 +115,28 @@ const pageLocales = localesWithPage(page);
   </main>
 
   <footer class="footer">
-    <p>
-      <Sentence
-        text={t.chrome.footer}
-        links={{ emailLink: { href: `mailto:${facts.oytingEmail}`, label: facts.oytingEmail } }}
-      />
-    </p>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <Image src={logoImg} alt="" height={58} layout="none" class="footer-logo" loading="lazy" />
+      </div>
+      <div class="footer-col">
+        <h2>{t.chrome.contactHeading}</h2>
+        <p>
+          <Sentence
+            text={t.chrome.footer}
+            links={{ emailLink: { href: `mailto:${facts.oytingEmail}`, label: facts.oytingEmail } }}
+          />
+        </p>
+      </div>
+      <div class="footer-col">
+        <h2>{t.chrome.linksHeading}</h2>
+        <ul class="footer-links">
+          {footerLinks.map(({ key, url }) => (
+            <li><a href={url} target="_blank" rel="noopener">{t.chrome.links[key]}</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
   </footer>
 
   <script src="../scripts/nav.js"></script>

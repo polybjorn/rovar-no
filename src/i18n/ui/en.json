@@ -10,7 +10,16 @@
     "skipLink": "Skip to content",
     "menuLabel": "Menu",
     "langLabel": "Choose language",
-    "footer": "Would you like to get in touch with someone on Røvær? Send an email to {{emailLink}} – and we will help you as best we can."
+    "contactHeading": "Contact",
+    "footer": "Would you like to get in touch with someone on Røvær? Send an email to {{emailLink}} – and we will help you as best we can.",
+    "linksHeading": "Useful links",
+    "links": {
+      "havhotell": "Røvær Havhotell",
+      "sjohus": "Røvær Sjøhus",
+      "havbruk": "Røvær Havbrukssenter",
+      "kolumbus": "Express boat tickets (Kolumbus)",
+      "avis": "Røvær in Haugesunds Avis"
+    }
   },
   "translation": {
     "notice": "This page was machine translated and has not been proofread.",

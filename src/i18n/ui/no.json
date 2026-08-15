@@ -10,7 +10,16 @@
     "skipLink": "Hopp til innhold",
     "menuLabel": "Meny",
     "langLabel": "Velg språk",
-    "footer": "Har du lyst til å komme i kontakt med noen på Røvær? Send en e-post til {{emailLink}} – så skal vi hjelpe deg så godt vi kan."
+    "contactHeading": "Kontakt",
+    "footer": "Har du lyst til å komme i kontakt med noen på Røvær? Send en e-post til {{emailLink}} – så skal vi hjelpe deg så godt vi kan.",
+    "linksHeading": "Nyttige lenker",
+    "links": {
+      "havhotell": "Røvær Havhotell",
+      "sjohus": "Røvær Sjøhus",
+      "havbruk": "Røvær Havbrukssenter",
+      "kolumbus": "Billetter til rutebåten (Kolumbus)",
+      "avis": "Røvær i Haugesunds Avis"
+    }
   },
   "translation": {
     "notice": "Denne siden er maskinoversatt og ikke gjennomlest.",
