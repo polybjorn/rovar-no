@@ -16,9 +16,9 @@ Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær i
 
 | Language | Prefix | Progress | Pages | UI strings | Improve |
 |---|---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 41/41 | source text |
-| English | `/en/` | `██████████` 100% | 5/5 | 41/41 | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | 5/5 ▒ | 41/41 ▒ | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 39/39 | source text |
+| English | `/en/` | `██████████` 100% | 5/5 | 39/39 | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | 5/5 ▒ | 39/39 ▒ | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker · `▒` machine-translated, not yet reviewed · `░` not translated
 

@@ -21,10 +21,6 @@
       "avis": "Røvær i Haugesunds Avis"
     }
   },
-  "translation": {
-    "notice": "Denne siden er maskinoversatt og ikke gjennomlest.",
-    "suggest": "Foreslå en rettelse"
-  },
   "notFound": {
     "title": "Siden finnes ikke",
     "intro": "Den kan ha blitt flyttet, eller adressen kan være feilskrevet.",
