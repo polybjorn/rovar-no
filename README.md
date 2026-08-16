@@ -1,70 +1,72 @@
 # rovar-no
 
-Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær island outside Haugesund, Norway.
+Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær
+island outside Haugesund, Norway. The old site is still the live one. This one
+is up for review at
+[polybjorn.github.io/rovar-no](https://polybjorn.github.io/rovar-no/), built
+from `main` by GitHub Pages and set to noindex until launch.
 
 ## Pages
 
-- **Hjem** (`/`) - Hero image, intro text, card grid, OpenStreetMap link
-- **Opplev øya vår** (`/opplev-oya-var/`) - Hiking, swimming, historical sites, food, accommodation, Havbrukssenter
-- **Rutebåten** (`/rutebaten/`) - Live departure board from Entur API with notices, passed/next styling, Kolumbus backup link
-- **Leirskolen** (`/leirskolen/`) - Camp school program, practical info, contact
-- **Røværs historie** (`/rovaers-historie/`) - Archaeological finds, fishing community, the 1899 disaster
+| Page | Path | Content |
+|---|---|---|
+| Home | `/` | Hero image, intro text, card grid, OpenStreetMap link |
+| Explore the island | `/opplev-oya-var/` | Hiking, swimming, historical sites, food, places to stay, the aquaculture centre |
+| Ferry | `/rutebaten/` | Live departure board from the Entur API, with service notices, past and next departures marked, and a link to Kolumbus as a fallback |
+| Camp school | `/leirskolen/` | Program, practical information, contact |
+| Island history | `/rovaers-historie/` | Archaeological finds, the fishing community, the 1899 disaster |
+
+The paths are the Norwegian ones, kept from the old site so existing links
+still work. Every other language uses English paths under its own prefix
+(`/en/explore/`, `/de/explore/`).
 
 ## Languages
 
 <!-- i18n-status:start -->
 
-| Language | Prefix | Progress | Pages | UI strings | Improve |
-|---|---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 40/40 | source text |
-| English | `/en/` | `██████████` 100% | 5/5 | 40/40 | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | 5/5 ▒ | 40/40 ▒ | [pages](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) · [UI](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Language | Prefix | Progress | Pages | UI strings |
+|---|---|---|---|---|
+| Norsk | none (root) | `██████████` 100% | 5/5 | 40/40 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [40/40](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [40/40](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
-`█` reviewed by a speaker · `▒` machine-translated, not yet reviewed · `░` not translated
-
-Deutsch: 5 pages and the UI catalog machine-translated, awaiting review.
+`█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
 
-Adding a language is one entry in `src/i18n/locales.js`, one UI catalog
-(`src/i18n/ui/<code>.json`) and one content folder
-(`src/content/pages/<code>/`). Nav, hreflang, `og:locale`, the sitemap and the
-language switcher all derive from that list, so no markup or code changes.
-Untranslated pages are simply not built for that language and drop out of the
-switcher; missing UI strings fall back per key.
+Each count links to the files it counts, so click one to read or fix a
+translation. Norwegian is the original wording rather than a translation, so
+its counts are plain text.
 
-- `npm run i18n:check` - per language: missing pages, missing strings, pages awaiting review
-- `npm run i18n:check -- --write` - same, and regenerates the table above
-- `npm run i18n:verify` - fails if the table is stale; runs automatically before every build
-- `npm run i18n:new -- <code>` - scaffold a new language
+Adding a language needs no changes to the code or the markup.
+`npm run i18n:new -- <code>` sets up the registry entry, the UI catalog and
+the content folder, and `npm run i18n:check -- --write` updates the table
+above. A page nobody has translated yet is not built for that language and
+does not appear in the language menu. Missing UI strings fall back one by one,
+so a half-finished language still renders.
 
 ## Tech
 
-- [Astro](https://astro.build) (static output, zero JS by default)
-- Vanilla CSS with CSS custom properties
-- [Entur JourneyPlanner API](https://entur.no/) for live departures
+[Astro](https://astro.build) builds the site to plain HTML files, the styling
+is hand-written CSS, and nothing else is needed to run it. Only two things send
+JavaScript to the browser: the departure board, which reads live times from the
+[Entur JourneyPlanner API](https://developer.entur.org/), and the language menu
+in the nav.
+
+```bash
+npm install && npm run dev
+```
+
+`npm run build` writes the finished site to `dist/`.
 
 ## Tests
 
-`npm test` runs the status-table check and then the suite (`node --test`, no
-test framework). It covers the departure-board logic in
-`src/scripts/departures-core.js` - Oslo time handling, the Entur fallbacks,
-booking detection, the calendar - plus routing and the UI string fallback
-(`src/i18n/*-core.js`), the language registry, the seasonal formatter and the
-content tree against the page registry.
-
-The suite runs a second time under `TZ=Pacific/Auckland`: a departure board
-that reads the visitor's own timezone looks correct in Norway and shows the
-wrong times abroad, which no single-timezone run would catch. CI runs `npm
-test` before the build.
-
-## Status
-
-Proposal stage. rovar.no still runs the current site. A preview is deployed
-at [polybjorn.github.io/rovar-no](https://polybjorn.github.io/rovar-no/)
-(noindex until launch, auto-deployed from `main` via GitHub Pages).
+`npm test` checks the departure-board logic, the routing, the language
+fallbacks and the content files (`node --test`, no test framework). It runs
+twice, the second time under `TZ=Pacific/Auckland`: a departure board that
+reads the visitor's own clock looks right in Norway and wrong everywhere else.
+CI runs the tests before the build.
 
 ## License
 
-The code is MIT licensed (see LICENSE). Page texts and photos belong to
-Røvær øyting and the respective photographers and are not covered by the
-MIT license.
+The code is MIT. The page texts and the photos belong to Røvær øyting and to
+the photographers.

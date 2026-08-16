@@ -139,46 +139,41 @@ if (write || check) {
     return `${s.percent}% reviewed`;
   };
 
-  // A count that includes drafts is marked, so 5/5 never reads as 5 finished.
-  const count = (done, of, isDraft) => `${done}/${of}${isDraft ? ' ▒' : ''}`;
-
-  // The default language is the source text, not a translation: it gets no
-  // "improve this" link, because the page copy is the original rovar.no wording.
-  const contribute = (s) =>
-    s.root
-      ? 'source text'
-      : `[pages](${treeUrl(`${contentDir}/${s.code}`)}) · ` +
-        `[UI](${treeUrl(`${uiDir}/${s.code}.json`)})`;
+  // The counts are the "improve this" links, so there is no extra column to
+  // separate with punctuation. The default language is the original rovar.no
+  // wording rather than a translation, so its counts stay plain text.
+  const count = (s, done, of, url) =>
+    s.root ? `${done}/${of}` : `[${done}/${of}](${url})`;
 
   const rows = stats.map(
     (s) =>
       `| ${s.endonym} | ${s.prefix} | \`${bar(s)}\` ${progress(s)} |` +
-      ` ${count(s.present.length, contentKeys.length, s.drafts.length)} |` +
-      ` ${count(s.keysDone, referenceKeys.length, s.catalogDraft)} |` +
-      ` ${contribute(s)} |`
+      ` ${count(s, s.present.length, contentKeys.length, treeUrl(`${contentDir}/${s.code}`))} |` +
+      ` ${count(s, s.keysDone, referenceKeys.length, treeUrl(`${uiDir}/${s.code}.json`))} |`
   );
 
-  const reviewing = stats.filter((s) => s.drafts.length || s.catalogDraft);
-  const footnotes = reviewing.map((s) => {
-    const parts = [];
-    if (s.drafts.length)
-      parts.push(`${s.drafts.length} ${s.drafts.length === 1 ? 'page' : 'pages'}`);
-    if (s.catalogDraft) parts.push('the UI catalog');
-    return `\n${s.endonym}: ${parts.join(' and ')} machine-translated, awaiting review.`;
-  });
+  // The legend only names the states the table actually shows: with every
+  // language at least machine-translated, "not translated" explains nothing.
+  const legend = [
+    [stats.some((s) => s.reviewed), '`█` reviewed by a speaker'],
+    [
+      stats.some((s) => s.drafts.length || s.catalogDraft),
+      '`▒` machine-translated and awaiting review',
+    ],
+    [stats.some((s) => s.reviewed + s.drafted < s.total), '`░` not translated'],
+  ]
+    .filter(([shown]) => shown)
+    .map(([, text]) => text);
 
-  const key = reviewing.length
-    ? '\n`█` reviewed by a speaker · `▒` machine-translated, not yet reviewed ·' +
-      ' `░` not translated\n'
-    : '';
+  const key = legend.length > 1 ? `\n${legend.join(', ')}\n` : '';
 
   const table = [
-    '| Language | Prefix | Progress | Pages | UI strings | Improve |',
-    '|---|---|---|---|---|---|',
+    '| Language | Prefix | Progress | Pages | UI strings |',
+    '|---|---|---|---|---|',
     ...rows,
   ].join('\n');
 
-  const block = `${startMarker}\n\n${table}\n${key}${footnotes.join('')}\n${endMarker}`;
+  const block = `${startMarker}\n\n${table}\n${key}${endMarker}`;
   const readme = readFileSync(readmePath, 'utf8');
   const pattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
 
