@@ -1,0 +1,19 @@
+# Test + build on the self-hosted runner (media-runner, docker label ->
+# node:22-bookworm). First workload of the 2026-08-21 Forgejo Actions pilot.
+# GitHub Pages deploy stays in .github/workflows/deploy.yml, running off the
+# push mirror - this job is the gate that runs on the forge the push actually
+# lands on. `uses:` resolves via data.forgejo.org, not github.com.
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-build:
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
