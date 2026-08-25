@@ -8,7 +8,9 @@ import assert from 'node:assert/strict';
 
 import { locales, defaultLocale, localeCodes, lookupOrder, localeInfo } from '../src/i18n/locales.js';
 import { seasonStrings } from '../src/i18n/season-format.js';
+import { phoneStrings } from '../src/i18n/phone-format.js';
 import { season } from '../src/data/season.js';
+import { facts } from '../src/data/facts.js';
 import { pages } from '../src/i18n/pages.js';
 
 test('exactly one root language, and it is the default', () => {
@@ -97,4 +99,36 @@ test('the RIB departures are joined as a list, not concatenated', () => {
   const rendered = seasonStrings('no').ribDepartures;
   for (const t of season.ribDepartures) assert.ok(rendered.includes(t.split(':')[0]));
   assert.ok(/\s/.test(rendered), 'departures are not separated');
+});
+
+test('Norwegian keeps the local phone form, every other language gets the country code', () => {
+  assert.equal(phoneStrings('no').havhotellPhone, facts.havhotellPhone);
+  assert.equal(phoneStrings('en').havhotellPhone, `+47 ${facts.havhotellPhone}`);
+  assert.equal(phoneStrings('de').havhotellPhone, `+47 ${facts.havhotellPhone}`);
+});
+
+test('every phone number in facts is formatted for every language', () => {
+  const keys = Object.keys(facts).filter((k) => k.endsWith('Phone'));
+  assert.ok(keys.length, 'no phone numbers found in facts');
+  for (const code of localeCodes) {
+    const phones = phoneStrings(code);
+    for (const key of keys) {
+      assert.ok(phones[key], `${code} is missing ${key}`);
+      assert.match(phones[key], /\d/, `${code} ${key} has no digits`);
+    }
+  }
+});
+
+test('the country code is added once, never doubled', () => {
+  for (const code of localeCodes) {
+    for (const value of Object.values(phoneStrings(code))) {
+      assert.equal(value.match(/\+47/g)?.length ?? 0, code === defaultLocale ? 0 : 1, value);
+    }
+  }
+});
+
+test('a new language gets the country code without touching any code', () => {
+  // Guards the i18n promise: adding a locale is a registry line, nothing more.
+  const unknown = phoneStrings('sv');
+  assert.equal(unknown.havhotellPhone, `+47 ${facts.havhotellPhone}`);
 });

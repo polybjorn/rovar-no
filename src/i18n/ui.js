@@ -4,6 +4,7 @@
 
 import { facts } from '../data/facts.js';
 import { resolveCatalog } from './ui-core.js';
+import { phoneStrings } from './phone-format.js';
 
 const catalogs = {};
 for (const [path, data] of Object.entries(
@@ -15,7 +16,8 @@ for (const [path, data] of Object.entries(
 const cache = {};
 
 export function ui(code) {
-  if (!cache[code]) cache[code] = resolveCatalog(catalogs, code, facts);
+  if (!cache[code])
+    cache[code] = resolveCatalog(catalogs, code, { ...facts, ...phoneStrings(code) });
   return cache[code];
 }
 

@@ -6,6 +6,10 @@
 // translations gets updated in 11 of them, and the other 4 serve a dead number
 // for a year without anyone noticing.
 //
+// A key ending in `Phone` is written in the Norwegian local form here and
+// formatted per language by src/i18n/phone-format.js, which adds the country
+// code for every language but Norwegian. Write the number once, in local form.
+//
 // Only put something here if it is identical in every language. Links that
 // differ per language (the Fjord Norway pages, for instance) stay in the
 // content files.

@@ -2,6 +2,7 @@ import { visit } from 'unist-util-visit';
 import { media } from '../data/media.js';
 import { facts } from '../data/facts.js';
 import { seasonStrings } from '../i18n/season-format.js';
+import { phoneStrings } from '../i18n/phone-format.js';
 
 const localeOf = (file) => file?.path?.match(/[/\\]pages[/\\]([^/\\]+)[/\\]/)?.[1];
 
@@ -15,7 +16,9 @@ const localeOf = (file) => file?.path?.match(/[/\\]pages[/\\]([^/\\]+)[/\\]/)?.[
 export function remarkContent() {
   return (tree, file) => {
     const locale = localeOf(file);
-    const values = { ...facts, ...(locale ? seasonStrings(locale) : {}) };
+    const values = locale
+      ? { ...facts, ...seasonStrings(locale), ...phoneStrings(locale) }
+      : { ...facts };
 
     const fill = (value, node) =>
       value.replace(/\{\{(\w+)\}\}/g, (whole, key) => {
