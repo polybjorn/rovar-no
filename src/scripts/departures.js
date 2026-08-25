@@ -152,10 +152,14 @@ function render(containerId, calls, fresh, direction) {
     }
 
     // A boat that has already sailed is not worth putting in a calendar, so
-    // the button goes with the rest of the row's usefulness.
-    const icsHtml = passed
-      ? ''
-      : `<button class="dep-ics" data-row="${i}" aria-label="${esc(S.addToCalendar)}" title="${esc(S.addToCalendar)}">${calendarIcon}</button>`;
+    // the button goes with the rest of the row's usefulness. The slot around
+    // it stays either way, so the notice icons sit at the same place down the
+    // whole column whether a row can be exported or not.
+    const icsHtml = `<span class="dep-ics-slot">${
+      passed
+        ? ''
+        : `<button class="dep-ics" data-row="${i}" aria-label="${esc(S.addToCalendar)}" title="${esc(S.addToCalendar)}">${calendarIcon}</button>`
+    }</span>`;
 
     const arrHtml = arrivalTime ? `${arrowIcon}<span class="dep-arr">${esc(fmt(arrivalTime))}</span>` : '';
     const viaHtml = via.length ? `<span class="dep-via">via ${esc(via.join(', '))}</span>` : '';
@@ -192,7 +196,7 @@ function render(containerId, calls, fresh, direction) {
           <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
         </div>
         <div class="dep-info">
-          ${noticeHtml}${durationHtml}${icsHtml}${countdown}
+          ${icsHtml}${noticeHtml}${durationHtml}${countdown}
         </div>
       </div>
       ${detailHtml}

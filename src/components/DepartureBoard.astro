@@ -411,6 +411,7 @@ const feedUrl = Astro.site
   }
 
   .dep-direction :global(.dep-list li) {
+    position: relative;
     padding: 0.55rem 1.25rem;
     border-bottom: 1px solid var(--color-sand-dark);
   }
@@ -637,21 +638,33 @@ const feedUrl = Astro.site
   }
 
   /* The board is a timetable first, and one control per row competes with the
-     times it is printed beside. On a pointer device the button waits until the
-     row is under the cursor; a mouse can go and find the row it wants. Touch
-     has no hover to wait for, so there it stays visible. */
+     times it is printed beside, so the button only shows itself when a row is
+     pointed at. Its slot is always reserved, which is what keeps that from
+     leaving a hole: the row is space-between with the route side flexing, so
+     an empty slot ahead of the duration is absorbed by space that was empty
+     anyway. Nothing moves when the button appears, and the notice icons keep
+     one position down the column instead of stepping aside for it. */
+  .dep-direction :global(.dep-ics-slot) {
+    display: inline-flex;
+    justify-content: center;
+    width: 1rem;
+    flex: none;
+  }
+
   .dep-direction :global(.dep-ics) {
     display: inline-flex;
     align-items: center;
     border: none;
     background: none;
     padding: 0;
-    color: var(--color-text-light);
+    color: color-mix(in srgb, var(--color-text-light) 55%, var(--color-foam));
     cursor: pointer;
-    transition: opacity 0.15s, color 0.15s;
+    transition: color 0.15s, opacity 0.15s;
   }
 
-  .dep-direction :global(.dep-ics:hover) {
+  .dep-direction :global(li:hover .dep-ics),
+  .dep-direction :global(.dep-ics:hover),
+  .dep-direction :global(.dep-ics:focus-visible) {
     color: var(--color-ocean);
   }
 
@@ -660,9 +673,10 @@ const feedUrl = Astro.site
     height: 1rem;
   }
 
-  /* Opacity rather than display, so revealing the button never reflows the
-     row. Focus counts as well as hover: the button stays in the tab order and
-     has to show itself when tabbed to. */
+  /* A pointer can go and find the row it wants, so the button waits for it.
+     Touch has no hover to wait for and keeps it, at the quiet weight. Focus
+     reveals it too: it stays in the tab order and has to show itself when
+     tabbed to. */
   @media (hover: hover) {
     .dep-direction :global(.dep-ics) {
       opacity: 0;
