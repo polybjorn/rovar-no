@@ -636,9 +636,10 @@ const feedUrl = Astro.site
     height: 0.85rem;
   }
 
-  /* Quiet by default: the board is a timetable first, and a control on every
-     row would compete with the times. Kept visible rather than hover-only,
-     since hover is not a thing on the phones most of this is read on. */
+  /* The board is a timetable first, and one control per row competes with the
+     times it is printed beside. On a pointer device the button waits until the
+     row is under the cursor; a mouse can go and find the row it wants. Touch
+     has no hover to wait for, so there it stays visible. */
   .dep-direction :global(.dep-ics) {
     display: inline-flex;
     align-items: center;
@@ -647,7 +648,7 @@ const feedUrl = Astro.site
     padding: 0;
     color: var(--color-text-light);
     cursor: pointer;
-    transition: color 0.15s;
+    transition: opacity 0.15s, color 0.15s;
   }
 
   .dep-direction :global(.dep-ics:hover) {
@@ -657,6 +658,21 @@ const feedUrl = Astro.site
   .dep-direction :global(.dep-ics svg) {
     width: 1rem;
     height: 1rem;
+  }
+
+  /* Opacity rather than display, so revealing the button never reflows the
+     row. Focus counts as well as hover: the button stays in the tab order and
+     has to show itself when tabbed to. */
+  @media (hover: hover) {
+    .dep-direction :global(.dep-ics) {
+      opacity: 0;
+    }
+
+    .dep-direction :global(li:hover .dep-ics),
+    .dep-direction :global(li:focus-within .dep-ics),
+    .dep-direction :global(.dep-ics:focus-visible) {
+      opacity: 1;
+    }
   }
 
   .dep-direction :global(.passed .dep-time),
