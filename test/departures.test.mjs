@@ -44,6 +44,8 @@ import {
   FEED_TTL_MINUTES,
   groupByOsloDate,
   feedEvents,
+  summaryEvents,
+  nextOsloDay,
 } from '../src/scripts/departures-core.js';
 
 // A summer and a winter instant, chosen so the UTC date and the Oslo date
@@ -888,4 +890,99 @@ test('no exported event ever ends before it starts', () => {
   );
   assert.equal(events.length, 3);
   for (const event of events) assert.ok(event.end > event.start, `${event.uid} ends before it starts`);
+});
+
+// --- summary feed -----------------------------------------------------------
+
+const twoDays = () =>
+  feedEvents(
+    [
+      {
+        direction: 'to-haugesund',
+        calls: [
+          call({ time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'a' }),
+          call({ time: '2026-07-15T21:05:00+02:00', frontText: 'Haugesund', id: 'b' }),
+          call({ time: '2026-07-16T08:00:00+02:00', frontText: 'Haugesund', id: 'c' }),
+        ],
+      },
+      {
+        direction: 'to-rovar',
+        calls: [call({ time: '2026-07-15T12:40:00+02:00', frontText: 'Røvær', id: 'd' })],
+      },
+    ],
+    { stamp: ICS_STAMP }
+  );
+
+test('nextOsloDay steps over a month end and a DST change', () => {
+  assert.equal(nextOsloDay('2026-07-31'), '2026-08-01');
+  assert.equal(nextOsloDay('2026-12-31'), '2027-01-01');
+  // The night the clocks go back in Norway.
+  assert.equal(nextOsloDay('2026-10-24'), '2026-10-25');
+});
+
+test('a day and a direction fold into one entry', () => {
+  const summary = summaryEvents(twoDays(), { stamp: ICS_STAMP });
+  assert.deepEqual(
+    summary.map((e) => e.uid),
+    [
+      'summary-2026-07-15-to-haugesund@rovar.no',
+      'summary-2026-07-15-to-rovar@rovar.no',
+      'summary-2026-07-16-to-haugesund@rovar.no',
+    ]
+  );
+});
+
+test('the entry lists that direction\'s departures in clock order', () => {
+  const summary = summaryEvents(twoDays(), {
+    stamp: ICS_STAMP,
+    strings: { icsDay: 'Rutebåten {{from}}-{{to}}: {{times}}' },
+  });
+  assert.equal(summary[0].summary, 'Rutebåten Røvær-Haugesund: 08:00, 21:05');
+  assert.equal(summary[1].summary, 'Rutebåten Haugesund-Røvær: 12:40');
+});
+
+test('the times are the Oslo clock, not the reader\'s', () => {
+  // 08:00 and 21:05 in Oslo stay 08:00 and 21:05 under a foreign TZ.
+  const summary = summaryEvents(twoDays(), { stamp: ICS_STAMP });
+  assert.match(summary[0].summary, /08:00, 21:05/);
+});
+
+test('an all-day entry ends on the following day, as a DATE end is exclusive', () => {
+  const lines = icsEvent(summaryEvents(twoDays(), { stamp: ICS_STAMP })[0]);
+  assert.ok(lines.includes('DTSTART;VALUE=DATE:20260715'));
+  assert.ok(lines.includes('DTEND;VALUE=DATE:20260716'));
+  assert.ok(!lines.some((l) => l.startsWith('DTSTART:')), 'no timed start alongside the date one');
+});
+
+test('a timetable never claims the day as busy', () => {
+  const lines = icsEvent(summaryEvents(twoDays(), { stamp: ICS_STAMP })[0]);
+  assert.ok(lines.includes('TRANSP:TRANSPARENT'));
+  // A crossing someone is actually taking is not transparent.
+  assert.ok(!icsEvent(departureEvent(bookedCall(), { stamp: ICS_STAMP })).includes('TRANSP:TRANSPARENT'));
+});
+
+test('the description keeps the crossings behind the one-line summary', () => {
+  const withStops = feedEvents([{ direction: 'to-haugesund', calls: [bookedCall()] }], {
+    stamp: ICS_STAMP,
+  });
+  assert.equal(summaryEvents(withStops, { stamp: ICS_STAMP })[0].description, '21:05-21:30');
+});
+
+test('a crossing with no known arrival is listed by its departure alone', () => {
+  assert.equal(summaryEvents(twoDays(), { stamp: ICS_STAMP })[0].description, '08:00\n21:05');
+});
+
+test('a summary rebuilt from the same days keeps its UIDs', () => {
+  const first = summaryEvents(twoDays(), { stamp: ICS_STAMP });
+  const second = summaryEvents(twoDays(), { stamp: new Date('2026-07-15T06:00:00Z') });
+  assert.deepEqual(first.map((e) => e.uid), second.map((e) => e.uid));
+});
+
+test('the summary is a fraction of the events of the full feed', () => {
+  const events = twoDays();
+  const summary = summaryEvents(events, { stamp: ICS_STAMP });
+  assert.equal(events.length, 4);
+  assert.equal(summary.length, 3);
+  const ics = icsCalendar(summary, { name: 'Rutebåten', ttlMinutes: FEED_TTL_MINUTES });
+  assert.equal(ics.split('\r\n').filter((l) => l === 'BEGIN:VEVENT').length, 3);
 });

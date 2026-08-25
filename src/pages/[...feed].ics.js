@@ -15,18 +15,32 @@ import {
   query,
   osloMidnight,
   feedEvents,
+  summaryEvents,
   icsCalendar,
 } from '../scripts/departures-core.js';
 import { allRoutes, pathFor } from '../i18n/routes.js';
 import { ui } from '../i18n/ui.js';
 import { localeInfo } from '../i18n/locales.js';
 
-// One feed per language that has the ferry page, sitting beside that page's own
-// URL: /rutebaten.ics, /en/ferry.ics. A new language needs no change here.
+// Two feeds per language that has the ferry page, sitting beside that page's
+// own URL: every crossing at /rutebaten.ics, and one line per day and
+// direction at /rutebaten-summary.ics. A new language needs no change here.
+// The suffix is deliberately untranslated - it is a variant marker in a URL,
+// not page copy.
+const variants = [
+  { suffix: '', summary: false },
+  { suffix: '-summary', summary: true },
+];
+
 export function getStaticPaths() {
   return allRoutes()
     .filter((route) => route.key === 'ferry')
-    .map((route) => ({ params: { feed: route.slug }, props: route }));
+    .flatMap((route) =>
+      variants.map((variant) => ({
+        params: { feed: `${route.slug}${variant.suffix}` },
+        props: { ...route, summary: variant.summary },
+      }))
+    );
 }
 
 // One stamp for the whole build, so the three languages agree on when the feed
@@ -74,20 +88,25 @@ export async function GET({ props, site }) {
   const t = ui(lang).ferry;
   const page = site ? new URL(pathFor('ferry', lang), site).href : undefined;
 
+  const options = {
+    strings: t.board,
+    locale: localeInfo(lang).intl,
+    stamp: builtAt,
+    url: page,
+  };
+
   const events = feedEvents(
     [
       { calls: rovar, direction: 'to-haugesund' },
       { calls: haugesund, direction: 'to-rovar' },
     ],
-    {
-      strings: t.board,
-      locale: localeInfo(lang).intl,
-      stamp: builtAt,
-      url: page,
-    }
+    options
   );
 
-  return new Response(icsCalendar(events, { name: t.feedName, ttlMinutes: FEED_TTL_MINUTES }), {
-    headers: { 'Content-Type': 'text/calendar; charset=utf-8' },
+  const body = icsCalendar(props.summary ? summaryEvents(events, options) : events, {
+    name: props.summary ? t.feedSummaryName : t.feedName,
+    ttlMinutes: FEED_TTL_MINUTES,
   });
+
+  return new Response(body, { headers: { 'Content-Type': 'text/calendar; charset=utf-8' } });
 }

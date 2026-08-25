@@ -414,6 +414,13 @@ export function journeyKey(call, direction) {
 // One departure as a plain event object. Every display string comes from the
 // caller's UI catalog, so this stays the language-agnostic half; the tokens it
 // fills are the same {{token}} shape the rest of the site uses.
+export function fillTokens(template, tokens) {
+  return Object.entries(tokens).reduce(
+    (text, [key, value]) => text.replaceAll(`{{${key}}}`, value),
+    template
+  );
+}
+
 export function departureEvent(call, opts = {}) {
   const {
     direction = 'to-haugesund',
@@ -433,8 +440,7 @@ export function departureEvent(call, opts = {}) {
   const toHaugesund = direction === 'to-haugesund';
   const from = toHaugesund ? ROVAR_NAME : HAUGESUND_NAME;
   const to = toHaugesund ? HAUGESUND_NAME : ROVAR_NAME;
-  const fill = (template, tokens) =>
-    Object.entries(tokens).reduce((text, [k, v]) => text.replaceAll(`{{${k}}}`, v), template);
+  const fill = fillTokens;
 
   const description = [
     via.length && strings.icsVia ? fill(strings.icsVia, { stops: via.join(', ') }) : '',
@@ -452,6 +458,9 @@ export function departureEvent(call, opts = {}) {
     start,
     end: arrivalTime,
     duration,
+    direction,
+    from,
+    to,
     isBooking,
     summary: fill(strings.icsSummary ?? '{{from}}-{{to}}', { from, to }),
     location: fill(strings.icsLocation ?? '{{from}}', { from, to }),
@@ -462,20 +471,30 @@ export function departureEvent(call, opts = {}) {
 }
 
 export function icsEvent(event) {
-  const lines = [
-    'BEGIN:VEVENT',
-    `UID:${event.uid}`,
-    `DTSTAMP:${icsTime(event.stamp)}`,
-    `DTSTART:${icsTime(event.start)}`,
-  ];
-  // No arrival time known means an event with no end rather than a guessed
-  // one: Entur leaves the stop list empty often enough that a made-up
-  // crossing time would be the common case, not the exception.
-  if (event.end) lines.push(`DTEND:${icsTime(event.end)}`);
+  const lines = ['BEGIN:VEVENT', `UID:${event.uid}`, `DTSTAMP:${icsTime(event.stamp)}`];
+
+  if (event.allDay) {
+    // A DATE end is exclusive, so a single day ends on the next one.
+    lines.push(
+      `DTSTART;VALUE=DATE:${compactDate(event.date)}`,
+      `DTEND;VALUE=DATE:${compactDate(nextOsloDay(event.date))}`
+    );
+  } else {
+    lines.push(`DTSTART:${icsTime(event.start)}`);
+    // No arrival time known means an event with no end rather than a guessed
+    // one: Entur leaves the stop list empty often enough that a made-up
+    // crossing time would be the common case, not the exception.
+    if (event.end) lines.push(`DTEND:${icsTime(event.end)}`);
+  }
+
   lines.push(`SUMMARY:${icsEscape(event.summary)}`);
   if (event.location) lines.push(`LOCATION:${icsEscape(event.location)}`);
   if (event.description) lines.push(`DESCRIPTION:${icsEscape(event.description)}`);
   if (event.url) lines.push(`URL:${event.url}`);
+  // A timetable is something to read, not somewhere you have to be. Marked
+  // transparent it shows in the calendar without claiming the day as busy,
+  // which an all-day event would otherwise do to every free/busy lookup.
+  if (event.transparent) lines.push('TRANSP:TRANSPARENT');
   for (const mins of event.reminders || []) {
     lines.push(
       'BEGIN:VALARM',
@@ -546,4 +565,55 @@ export function feedEvents(batches, opts = {}) {
     }
   }
   return [...byUid.values()].sort((a, b) => a.start - b.start);
+}
+
+// --- summary feed -----------------------------------------------------------
+
+export const compactDate = (dateStr) => dateStr.replace(/-/g, '');
+
+// Midday, so a DST change cannot tip the arithmetic into the wrong day.
+export function nextOsloDay(dateStr) {
+  const day = new Date(`${dateStr}T12:00:00Z`);
+  day.setUTCDate(day.getUTCDate() + 1);
+  return day.toISOString().slice(0, 10);
+}
+
+// The detailed events folded into one all-day entry per day and direction. A
+// timetable is reference material, and eighteen timed blocks a day bury a
+// calendar it was only meant to sit beside; one line per direction says the
+// same thing from the all-day row, where it costs nothing.
+export function summaryEvents(events, opts = {}) {
+  const { strings = {}, locale = 'no', stamp = new Date(), url } = opts;
+
+  const days = new Map();
+  for (const event of events) {
+    const key = `${toOsloDate(event.start)}|${event.direction}`;
+    if (!days.has(key)) days.set(key, []);
+    days.get(key).push(event);
+  }
+
+  return [...days.entries()]
+    .map(([key, group]) => {
+      const [date, direction] = key.split('|');
+      const sorted = [...group].sort((a, b) => a.start - b.start);
+      const clock = (dt) => osloClock(dt, locale);
+      return {
+        uid: `summary-${date}-${direction}@${ICS_DOMAIN}`,
+        stamp,
+        allDay: true,
+        date,
+        direction,
+        transparent: true,
+        summary: fillTokens(strings.icsDay ?? '{{from}}-{{to}}: {{times}}', {
+          from: sorted[0].from,
+          to: sorted[0].to,
+          times: sorted.map((e) => clock(e.start)).join(', '),
+        }),
+        description: sorted
+          .map((e) => (e.end ? `${clock(e.start)}-${clock(e.end)}` : clock(e.start)))
+          .join('\n'),
+        url,
+      };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date) || a.direction.localeCompare(b.direction));
 }

@@ -56,10 +56,14 @@
       "icsLocation": "{{from}} hurtigbåtkai",
       "icsVia": "Via {{stops}}.",
       "icsBooking": "Advance booking required: book by {{deadline}} on {{kolumbusPhone}}.",
-      "icsBookingNoDeadline": "Advance booking required: call {{kolumbusPhone}}."
+      "icsBookingNoDeadline": "Advance booking required: call {{kolumbusPhone}}.",
+      "icsDay": "Ferry {{from}}-{{to}}: {{times}}"
     },
     "feedName": "Røvær-Haugesund ferry",
     "feedLine": "{{feedLink}} to keep the timetable in your own calendar, updated automatically.",
-    "feedLabel": "Subscribe to the timetable"
+    "feedLabel": "Subscribe to the timetable",
+    "feedSummaryName": "Røvær-Haugesund ferry (daily overview)",
+    "feedSummaryLine": "{{feedSummaryLink}} gives one line per day and direction instead.",
+    "feedSummaryLabel": "Subscribe to the daily overview"
   }
 }
