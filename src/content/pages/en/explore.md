@@ -122,5 +122,6 @@ and hosts various events throughout the year. See the programme on
 [their website]({{havhotellUrl}}).
 
 Contact them at
-[{{havhotellEmail}}](mailto:{{havhotellEmail}})
+[{{havhotellEmail}}](mailto:{{havhotellEmail}}),
+on [Facebook]({{havhotellFacebookUrl}})
 or call {{havhotellPhone}}.

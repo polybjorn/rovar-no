@@ -114,5 +114,6 @@ De har forskjellige arrangementer i løpet av året. Sjekk ut programmet
 på [deres hjemmeside]({{havhotellUrl}}).
 
 Finn og kontakt dem på
-[{{havhotellEmail}}](mailto:{{havhotellEmail}})
+[{{havhotellEmail}}](mailto:{{havhotellEmail}}),
+[Facebook]({{havhotellFacebookUrl}})
 eller ring dem på {{havhotellPhone}}.

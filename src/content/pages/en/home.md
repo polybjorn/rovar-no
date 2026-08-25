@@ -16,7 +16,7 @@ cards:
   camp-school:
     heading: "Camp school"
     text: "Outdoor life and coastal culture for pupils"
-    alt: "Hotell Mørk reflected in the sea by the quay"
+    alt: "Røvær Havhotell reflected in the sea by the quay"
   history:
     heading: "History of Røvær"
     text: "From the Stone Age to a fishing community"

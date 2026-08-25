@@ -28,6 +28,7 @@ export const facts = {
   // Røvær Havhotell
   havhotellUrl: 'https://rovarhavhotell.no/',
   havhotellMenuUrl: 'https://rovarhavhotell.no/meny/',
+  havhotellFacebookUrl: 'https://www.facebook.com/rovarkulturhotell',
   havhotellEmail: 'kontakt@rovarhavhotell.no',
   havhotellPhone: '52 71 58 00',
 

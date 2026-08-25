@@ -16,7 +16,7 @@ cards:
   camp-school:
     heading: "Leirskolen"
     text: "Friluftsliv og kystkultur for skoleelever"
-    alt: "Hotell Mørk speiler seg i sjøen ved kaien"
+    alt: "Røvær Havhotell speiler seg i sjøen ved kaien"
   history:
     heading: "Røværs historie"
     text: "Fra steinalder til fiskerisamfunn"

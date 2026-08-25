@@ -130,5 +130,6 @@ Sie auf
 [ihrer Website]({{havhotellUrl}}).
 
 Kontakt unter
-[{{havhotellEmail}}](mailto:{{havhotellEmail}})
+[{{havhotellEmail}}](mailto:{{havhotellEmail}}),
+auf [Facebook]({{havhotellFacebookUrl}})
 oder telefonisch unter {{havhotellPhone}}.

@@ -17,7 +17,7 @@ cards:
   camp-school:
     heading: "Schullandheim"
     text: "Outdoor-Leben und Küstenkultur für Schüler"
-    alt: "Hotell Mørk spiegelt sich im Meer am Kai"
+    alt: "Røvær Havhotell spiegelt sich im Meer am Kai"
   history:
     heading: "Geschichte von Røvær"
     text: "Von der Steinzeit zur Fischergemeinschaft"
