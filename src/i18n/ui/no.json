@@ -25,7 +25,7 @@
   "notFound": {
     "title": "Siden finnes ikke",
     "intro": "Den kan ha blitt flyttet, eller adressen kan være feilskrevet.",
-    "homeLink": "Til den norske forsiden"
+    "homeLink": "Til forsiden"
   },
   "ferry": {
     "prevDay": "Forrige dag",

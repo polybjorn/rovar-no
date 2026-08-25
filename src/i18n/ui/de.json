@@ -26,7 +26,7 @@
   "notFound": {
     "title": "Seite nicht gefunden",
     "intro": "Vielleicht wurde sie verschoben, oder die Adresse ist falsch geschrieben.",
-    "homeLink": "Zur deutschen Startseite"
+    "homeLink": "Zur Startseite"
   },
   "ferry": {
     "prevDay": "Vorheriger Tag",

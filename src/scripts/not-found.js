@@ -18,6 +18,10 @@ if (shown) {
   const heading = shown.querySelector('h2');
   if (heading) {
     const h1 = document.createElement('h1');
+    // Carry the heading's attributes over, Astro's scope marker among them:
+    // an element built here never gets one on its own, and a scoped rule would
+    // silently skip it.
+    for (const { name, value } of heading.attributes) h1.setAttribute(name, value);
     h1.className = 'page-title';
     h1.textContent = heading.textContent;
     heading.replaceWith(h1);

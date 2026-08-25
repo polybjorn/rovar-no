@@ -14,7 +14,7 @@ const t = ui(defaultLocale).notFound;
 ---
 
 <Layout title={t.title} description={t.intro} page="home">
-  <div class="page">
+  <div class="page nf-page">
     {locales.map((l) => {
       const n = ui(l.code).notFound;
       const isDefault = l.code === defaultLocale;
@@ -30,3 +30,33 @@ const t = ui(defaultLocale).notFound;
 </Layout>
 
 <script src="../scripts/not-found.js"></script>
+
+<style>
+  /* Nothing here scrolls, so the block sits in the middle of what is left
+     between the header and the footer rather than hanging off the top. main is
+     the only box that knows that height, and this stylesheet only ships with
+     the 404 page. */
+  :global(body > main) {
+    display: flex;
+  }
+
+  .nf-page {
+    margin: auto;
+    text-align: center;
+    /* Even padding: the site's page padding is bottom-heavy, which would push
+       a centred block off centre. */
+    padding-bottom: 2.5rem;
+  }
+
+  /* .page-intro is width-capped, so centring the text is not enough to centre
+     the paragraph. */
+  .nf-page .page-intro {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* One language on screen needs no gap under it; three still want one. */
+  .nf-lang:last-child {
+    margin-bottom: 0;
+  }
+</style>

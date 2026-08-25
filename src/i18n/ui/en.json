@@ -25,7 +25,7 @@
   "notFound": {
     "title": "Page not found",
     "intro": "It may have been moved, or the address may be misspelled.",
-    "homeLink": "Go to the English front page"
+    "homeLink": "Go to the front page"
   },
   "ferry": {
     "prevDay": "Previous day",
