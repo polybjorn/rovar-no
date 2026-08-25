@@ -57,7 +57,9 @@
       "icsVia": "Via {{stops}}.",
       "icsBooking": "Bestillingsrute: bestill innen {{deadline}} på {{kolumbusPhone}}.",
       "icsBookingNoDeadline": "Bestillingsrute: må bestilles på forhånd på {{kolumbusPhone}}.",
-      "icsDay": "Rutebåten {{from}}-{{to}}: {{times}}"
+      "icsDay": "Rutebåten {{from}}-{{to}}: {{times}}",
+      "icsTimetableEnd": "Rutetabellen slutter her",
+      "icsTimetableEndBody": "Kolumbus har ikke publisert avganger etter {{date}}. Kalenderen fylles på igjen når nye rutetider legges ut - se rovar.no for gjeldende tider."
     },
     "feedName": "Rutebåten Røvær-Haugesund",
     "feedLine": "{{feedLink}} for å få rutetidene rett i kalenderen din, oppdatert automatisk.",

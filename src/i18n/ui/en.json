@@ -57,7 +57,9 @@
       "icsVia": "Via {{stops}}.",
       "icsBooking": "Advance booking required: book by {{deadline}} on {{kolumbusPhone}}.",
       "icsBookingNoDeadline": "Advance booking required: call {{kolumbusPhone}}.",
-      "icsDay": "Ferry {{from}}-{{to}}: {{times}}"
+      "icsDay": "Ferry {{from}}-{{to}}: {{times}}",
+      "icsTimetableEnd": "The timetable ends here",
+      "icsTimetableEndBody": "Kolumbus has published no departures after {{date}}. The calendar fills in again once new times are released - see rovar.no for current departures."
     },
     "feedName": "Røvær-Haugesund ferry",
     "feedLine": "{{feedLink}} to keep the timetable in your own calendar, updated automatically.",

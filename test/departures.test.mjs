@@ -46,6 +46,7 @@ import {
   feedEvents,
   summaryEvents,
   nextOsloDay,
+  expiryEvent,
 } from '../src/scripts/departures-core.js';
 
 // A summer and a winter instant, chosen so the UTC date and the Oslo date
@@ -985,4 +986,53 @@ test('the summary is a fraction of the events of the full feed', () => {
   assert.equal(summary.length, 3);
   const ics = icsCalendar(summary, { name: 'Rutebåten', ttlMinutes: FEED_TTL_MINUTES });
   assert.equal(ics.split('\r\n').filter((l) => l === 'BEGIN:VEVENT').length, 3);
+});
+
+// --- expiry marker ----------------------------------------------------------
+
+test('the marker lands on the last day the timetable covers', () => {
+  const marker = expiryEvent(twoDays(), { stamp: ICS_STAMP });
+  assert.equal(marker.date, '2026-07-16');
+  assert.equal(marker.allDay, true);
+});
+
+test('the marker keeps one UID as its date moves, so it updates in place', () => {
+  const short = expiryEvent(twoDays(), { stamp: ICS_STAMP });
+  const longer = expiryEvent(
+    feedEvents(
+      [
+        {
+          direction: 'to-haugesund',
+          calls: [
+            call({ time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'a' }),
+            call({ time: '2026-12-31T08:00:00+01:00', frontText: 'Haugesund', id: 'z' }),
+          ],
+        },
+      ],
+      { stamp: ICS_STAMP }
+    ),
+    { stamp: ICS_STAMP }
+  );
+  assert.equal(short.uid, longer.uid);
+  assert.notEqual(short.date, longer.date);
+  assert.equal(longer.date, '2026-12-31');
+});
+
+test('a feed with no departures gets no marker rather than an undated one', () => {
+  assert.equal(expiryEvent([], { stamp: ICS_STAMP }), null);
+});
+
+test('the marker names the date it expires and never claims the day as busy', () => {
+  const marker = expiryEvent(twoDays(), {
+    stamp: ICS_STAMP,
+    strings: {
+      icsTimetableEnd: 'Rutetabellen slutter her',
+      icsTimetableEndBody: 'Ingen avganger etter {{date}}.',
+    },
+  });
+  assert.equal(marker.summary, 'Rutetabellen slutter her');
+  assert.equal(marker.description, 'Ingen avganger etter 2026-07-16.');
+  const lines = icsEvent(marker);
+  assert.ok(lines.includes('TRANSP:TRANSPARENT'));
+  assert.ok(lines.includes('DTSTART;VALUE=DATE:20260716'));
 });

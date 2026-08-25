@@ -26,9 +26,9 @@ still work. Every other language uses English paths under its own prefix
 
 | Language | Prefix | Progress | Pages | UI strings |
 |---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 53/53 |
-| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [53/53](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [53/53](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 55/55 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [55/55](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [55/55](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
@@ -61,16 +61,19 @@ npm install && npm run dev
 ## Calendar
 
 Every departure row exports a single event, and `/rutebaten.ics` is a
-subscribable feed of the next 30 days in both directions, one per language
-(`/en/ferry.ics`, `/de/ferry.ics`). `/rutebaten-summary.ics` is the same
-timetable folded into one all-day line per day and direction, for a calendar
-that should carry the timetable without being buried by it. All of them come
-from the same event builder in `src/scripts/departures-core.js`.
+subscribable feed of both directions, one per language (`/en/ferry.ics`,
+`/de/ferry.ics`). `/rutebaten-summary.ics` is the same timetable folded into one
+all-day line per day and direction, for a calendar that should carry the
+timetable without being buried by it. All of them come from the same event
+builder in `src/scripts/departures-core.js`.
 
-The feed is a static file, so a deploy is what refreshes it. Running the Pages
-workflow on a schedule keeps it current; if Entur answers with nothing the
-build fails rather than publishing an empty calendar, which would clear the
-departures out of every subscriber's calendar.
+The feeds run to the end of Entur's published timetable rather than a fixed
+window, and close with an all-day entry naming the date they run out, so a feed
+nobody has rebuilt says so instead of just going quiet. They are static files, so
+a deploy is what refreshes them, and `deploy.yml` runs daily on a schedule for
+that reason alone. If Entur answers with nothing the build fails rather than
+publishing an empty calendar, which would clear the departures out of every
+subscriber's calendar.
 
 ## Tests
 

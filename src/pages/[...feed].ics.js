@@ -1,4 +1,4 @@
-// The subscription feed: every departure for the next FEED_DAYS, in both
+// The subscription feed: every departure Entur has published, in both
 // directions, as one calendar per language. Built as a static file like every
 // other page, so the deploy is the refresh - a scheduled run of the Pages
 // workflow is what keeps it current.
@@ -10,12 +10,13 @@ import {
   ENTUR_CLIENT,
   ROVAR_STOP,
   HAUGESUND_STOP,
-  FEED_DAYS,
+  FEED_WINDOW_DAYS,
   FEED_TTL_MINUTES,
   query,
   osloMidnight,
   feedEvents,
   summaryEvents,
+  expiryEvent,
   icsCalendar,
 } from '../scripts/departures-core.js';
 import { allRoutes, pathFor } from '../i18n/routes.js';
@@ -55,11 +56,11 @@ async function fetchStop(stopId) {
       query,
       variables: {
         stopId,
-        // Roughly a day's departures each way, with room to spare: the cap is
-        // a guard against a runaway response, not a limit worth tuning.
-        n: FEED_DAYS * 30,
+        // Deliberately more than the timetable can hold, so the answer is
+        // bounded by what Entur has published rather than by this number.
+        n: FEED_WINDOW_DAYS * 20,
         startTime: osloMidnight(0),
-        timeRange: FEED_DAYS * 86400,
+        timeRange: FEED_WINDOW_DAYS * 86400,
       },
     }),
   });
@@ -103,7 +104,11 @@ export async function GET({ props, site }) {
     options
   );
 
-  const body = icsCalendar(props.summary ? summaryEvents(events, options) : events, {
+  const shown = props.summary ? summaryEvents(events, options) : events;
+  // The marker goes last, on the day the published timetable runs out.
+  const end = expiryEvent(events, options);
+
+  const body = icsCalendar(end ? [...shown, end] : shown, {
     name: props.summary ? t.feedSummaryName : t.feedName,
     ttlMinutes: FEED_TTL_MINUTES,
   });

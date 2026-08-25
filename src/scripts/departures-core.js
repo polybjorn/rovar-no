@@ -15,10 +15,12 @@ export const ENTUR_SITE = 'https://entur.no/';
 export const ROVAR_STOP = 'NSR:StopPlace:25940';
 export const HAUGESUND_STOP = 'NSR:StopPlace:26090';
 export const MAX_DAY_OFFSET = 7;
-// How far the subscription feed reaches, and how often a subscriber should come
-// back for it. The board's seven days is a reading choice - Entur itself
-// answers months ahead - so the feed sets its own horizon.
-export const FEED_DAYS = 30;
+// A ceiling on the query window, not a horizon: Entur is asked for more than it
+// can have and answers with the whole published timetable, which currently runs
+// out about four months ahead (Kolumbus publishes to a year end). Taking all of
+// it is what lets the feed survive a deploy that never comes - it stays correct
+// until the timetable it was built from ends, rather than for a fixed 30 days.
+export const FEED_WINDOW_DAYS = 400;
 export const FEED_TTL_MINUTES = 720;
 
 export const query = `query departures($stopId: String!, $n: Int!, $startTime: DateTime!, $timeRange: Int!) {
@@ -616,4 +618,28 @@ export function summaryEvents(events, opts = {}) {
       };
     })
     .sort((a, b) => a.date.localeCompare(b.date) || a.direction.localeCompare(b.direction));
+}
+
+// The feed states its own expiry. Without this a subscriber whose calendar has
+// simply stopped being rebuilt sees no ferry at all past some date and reads it
+// as the boat having stopped, with nothing on screen to suggest otherwise. One
+// all-day marker on the last covered day says which it is and where to look.
+// The UID is fixed, so each build moves this one entry rather than leaving the
+// old date behind in anyone's calendar.
+export function expiryEvent(events, opts = {}) {
+  if (!events.length) return null;
+  const { strings = {}, stamp = new Date(), url } = opts;
+  const last = events.reduce((a, b) => (a.start > b.start ? a : b));
+  const date = toOsloDate(last.start);
+
+  return {
+    uid: `timetable-end@${ICS_DOMAIN}`,
+    stamp,
+    allDay: true,
+    date,
+    transparent: true,
+    summary: strings.icsTimetableEnd ?? 'Timetable ends',
+    description: fillTokens(strings.icsTimetableEndBody ?? '', { date }),
+    url,
+  };
 }

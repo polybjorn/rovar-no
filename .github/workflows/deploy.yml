@@ -3,6 +3,15 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # The ferry calendar feed is baked at build time, so a deploy is the only
+  # thing that refreshes it. Nothing but this runs on its own: an odd minute
+  # off the hour because GitHub drops scheduled runs that pile onto :00.
+  # GitHub disables a schedule after 60 days of repository inactivity and
+  # emails the repo owner to switch it back on; the feed is built to the end
+  # of Entur's published timetable, so it stays correct for months if that
+  # happens rather than running out in weeks.
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
 
 permissions:
