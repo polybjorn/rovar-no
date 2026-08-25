@@ -695,12 +695,26 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     }
   }
 
+  /* A row that has sailed fades whole, notice markers included: they were
+     left out of this list, so a booking phone or an info badge stayed at full
+     strength on an otherwise greyed row and pulled the eye to the one
+     departure nobody can still catch. The info button keeps working - the
+     notice is still true, it is just no longer news. */
   .dep-direction :global(.passed .dep-time),
   .dep-direction :global(.passed .dep-arrow),
   .dep-direction :global(.passed .dep-arr),
   .dep-direction :global(.passed .dep-via),
-  .dep-direction :global(.passed .dep-duration) {
+  .dep-direction :global(.passed .dep-duration),
+  .dep-direction :global(.passed .dep-notice) {
     opacity: 0.5;
+  }
+
+  /* Focus and hover bring it back, so a control never sits at half strength
+     while it is the thing being used. */
+  .dep-direction :global(.passed .dep-notice:hover),
+  .dep-direction :global(.passed .dep-notice:focus-visible),
+  .dep-direction :global(.passed .dep-notice[aria-expanded='true']) {
+    opacity: 1;
   }
 
   .dep-direction :global(.next) {
