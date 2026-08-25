@@ -52,7 +52,6 @@
       "nextMonth": "Nächster Monat",
       "bookLabel": "Vorausbuchung erforderlich",
       "infoLabel": "Info",
-      "addToCalendar": "Zum Kalender hinzufügen",
       "icsSummary": "Fähre {{from}}-{{to}}",
       "icsLocation": "{{from}} hurtigbåtkai",
       "icsVia": "Über {{stops}}.",

@@ -51,7 +51,6 @@
       "nextMonth": "Neste måned",
       "bookLabel": "Bestillingsrute",
       "infoLabel": "Info",
-      "addToCalendar": "Legg til i kalender",
       "icsSummary": "Rutebåten {{from}}-{{to}}",
       "icsLocation": "{{from}} hurtigbåtkai",
       "icsVia": "Via {{stops}}.",

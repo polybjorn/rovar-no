@@ -677,20 +677,10 @@ test('Entur notices reach the description', () => {
   assert.match(event.description, /Innstilt i dårlig vær/);
 });
 
-test('reminders become alarms ahead of the departure', () => {
-  const event = departureEvent(bookedCall(), {
-    direction: 'to-haugesund',
-    stamp: ICS_STAMP,
-    reminders: [30],
-  });
-  const lines = icsEvent(event);
-  assert.ok(lines.includes('TRIGGER:-PT30M'));
-  assert.equal(lines.filter((l) => l === 'BEGIN:VALARM').length, 1);
-});
-
-test('no reminders means no alarm block', () => {
+test('a departure carries no alarm: a timetable is read, not attended', () => {
   const lines = icsEvent(departureEvent(bookedCall(), { stamp: ICS_STAMP }));
-  assert.ok(!lines.some((l) => l === 'BEGIN:VALARM'));
+  assert.ok(!lines.some((l) => l.startsWith('BEGIN:VALARM')));
+  assert.ok(!lines.some((l) => l.startsWith('TRIGGER')));
 });
 
 test('the calendar wraps its events and ends with a CRLF', () => {

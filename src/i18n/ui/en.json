@@ -51,7 +51,6 @@
       "nextMonth": "Next month",
       "bookLabel": "Advance booking required",
       "infoLabel": "Info",
-      "addToCalendar": "Add to calendar",
       "icsSummary": "Ferry {{from}}-{{to}}",
       "icsLocation": "{{from}} hurtigbåtkai",
       "icsVia": "Via {{stops}}.",

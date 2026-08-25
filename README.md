@@ -26,9 +26,9 @@ still work. Every other language uses English paths under its own prefix
 
 | Language | Prefix | Progress | Pages | UI strings |
 |---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 55/55 |
-| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [55/55](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [55/55](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 54/54 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [54/54](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [54/54](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
@@ -60,9 +60,8 @@ npm install && npm run dev
 
 ## Calendar
 
-Every departure row exports a single event, and `/rutebaten.ics` is a
-subscribable feed of both directions, one per language (`/en/ferry.ics`,
-`/de/ferry.ics`). `/rutebaten-summary.ics` is the same timetable folded into one
+`/rutebaten.ics` is a subscribable feed of both directions, one per language
+(`/en/ferry.ics`, `/de/ferry.ics`). `/rutebaten-summary.ics` is the same timetable folded into one
 all-day line per day and direction, for a calendar that should carry the
 timetable without being buried by it. All of them come from the same event
 builder in `src/scripts/departures-core.js`.

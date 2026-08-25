@@ -432,7 +432,6 @@ export function departureEvent(call, opts = {}) {
     bookingRe = bookingPattern(),
     locale = 'no',
     url,
-    reminders = [],
   } = opts;
 
   const start = new Date(call.expectedDepartureTime);
@@ -468,7 +467,6 @@ export function departureEvent(call, opts = {}) {
     location: fill(strings.icsLocation ?? '{{from}}', { from, to }),
     description: description.join('\n'),
     url,
-    reminders,
   };
 }
 
@@ -497,15 +495,6 @@ export function icsEvent(event) {
   // transparent it shows in the calendar without claiming the day as busy,
   // which an all-day event would otherwise do to every free/busy lookup.
   if (event.transparent) lines.push('TRANSP:TRANSPARENT');
-  for (const mins of event.reminders || []) {
-    lines.push(
-      'BEGIN:VALARM',
-      'ACTION:DISPLAY',
-      `DESCRIPTION:${icsEscape(event.summary)}`,
-      `TRIGGER:-PT${mins}M`,
-      'END:VALARM'
-    );
-  }
   lines.push('END:VEVENT');
   return lines;
 }
