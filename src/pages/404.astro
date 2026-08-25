@@ -6,7 +6,10 @@ import { ui } from '../i18n/ui.js';
 
 // One 404 page serves every language, since the host has no way of knowing
 // which one the visitor was after. So each language says its own piece: the
-// default language heads the page, the rest follow in full.
+// default language heads the page, the rest follow in full. In the browser,
+// not-found.js narrows that to the language the URL names; without it the
+// whole page stands, which is what a visitor with no language in their URL
+// gets either way.
 const t = ui(defaultLocale).notFound;
 ---
 
@@ -16,7 +19,7 @@ const t = ui(defaultLocale).notFound;
       const n = ui(l.code).notFound;
       const isDefault = l.code === defaultLocale;
       return (
-        <section lang={l.code} class="section">
+        <section lang={l.code} class="section nf-lang">
           {isDefault ? <h1 class="page-title">{n.title}</h1> : <h2>{n.title}</h2>}
           <p class="page-intro">{n.intro}</p>
           <p><a href={pathFor('home', l.code)} hreflang={l.code}>{n.homeLink}</a></p>
@@ -25,3 +28,5 @@ const t = ui(defaultLocale).notFound;
     })}
   </div>
 </Layout>
+
+<script src="../scripts/not-found.js"></script>

@@ -11,6 +11,7 @@ import {
   pathFor,
   resolveRoute,
   allRoutes,
+  localeFromPath,
 } from '../src/i18n/routes-core.js';
 import { pages } from '../src/i18n/pages.js';
 import { localeCodes, defaultLocale } from '../src/i18n/locales.js';
@@ -115,4 +116,27 @@ test('allRoutes slugs carry the language prefix and no trailing slash', () => {
 test('no two routes claim the same URL', () => {
   const slugs = allRoutes(pages, complete).map((r) => r.slug);
   assert.equal(new Set(slugs).size, slugs.length);
+});
+
+test('a URL prefix names the language it belongs to', () => {
+  assert.equal(localeFromPath('/rovar-no/en/ferry/', BASE), 'en');
+  assert.equal(localeFromPath('/rovar-no/de/explore/', BASE), 'de');
+});
+
+test('no prefix is the root language, and so is an unknown first segment', () => {
+  assert.equal(localeFromPath('/rovar-no/rutebaten/', BASE), defaultLocale);
+  assert.equal(localeFromPath('/rovar-no/', BASE), defaultLocale);
+  assert.equal(localeFromPath('/rovar-no/tulle/', BASE), defaultLocale);
+  // A wrong URL under a language that is not one, e.g. a stray /fr/ link.
+  assert.equal(localeFromPath('/rovar-no/fr/home/', BASE), defaultLocale);
+});
+
+test('the language is read the same way with no base path', () => {
+  assert.equal(localeFromPath('/de/explore/'), 'de');
+  assert.equal(localeFromPath('/'), defaultLocale);
+});
+
+test('the root language is never matched as a prefix of its own', () => {
+  // Norwegian is served without a prefix, so /no/ is not one of its URLs.
+  assert.equal(localeFromPath(`/${defaultLocale}/home/`), defaultLocale);
 });

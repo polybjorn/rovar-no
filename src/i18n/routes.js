@@ -35,6 +35,10 @@ export function resolveRoute(key, code) {
   return core.resolveRoute(pageByKey, base, translated, key, code);
 }
 
+export function localeFromPath(path) {
+  return core.localeFromPath(path, base);
+}
+
 export function allRoutes() {
   return core.allRoutes(pages, translated);
 }

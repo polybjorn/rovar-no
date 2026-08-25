@@ -56,3 +56,15 @@ export function allRoutes(pages, translated) {
   }
   return out;
 }
+
+// The language a URL belongs to, read from its prefix. One static 404 file has
+// to serve every language, so the page renders all of them and narrows itself
+// to this one in the browser. A path with no prefix, or one whose first
+// segment is not a language, is the root language - which is also what a
+// visitor who typed a bare wrong URL gets.
+export function localeFromPath(path, base = '') {
+  const trimmed = base && path.startsWith(base) ? path.slice(base.length) : path;
+  const first = trimmed.replace(/^\//, '').split('/')[0];
+  const match = locales.find((l) => l.code === first && !l.root);
+  return match ? match.code : defaultLocale;
+}
