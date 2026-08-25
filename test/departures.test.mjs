@@ -832,3 +832,60 @@ test('a feed of a whole month is one valid calendar', () => {
   assert.equal(ics.split('\r\n').filter((l) => l === 'BEGIN:VEVENT').length, 30);
   assert.equal(new Set(events.map((e) => e.uid)).size, 30);
 });
+
+test('a stop list describing another day still dates the crossing from the departure', () => {
+  // Entur answers a query about a future date with today's run of the same
+  // journey: the clock times are right, the dates are today's. An event dated
+  // off that list ends the day before it starts.
+  const c = call({
+    time: '2026-07-20T08:00:00+02:00',
+    stops: [
+      {
+        quay: { stopPlace: { name: 'Røvær hurtigbåtkai' } },
+        expectedDepartureTime: '2026-07-15T08:00:00+02:00',
+        bookingArrangements: { minimumBookingPeriod: 'PT40M', bookingMethods: ['callDriver'] },
+      },
+      {
+        quay: { stopPlace: { name: 'Haugesund hurtigbåtkai' } },
+        expectedDepartureTime: '2026-07-15T08:25:00+02:00',
+      },
+    ],
+  });
+  const info = getRouteInfo(c);
+  assert.equal(info.duration, 25);
+  assert.equal(info.arrivalTime.toISOString(), new Date('2026-07-20T08:25:00+02:00').toISOString());
+  assert.equal(toOsloDate(info.bookingDeadline), '2026-07-20');
+  assert.equal(info.bookingDeadline.toISOString(), new Date('2026-07-20T07:20:00+02:00').toISOString());
+});
+
+test('no exported event ever ends before it starts', () => {
+  const stale = (time) =>
+    call({
+      time,
+      frontText: 'Haugesund',
+      id: `j-${time}`,
+      stops: [
+        {
+          quay: { stopPlace: { name: 'Røvær hurtigbåtkai' } },
+          // Always today's dates, whatever day was asked about.
+          expectedDepartureTime: '2026-07-15T08:00:00+02:00',
+          bookingArrangements: null,
+        },
+        {
+          quay: { stopPlace: { name: 'Haugesund hurtigbåtkai' } },
+          expectedDepartureTime: '2026-07-15T08:25:00+02:00',
+        },
+      ],
+    });
+  const events = feedEvents(
+    [
+      {
+        direction: 'to-haugesund',
+        calls: ['2026-07-16', '2026-07-20', '2026-08-01'].map((d) => stale(`${d}T08:00:00+02:00`)),
+      },
+    ],
+    { stamp: ICS_STAMP }
+  );
+  assert.equal(events.length, 3);
+  for (const event of events) assert.ok(event.end > event.start, `${event.uid} ends before it starts`);
+});

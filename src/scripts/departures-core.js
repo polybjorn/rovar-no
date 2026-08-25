@@ -122,8 +122,16 @@ export function getArrivalFromPassingTimes(call) {
   return { arrivalTime: arr, duration: duration > 0 ? duration : null };
 }
 
+// Ask about a departure three days out and the stop list comes back describing
+// today's run of the same journey: the clock times are the ones that matter and
+// are right, the dates are today's. A board that prints HH:MM cannot see the
+// difference, but an exported event dated from that list ends before it starts.
+// So only the spans between those stops are read off them, and every moment
+// handed back is measured from the departure the caller actually asked about.
 export function getRouteInfo(call) {
   const stops = call.serviceJourney.estimatedCalls;
+  const departure = new Date(call.expectedDepartureTime);
+
   if (!stops || stops.length < 2) {
     const via = parseViaFromFrontText(call.destinationDisplay?.frontText || '');
     const { arrivalTime, duration } = getArrivalFromPassingTimes(call);
@@ -137,11 +145,11 @@ export function getRouteInfo(call) {
   const hasBooking = stops[0].bookingArrangements?.bookingMethods?.length > 0;
 
   return {
-    arrivalTime: last,
+    arrivalTime: new Date(departure.getTime() + duration * 60000),
     duration,
     via,
     hasBooking,
-    bookingDeadline: bookingDeadline(stops[0].bookingArrangements, first),
+    bookingDeadline: bookingDeadline(stops[0].bookingArrangements, departure),
   };
 }
 
