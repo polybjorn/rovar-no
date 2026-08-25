@@ -17,6 +17,7 @@ import {
   dateAtOffset,
   osloMidnight,
   osloMinutes,
+  osloClock,
   filterRoute,
   getRouteInfo,
   bookingPattern,
@@ -25,6 +26,8 @@ import {
   formatCountdown,
   urgencyClass,
   kolumbusUrl,
+  departureEvent,
+  icsCalendar,
   monthDays,
   monthNav,
   offsetOf,
@@ -47,7 +50,7 @@ async function fetchDepartures(stopId, startTime) {
       "Content-Type": "application/json",
       "ET-Client-Name": ENTUR_CLIENT
     },
-    body: JSON.stringify({ query, variables: { stopId, n: 20, startTime } })
+    body: JSON.stringify({ query, variables: { stopId, n: 20, startTime, timeRange: 86400 } })
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
@@ -55,7 +58,7 @@ async function fetchDepartures(stopId, startTime) {
 }
 
 function fmt(dt) {
-  return dt.toLocaleTimeString(S.locale, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Oslo" });
+  return osloClock(dt, S.locale);
 }
 
 function esc(str) {
@@ -73,12 +76,35 @@ function selectedDate() {
 // the board is wiped (empty day, error), so the next list counts as new.
 const prevRows = new Map();
 
-function render(containerId, calls, fresh) {
+// The event behind each row's calendar button, rebuilt with the row it belongs
+// to. Keyed by container and row index rather than stored on the element, so
+// the markup stays small enough to diff.
+const rowEvents = new Map();
+
+// A departure the reader can hand to their own calendar. Everything the file
+// says is built in departures-core.js; this end only names it and hands it to
+// the browser.
+function downloadEvent(event) {
+  const ics = icsCalendar([event], { method: 'PUBLISH' });
+  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `rutebaten-${toOsloDate(event.start)}-${fmt(event.start).replace(':', '')}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Revoked on the next frame rather than at once: Safari reads the blob after
+  // the click returns.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function render(containerId, calls, fresh, direction) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   if (!calls.length) {
     prevRows.delete(containerId);
+    rowEvents.delete(containerId);
     container.innerHTML = `<div class="dep-empty">${esc(S.empty)}</div>`;
     return;
   }
@@ -88,11 +114,13 @@ function render(containerId, calls, fresh) {
 
   const phoneIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>';
   const infoIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>';
+  const calendarIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>';
   const clockIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/></svg>';
   // Drawn rather than the U+2192 character: Barlow has no arrow glyph, so a
   // text arrow falls back to a system font and sits off the line on Android.
   const arrowIcon = '<svg class="dep-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+  const events = [];
   const rows = calls.map((c, i) => {
     const dt = new Date(c.expectedDepartureTime);
     const time = fmt(dt);
@@ -103,6 +131,16 @@ function render(containerId, calls, fresh) {
       isLast: i === calls.length - 1,
       bookingRe: BOOKING_RE,
     });
+    const event = departureEvent(c, {
+      direction,
+      strings: S,
+      locale: S.locale,
+      isLast: i === calls.length - 1,
+      bookingRe: BOOKING_RE,
+      url: `${location.origin}${location.pathname}`,
+    });
+    events.push(event);
+
     const depMinutes = osloMinutes(dt);
     const passed = dayOffset === 0 && depMinutes < nowMinutes;
     let cls = passed ? "passed" : "";
@@ -112,6 +150,12 @@ function render(containerId, calls, fresh) {
       isNext = true;
       nextFound = true;
     }
+
+    // A boat that has already sailed is not worth putting in a calendar, so
+    // the button goes with the rest of the row's usefulness.
+    const icsHtml = passed
+      ? ''
+      : `<button class="dep-ics" data-row="${i}" aria-label="${esc(S.addToCalendar)}" title="${esc(S.addToCalendar)}">${calendarIcon}</button>`;
 
     const arrHtml = arrivalTime ? `${arrowIcon}<span class="dep-arr">${esc(fmt(arrivalTime))}</span>` : '';
     const viaHtml = via.length ? `<span class="dep-via">via ${esc(via.join(', '))}</span>` : '';
@@ -148,7 +192,7 @@ function render(containerId, calls, fresh) {
           <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
         </div>
         <div class="dep-info">
-          ${noticeHtml}${durationHtml}${countdown}
+          ${noticeHtml}${durationHtml}${icsHtml}${countdown}
         </div>
       </div>
       ${detailHtml}
@@ -216,6 +260,13 @@ function render(containerId, calls, fresh) {
     const detail = document.getElementById(id);
     if (detail) setOpen(detail, true);
   });
+  rowEvents.set(containerId, events);
+  container.querySelectorAll('.dep-ics').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const event = rowEvents.get(containerId)?.[Number(btn.dataset.row)];
+      if (event) downloadEvent(event);
+    });
+  });
   container.querySelectorAll('.dep-notice').forEach(btn => {
     btn.addEventListener('click', () => {
       const detail = btn.closest('li').querySelector('.dep-detail');
@@ -264,12 +315,13 @@ async function loadAll(fresh = false) {
       fetchDepartures(ROVAR_STOP, startTime),
       fetchDepartures(HAUGESUND_STOP, startTime)
     ]);
-    render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh);
-    render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh);
+    render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh, "to-haugesund");
+    render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh, "to-rovar");
     lastLoad = Date.now();
   } catch (err) {
     ["from-rovar", "from-haugesund"].forEach(id => {
       prevRows.delete(id);
+      rowEvents.delete(id);
       const el = document.getElementById(id);
       if (el) el.innerHTML = `<div class="dep-error">${esc(S.error)}</div>`;
     });

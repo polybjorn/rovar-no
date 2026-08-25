@@ -51,7 +51,16 @@
       "prevMonth": "Vorheriger Monat",
       "nextMonth": "Nächster Monat",
       "bookLabel": "Vorausbuchung erforderlich",
-      "infoLabel": "Info"
-    }
+      "infoLabel": "Info",
+      "addToCalendar": "Zum Kalender hinzufügen",
+      "icsSummary": "Fähre {{from}}-{{to}}",
+      "icsLocation": "{{from}} hurtigbåtkai",
+      "icsVia": "Über {{stops}}.",
+      "icsBooking": "Reservierungspflichtig: bis {{deadline}} unter {{kolumbusPhone}} buchen.",
+      "icsBookingNoDeadline": "Reservierungspflichtig: bitte unter {{kolumbusPhone}} anrufen."
+    },
+    "feedName": "Fähre Røvær-Haugesund",
+    "feedLine": "{{feedLink}}, um den Fahrplan automatisch aktualisiert im eigenen Kalender zu haben.",
+    "feedLabel": "Fahrplan abonnieren"
   }
 }

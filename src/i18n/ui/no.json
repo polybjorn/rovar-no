@@ -50,7 +50,16 @@
       "prevMonth": "Forrige måned",
       "nextMonth": "Neste måned",
       "bookLabel": "Bestillingsrute",
-      "infoLabel": "Info"
-    }
+      "infoLabel": "Info",
+      "addToCalendar": "Legg til i kalender",
+      "icsSummary": "Rutebåten {{from}}-{{to}}",
+      "icsLocation": "{{from}} hurtigbåtkai",
+      "icsVia": "Via {{stops}}.",
+      "icsBooking": "Bestillingsrute: bestill innen {{deadline}} på {{kolumbusPhone}}.",
+      "icsBookingNoDeadline": "Bestillingsrute: må bestilles på forhånd på {{kolumbusPhone}}."
+    },
+    "feedName": "Rutebåten Røvær-Haugesund",
+    "feedLine": "{{feedLink}} for å få rutetidene rett i kalenderen din, oppdatert automatisk.",
+    "feedLabel": "Abonner på rutetidene"
   }
 }

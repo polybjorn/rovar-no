@@ -12,7 +12,7 @@ from `main` by GitHub Pages and set to noindex until launch.
 |---|---|---|
 | Home | `/` | Hero image, intro text, card grid, OpenStreetMap link |
 | Explore the island | `/opplev-oya-var/` | Hiking, swimming, historical sites, food, places to stay, the aquaculture centre |
-| Ferry | `/rutebaten/` | Live departure board from the Entur API, with service notices, past and next departures marked, and a link to Kolumbus as a fallback |
+| Ferry | `/rutebaten/` | Live departure board from the Entur API, with service notices, past and next departures marked, a link to Kolumbus as a fallback, and calendar export |
 | Camp school | `/leirskolen/` | Program, practical information, contact |
 | Island history | `/rovaers-historie/` | Archaeological finds, the fishing community, the 1899 disaster |
 
@@ -26,9 +26,9 @@ still work. Every other language uses English paths under its own prefix
 
 | Language | Prefix | Progress | Pages | UI strings |
 |---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 40/40 |
-| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [40/40](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [40/40](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 49/49 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [49/49](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [49/49](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
@@ -57,6 +57,18 @@ npm install && npm run dev
 ```
 
 `npm run build` writes the finished site to `dist/`.
+
+## Calendar
+
+Every departure row exports a single event, and `/rutebaten.ics` is a
+subscribable feed of the next 30 days in both directions, one per language
+(`/en/ferry.ics`, `/de/ferry.ics`). Both are built from the same event builder
+in `src/scripts/departures-core.js`.
+
+The feed is a static file, so a deploy is what refreshes it. Running the Pages
+workflow on a schedule keeps it current; if Entur answers with nothing the
+build fails rather than publishing an empty calendar, which would clear the
+departures out of every subscriber's calendar.
 
 ## Tests
 

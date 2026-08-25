@@ -50,7 +50,16 @@
       "prevMonth": "Previous month",
       "nextMonth": "Next month",
       "bookLabel": "Advance booking required",
-      "infoLabel": "Info"
-    }
+      "infoLabel": "Info",
+      "addToCalendar": "Add to calendar",
+      "icsSummary": "Ferry {{from}}-{{to}}",
+      "icsLocation": "{{from}} hurtigbåtkai",
+      "icsVia": "Via {{stops}}.",
+      "icsBooking": "Advance booking required: book by {{deadline}} on {{kolumbusPhone}}.",
+      "icsBookingNoDeadline": "Advance booking required: call {{kolumbusPhone}}."
+    },
+    "feedName": "Røvær-Haugesund ferry",
+    "feedLine": "{{feedLink}} to keep the timetable in your own calendar, updated automatically.",
+    "feedLabel": "Subscribe to the timetable"
   }
 }

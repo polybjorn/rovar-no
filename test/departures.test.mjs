@@ -32,6 +32,18 @@ import {
   shiftMonth,
   weekdayNames,
   MAX_DAY_OFFSET,
+  osloClock,
+  icsTime,
+  icsEscape,
+  foldLine,
+  journeyKey,
+  departureEvent,
+  icsEvent,
+  icsCalendar,
+  ICS_PRODID,
+  FEED_TTL_MINUTES,
+  groupByOsloDate,
+  feedEvents,
 } from '../src/scripts/departures-core.js';
 
 // A summer and a winter instant, chosen so the UTC date and the Oslo date
@@ -82,10 +94,11 @@ test('dateAtOffset does not mutate the date it is given', () => {
 
 // --- route data -------------------------------------------------------------
 
-const call = ({ time, frontText = 'Haugesund', stops, passingTimes, notices, situations }) => ({
+const call = ({ time, frontText = 'Haugesund', stops, passingTimes, notices, situations, id }) => ({
   expectedDepartureTime: time,
   destinationDisplay: { frontText },
   serviceJourney: {
+    id,
     line: { publicCode: '700' },
     notices,
     situations,
@@ -503,4 +516,319 @@ test('weekday names are Monday-first', () => {
   assert.equal(names.length, 7);
   assert.match(names[0], /^Mon/);
   assert.match(names[6], /^Sun/);
+});
+
+// --- calendar export --------------------------------------------------------
+
+const ICS_STAMP = new Date('2026-07-14T06:00:00Z');
+
+const bookedCall = (extra = {}) =>
+  call({
+    time: '2026-07-15T21:05:00+02:00',
+    frontText: 'Haugesund via Feøy',
+    id: 'KOL:ServiceJourney:700_1234',
+    stops: [
+      {
+        quay: { stopPlace: { name: 'Røvær hurtigbåtkai' } },
+        expectedDepartureTime: '2026-07-15T21:05:00+02:00',
+        bookingArrangements: { minimumBookingPeriod: 'PT40M', bookingMethods: ['callDriver'] },
+      },
+      {
+        quay: { stopPlace: { name: 'Feøy hurtigbåtkai' } },
+        expectedDepartureTime: '2026-07-15T21:15:00+02:00',
+      },
+      {
+        quay: { stopPlace: { name: 'Haugesund hurtigbåtkai' } },
+        expectedDepartureTime: '2026-07-15T21:30:00+02:00',
+      },
+    ],
+    ...extra,
+  });
+
+test('icsTime is UTC, so no calendar app has to resolve a wall-clock value', () => {
+  assert.equal(icsTime(new Date('2026-07-15T08:00:00+02:00')), '20260715T060000Z');
+  // The same instant, whatever timezone the test process runs in.
+  assert.equal(icsTime(new Date('2026-01-15T08:00:00+01:00')), '20260115T070000Z');
+});
+
+test('icsEscape protects the characters that would otherwise end a value', () => {
+  assert.equal(icsEscape('Feøy, Kveitevik'), 'Feøy\\, Kveitevik');
+  assert.equal(icsEscape('a;b'), 'a\\;b');
+  assert.equal(icsEscape('back\\slash'), 'back\\\\slash');
+  assert.equal(icsEscape('two\nlines'), 'two\\nlines');
+});
+
+test('folding counts octets, not characters', () => {
+  // 40 two-octet letters is 80 octets and well under 75 characters, so a
+  // length-based fold would leave this line over the limit.
+  const line = `SUMMARY:${'ø'.repeat(40)}`;
+  const folded = foldLine(line);
+  assert.ok(folded.includes('\r\n '), 'the line should have been folded');
+  for (const part of folded.split('\r\n')) {
+    const bytes = [...part].reduce((n, ch) => n + Buffer.byteLength(ch, 'utf8'), 0);
+    assert.ok(bytes <= 75, `line of ${bytes} octets is over the limit`);
+  }
+});
+
+test('folding never splits a character in half', () => {
+  const folded = foldLine(`SUMMARY:${'æ'.repeat(60)}`);
+  // Round-tripping through unfolding gives the original back, which it would
+  // not if a two-octet letter had been cut between its bytes.
+  assert.equal(folded.replaceAll('\r\n ', ''), `SUMMARY:${'æ'.repeat(60)}`);
+});
+
+test('a short line is left alone', () => {
+  assert.equal(foldLine('VERSION:2.0'), 'VERSION:2.0');
+});
+
+test('the UID names the journey and its day, so a rerun updates rather than duplicates', () => {
+  const uid = departureEvent(bookedCall(), { direction: 'to-haugesund', stamp: ICS_STAMP }).uid;
+  assert.equal(uid, 'KOL-ServiceJourney-700_1234-2026-07-15-to-haugesund@rovar.no');
+  // Built again a day later, from the same journey, the UID is unchanged.
+  const again = departureEvent(bookedCall(), {
+    direction: 'to-haugesund',
+    stamp: new Date('2026-07-15T06:00:00Z'),
+  }).uid;
+  assert.equal(again, uid);
+});
+
+test('the same journey in the other direction is a different event', () => {
+  const a = departureEvent(bookedCall(), { direction: 'to-haugesund', stamp: ICS_STAMP }).uid;
+  const b = departureEvent(bookedCall(), { direction: 'to-rovar', stamp: ICS_STAMP }).uid;
+  assert.notEqual(a, b);
+});
+
+test('a departure without a journey id still gets a stable UID', () => {
+  const c = call({ time: '2026-07-15T08:00:00+02:00', stops: [] });
+  const uid = departureEvent(c, { direction: 'to-haugesund', stamp: ICS_STAMP }).uid;
+  assert.equal(uid, '2026-07-15-480-2026-07-15-to-haugesund@rovar.no');
+  assert.equal(uid, departureEvent(c, { direction: 'to-haugesund', stamp: ICS_STAMP }).uid);
+});
+
+test('the event runs from departure to arrival', () => {
+  const event = departureEvent(bookedCall(), { direction: 'to-haugesund', stamp: ICS_STAMP });
+  assert.equal(icsTime(event.start), '20260715T190500Z');
+  assert.equal(icsTime(event.end), '20260715T193000Z');
+});
+
+test('an unknown arrival time leaves the event without an end, never a guessed one', () => {
+  const c = call({ time: '2026-07-15T08:00:00+02:00', stops: [] });
+  const event = departureEvent(c, { direction: 'to-haugesund', stamp: ICS_STAMP });
+  assert.equal(event.end, null);
+  assert.ok(!icsEvent(event).some((line) => line.startsWith('DTEND')));
+});
+
+test('the summary and location come from the catalog, filled with the route ends', () => {
+  const strings = { icsSummary: 'Rutebåten {{from}}-{{to}}', icsLocation: '{{from}} kai' };
+  const out = departureEvent(bookedCall(), {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+    strings,
+  });
+  assert.equal(out.summary, 'Rutebåten Røvær-Haugesund');
+  assert.equal(out.location, 'Røvær kai');
+
+  const back = departureEvent(bookedCall(), { direction: 'to-rovar', stamp: ICS_STAMP, strings });
+  assert.equal(back.summary, 'Rutebåten Haugesund-Røvær');
+});
+
+test('the description carries the via stops and the booking deadline', () => {
+  const event = departureEvent(bookedCall(), {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+    strings: {
+      icsVia: 'Via {{stops}}.',
+      icsBooking: 'Bestillingsrute. Bestill innen {{deadline}}.',
+    },
+  });
+  assert.match(event.description, /Via Feøy\./);
+  // 40 minutes before 21:05, on the Oslo clock wherever the test runs.
+  assert.match(event.description, /Bestill innen 20:25\./);
+});
+
+test('a booking departure with no deadline falls back to the plain booking line', () => {
+  const c = call({
+    time: '2026-07-15T21:05:00+02:00',
+    stops: [],
+    notices: [{ text: 'Bestillingsrute' }],
+  });
+  const event = departureEvent(c, {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+    strings: {
+      icsBooking: 'Bestill innen {{deadline}}.',
+      icsBookingNoDeadline: 'Bestillingsrute.',
+    },
+  });
+  assert.equal(event.isBooking, true);
+  assert.equal(event.description, 'Bestillingsrute.');
+});
+
+test('Entur notices reach the description', () => {
+  const c = call({
+    time: '2026-07-15T08:00:00+02:00',
+    stops: [],
+    situations: [{ summary: [{ value: 'Innstilt i dårlig vær' }] }],
+  });
+  const event = departureEvent(c, { direction: 'to-haugesund', stamp: ICS_STAMP });
+  assert.match(event.description, /Innstilt i dårlig vær/);
+});
+
+test('reminders become alarms ahead of the departure', () => {
+  const event = departureEvent(bookedCall(), {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+    reminders: [30],
+  });
+  const lines = icsEvent(event);
+  assert.ok(lines.includes('TRIGGER:-PT30M'));
+  assert.equal(lines.filter((l) => l === 'BEGIN:VALARM').length, 1);
+});
+
+test('no reminders means no alarm block', () => {
+  const lines = icsEvent(departureEvent(bookedCall(), { stamp: ICS_STAMP }));
+  assert.ok(!lines.some((l) => l === 'BEGIN:VALARM'));
+});
+
+test('the calendar wraps its events and ends with a CRLF', () => {
+  const event = departureEvent(bookedCall(), {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+    strings: { icsSummary: 'Rutebåten {{from}}-{{to}}' },
+  });
+  const ics = icsCalendar([event]);
+  assert.match(ics, /^BEGIN:VCALENDAR\r\n/);
+  assert.match(ics, /\r\nEND:VCALENDAR\r\n$/);
+  assert.ok(ics.includes(`PRODID:${ICS_PRODID}`));
+  assert.equal(ics.split('\r\n').filter((l) => l === 'BEGIN:VEVENT').length, 1);
+  // Every line ends CRLF, never a bare LF.
+  assert.ok(!/[^\r]\n/.test(ics));
+});
+
+test('a subscription feed advertises how often to come back', () => {
+  const ics = icsCalendar([], { name: 'Rutebåten', ttlMinutes: 720 });
+  assert.ok(ics.includes('REFRESH-INTERVAL;VALUE=DURATION:PT720M'));
+  assert.ok(ics.includes('X-PUBLISHED-TTL:PT720M'));
+  assert.ok(ics.includes('X-WR-CALNAME:Rutebåten'));
+});
+
+test('a download carries METHOD:PUBLISH and a feed does not', () => {
+  assert.ok(icsCalendar([], { method: 'PUBLISH' }).includes('METHOD:PUBLISH'));
+  assert.ok(!icsCalendar([]).includes('METHOD:'));
+});
+
+test('osloClock prints the Oslo wall clock, not the visitor local time', () => {
+  assert.equal(osloClock(new Date('2026-07-15T19:05:00Z'), 'no'), '21:05');
+  assert.equal(osloClock(new Date('2026-01-15T19:05:00Z'), 'no'), '20:05');
+});
+
+// --- subscription feed ------------------------------------------------------
+
+test('filterRoute without a date keeps the whole direction, whatever the day', () => {
+  const calls = [
+    call({ time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund' }),
+    call({ time: '2026-07-16T08:00:00+02:00', frontText: 'Haugesund' }),
+    call({ time: '2026-07-16T09:00:00+02:00', frontText: 'Røvær' }),
+  ];
+  assert.equal(filterRoute(calls, 'to-haugesund').length, 2);
+  assert.equal(filterRoute(calls, 'to-rovar').length, 1);
+});
+
+test('a month of calls splits into Oslo days', () => {
+  const calls = [
+    call({ time: '2026-07-15T08:00:00+02:00' }),
+    call({ time: '2026-07-15T21:05:00+02:00' }),
+    call({ time: '2026-07-16T08:00:00+02:00' }),
+  ];
+  const days = groupByOsloDate(calls);
+  assert.deepEqual(days.map((d) => d.date), ['2026-07-15', '2026-07-16']);
+  assert.equal(days[0].calls.length, 2);
+});
+
+test('the day a departure belongs to is its Oslo day, not the UTC one', () => {
+  // 22:30 UTC on the 15th is already 00:30 on the 16th in Oslo.
+  const days = groupByOsloDate([call({ time: '2026-07-15T22:30:00Z' })]);
+  assert.deepEqual(days.map((d) => d.date), ['2026-07-16']);
+});
+
+test('each day is put in clock order before the last boat is picked out', () => {
+  const days = groupByOsloDate([
+    call({ time: '2026-07-15T21:05:00+02:00' }),
+    call({ time: '2026-07-15T08:00:00+02:00' }),
+  ]);
+  assert.deepEqual(
+    days[0].calls.map((c) => c.expectedDepartureTime),
+    ['2026-07-15T08:00:00+02:00', '2026-07-15T21:05:00+02:00']
+  );
+});
+
+test('the feed merges both directions into one list in clock order', () => {
+  const events = feedEvents(
+    [
+      {
+        direction: 'to-haugesund',
+        calls: [
+          call({ time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'a' }),
+          call({ time: '2026-07-15T21:05:00+02:00', frontText: 'Haugesund', id: 'b' }),
+        ],
+      },
+      {
+        direction: 'to-rovar',
+        calls: [call({ time: '2026-07-15T12:40:00+02:00', frontText: 'Røvær', id: 'c' })],
+      },
+    ],
+    { stamp: ICS_STAMP }
+  );
+  assert.deepEqual(
+    events.map((e) => icsTime(e.start)),
+    ['20260715T060000Z', '20260715T104000Z', '20260715T190500Z']
+  );
+});
+
+test('the same boat seen from both stop queries becomes one event', () => {
+  const shared = { time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'shared' };
+  const events = feedEvents(
+    [
+      { direction: 'to-haugesund', calls: [call(shared)] },
+      { direction: 'to-haugesund', calls: [call(shared)] },
+    ],
+    { stamp: ICS_STAMP }
+  );
+  assert.equal(events.length, 1);
+});
+
+test('the last boat of each day is marked for booking, not just the last of the month', () => {
+  const events = feedEvents(
+    [
+      {
+        direction: 'to-haugesund',
+        calls: [
+          call({ time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'a' }),
+          call({ time: '2026-07-15T21:05:00+02:00', frontText: 'Haugesund', id: 'b' }),
+          call({ time: '2026-07-16T08:00:00+02:00', frontText: 'Haugesund', id: 'c' }),
+          call({ time: '2026-07-16T21:05:00+02:00', frontText: 'Haugesund', id: 'd' }),
+        ],
+      },
+    ],
+    { stamp: ICS_STAMP }
+  );
+  assert.deepEqual(
+    events.map((e) => e.isBooking),
+    [false, true, false, true]
+  );
+});
+
+test('a feed of a whole month is one valid calendar', () => {
+  const calls = Array.from({ length: 30 }, (_, day) =>
+    call({
+      time: `2026-07-${String(day + 1).padStart(2, '0')}T08:00:00+02:00`,
+      frontText: 'Haugesund',
+      id: `journey-${day}`,
+    })
+  );
+  const events = feedEvents([{ direction: 'to-haugesund', calls }], { stamp: ICS_STAMP });
+  const ics = icsCalendar(events, { name: 'Rutebåten', ttlMinutes: FEED_TTL_MINUTES });
+  assert.equal(events.length, 30);
+  assert.equal(ics.split('\r\n').filter((l) => l === 'BEGIN:VEVENT').length, 30);
+  assert.equal(new Set(events.map((e) => e.uid)).size, 30);
 });

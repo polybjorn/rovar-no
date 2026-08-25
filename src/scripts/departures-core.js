@@ -15,13 +15,19 @@ export const ENTUR_SITE = 'https://entur.no/';
 export const ROVAR_STOP = 'NSR:StopPlace:25940';
 export const HAUGESUND_STOP = 'NSR:StopPlace:26090';
 export const MAX_DAY_OFFSET = 7;
+// How far the subscription feed reaches, and how often a subscriber should come
+// back for it. The board's seven days is a reading choice - Entur itself
+// answers months ahead - so the feed sets its own horizon.
+export const FEED_DAYS = 30;
+export const FEED_TTL_MINUTES = 720;
 
-export const query = `query departures($stopId: String!, $n: Int!, $startTime: DateTime!) {
+export const query = `query departures($stopId: String!, $n: Int!, $startTime: DateTime!, $timeRange: Int!) {
   stopPlace(id: $stopId) {
-    estimatedCalls(numberOfDepartures: $n, timeRange: 86400, startTime: $startTime) {
+    estimatedCalls(numberOfDepartures: $n, timeRange: $timeRange, startTime: $startTime) {
       expectedDepartureTime
       destinationDisplay { frontText }
       serviceJourney {
+        id
         line { publicCode }
         notices { text }
         situations { summary { value } }
@@ -80,12 +86,16 @@ export function osloMinutes(dt) {
 
 // --- route data -------------------------------------------------------------
 
+// Without a targetDate this is the direction filter alone, which is what the
+// feed wants: one query covers a month, and the day it belongs to is worked
+// out per call afterwards.
 export function filterRoute(calls, direction, targetDate) {
   return calls.filter((c) => {
     const dest = c.destinationDisplay.frontText.toLowerCase();
     const dirMatch =
       direction === 'to-haugesund' ? dest.includes('haugesund') : dest.includes('røvær');
-    return dirMatch && toOsloDate(new Date(c.expectedDepartureTime)) === targetDate;
+    if (!dirMatch) return false;
+    return !targetDate || toOsloDate(new Date(c.expectedDepartureTime)) === targetDate;
   });
 }
 
@@ -319,4 +329,213 @@ export function shiftMonth(view, step) {
   const [y, m] = view.split('-').map(Number);
   const shifted = new Date(Date.UTC(y, m - 1 + step, 1));
   return `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}`;
+}
+
+// --- calendar export --------------------------------------------------------
+
+// The two ends of the route. Entur only names them on the per-stop calls,
+// which are empty on every future date, so the names an event is built from
+// come from here rather than from the response.
+export const ROVAR_NAME = 'Røvær';
+export const HAUGESUND_NAME = 'Haugesund';
+export const ICS_PRODID = '-//rovar.no//Rutebaten//NO';
+export const ICS_DOMAIN = 'rovar.no';
+
+// Wall-clock Oslo time, the same clock the board prints.
+export function osloClock(dt, locale = 'no') {
+  return dt.toLocaleTimeString(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Oslo',
+  });
+}
+
+// UTC, always: a UTC stamp needs no VTIMEZONE block and leaves no wall-clock
+// value for a calendar app to resolve against the wrong zone. The offset in
+// Entur's own timestamps has already done the work.
+export function icsTime(date) {
+  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+}
+
+export function icsEscape(text) {
+  return String(text)
+    .replace(/\\/g, '\\\\')
+    .replace(/[;,]/g, (c) => `\\${c}`)
+    .replace(/\r?\n/g, '\\n');
+}
+
+const octets = (ch) => {
+  const c = ch.codePointAt(0);
+  return c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
+};
+
+// RFC 5545 folds at 75 octets, not 75 characters, and every accented letter in
+// "Røvær" is two. Folding by string length would let a line run over the limit
+// and could cut a multi-byte character in half; this walks codepoints and
+// counts their bytes, and never splits one.
+export function foldLine(line, limit = 75) {
+  const parts = [];
+  let current = '';
+  let bytes = 0;
+  for (const ch of line) {
+    const size = octets(ch);
+    if (bytes + size > limit) {
+      parts.push(current);
+      current = '';
+      bytes = 1; // the space a continuation line starts with counts too
+    }
+    current += ch;
+    bytes += size;
+  }
+  parts.push(current);
+  return parts.map((part, i) => (i ? ` ${part}` : part)).join('\r\n');
+}
+
+// A UID has to name the same journey on the same day every time the feed is
+// built, or a subscriber collects a duplicate instead of an update whenever a
+// departure moves. serviceJourney.id is that name; without it (older cached
+// data) the clock time stands in, which is stable until the very departure
+// that moves, and then reads as a new event.
+export function journeyKey(call, direction) {
+  const date = toOsloDate(new Date(call.expectedDepartureTime));
+  const id = call.serviceJourney?.id;
+  const name = id || `${date}-${osloMinutes(new Date(call.expectedDepartureTime))}`;
+  return `${name}-${date}-${direction}`.replace(/[^A-Za-z0-9._-]/g, '-');
+}
+
+// One departure as a plain event object. Every display string comes from the
+// caller's UI catalog, so this stays the language-agnostic half; the tokens it
+// fills are the same {{token}} shape the rest of the site uses.
+export function departureEvent(call, opts = {}) {
+  const {
+    direction = 'to-haugesund',
+    stamp = new Date(),
+    strings = {},
+    isLast = false,
+    bookingRe = bookingPattern(),
+    locale = 'no',
+    url,
+    reminders = [],
+  } = opts;
+
+  const start = new Date(call.expectedDepartureTime);
+  const { arrivalTime, duration, via, hasBooking, bookingDeadline } = getRouteInfo(call);
+  const { isBooking, infoTexts } = noticeState({ call, hasBooking, isLast, bookingRe });
+
+  const toHaugesund = direction === 'to-haugesund';
+  const from = toHaugesund ? ROVAR_NAME : HAUGESUND_NAME;
+  const to = toHaugesund ? HAUGESUND_NAME : ROVAR_NAME;
+  const fill = (template, tokens) =>
+    Object.entries(tokens).reduce((text, [k, v]) => text.replaceAll(`{{${k}}}`, v), template);
+
+  const description = [
+    via.length && strings.icsVia ? fill(strings.icsVia, { stops: via.join(', ') }) : '',
+    isBooking && bookingDeadline && strings.icsBooking
+      ? fill(strings.icsBooking, { deadline: osloClock(bookingDeadline, locale) })
+      : isBooking
+        ? strings.icsBookingNoDeadline || ''
+        : '',
+    ...infoTexts,
+  ].filter(Boolean);
+
+  return {
+    uid: `${journeyKey(call, direction)}@${ICS_DOMAIN}`,
+    stamp,
+    start,
+    end: arrivalTime,
+    duration,
+    isBooking,
+    summary: fill(strings.icsSummary ?? '{{from}}-{{to}}', { from, to }),
+    location: fill(strings.icsLocation ?? '{{from}}', { from, to }),
+    description: description.join('\n'),
+    url,
+    reminders,
+  };
+}
+
+export function icsEvent(event) {
+  const lines = [
+    'BEGIN:VEVENT',
+    `UID:${event.uid}`,
+    `DTSTAMP:${icsTime(event.stamp)}`,
+    `DTSTART:${icsTime(event.start)}`,
+  ];
+  // No arrival time known means an event with no end rather than a guessed
+  // one: Entur leaves the stop list empty often enough that a made-up
+  // crossing time would be the common case, not the exception.
+  if (event.end) lines.push(`DTEND:${icsTime(event.end)}`);
+  lines.push(`SUMMARY:${icsEscape(event.summary)}`);
+  if (event.location) lines.push(`LOCATION:${icsEscape(event.location)}`);
+  if (event.description) lines.push(`DESCRIPTION:${icsEscape(event.description)}`);
+  if (event.url) lines.push(`URL:${event.url}`);
+  for (const mins of event.reminders || []) {
+    lines.push(
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${icsEscape(event.summary)}`,
+      `TRIGGER:-PT${mins}M`,
+      'END:VALARM'
+    );
+  }
+  lines.push('END:VEVENT');
+  return lines;
+}
+
+// CRLF throughout and a trailing one, per RFC 5545 - some clients reject a
+// file that ends without it.
+export function icsCalendar(events, { prodid = ICS_PRODID, name, ttlMinutes, method } = {}) {
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:${prodid}`, 'CALSCALE:GREGORIAN'];
+  if (method) lines.push(`METHOD:${method}`);
+  if (name) lines.push(`NAME:${icsEscape(name)}`, `X-WR-CALNAME:${icsEscape(name)}`);
+  // How often a subscriber should re-read the feed. NAME/REFRESH-INTERVAL are
+  // the standard properties and the X- ones are what Apple and Outlook
+  // actually read, so both go in.
+  if (ttlMinutes) {
+    const ttl = `PT${ttlMinutes}M`;
+    lines.push(`REFRESH-INTERVAL;VALUE=DURATION:${ttl}`, `X-PUBLISHED-TTL:${ttl}`);
+  }
+  for (const event of events) lines.push(...icsEvent(event));
+  lines.push('END:VCALENDAR');
+  return `${lines.map((line) => foldLine(line)).join('\r\n')}\r\n`;
+}
+
+// Calls split into Oslo days, each day's own calls in clock order. The feed
+// needs the split because "the last boat of the day" is what marks a
+// bestillingsrute when Entur has no booking data yet, and a month of calls
+// arrives as one flat list.
+export function groupByOsloDate(calls) {
+  const days = new Map();
+  for (const call of calls) {
+    const date = toOsloDate(new Date(call.expectedDepartureTime));
+    if (!days.has(date)) days.set(date, []);
+    days.get(date).push(call);
+  }
+  return [...days.entries()]
+    .map(([date, dayCalls]) => ({
+      date,
+      calls: [...dayCalls].sort(
+        (a, b) => new Date(a.expectedDepartureTime) - new Date(b.expectedDepartureTime)
+      ),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// Both directions of a month, as one sorted event list. Keyed by UID on the
+// way through: a stop's query answers with departures the other stop's query
+// also saw, and two events with the same UID are the same boat, not two.
+export function feedEvents(batches, opts = {}) {
+  const byUid = new Map();
+  for (const { calls, direction } of batches) {
+    for (const day of groupByOsloDate(filterRoute(calls, direction))) {
+      day.calls.forEach((call, i) => {
+        const event = departureEvent(call, {
+          ...opts,
+          direction,
+          isLast: i === day.calls.length - 1,
+        });
+        byUid.set(event.uid, event);
+      });
+    }
+  }
+  return [...byUid.values()].sort((a, b) => a.start - b.start);
 }
