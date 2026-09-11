@@ -3,10 +3,19 @@
 # GitHub Pages deploy stays in .github/workflows/deploy.yml, running off the
 # push mirror - this job is the gate that runs on the forge the push actually
 # lands on. `uses:` resolves via data.forgejo.org, not github.com.
+#
+# check-attribution.sh gates AI attribution (an AI co-author trailer, a
+# generated-with-style attribution line) in commit messages and PR
+# descriptions. CLAUDE.md says not to add these; an agent has followed a
+# conflicting session-level instruction and added them anyway more than once
+# regardless. Enforced by memory alone until this, and memory alone did not
+# hold. Ported from dashboard's own gate.
 name: CI
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -18,3 +27,25 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+
+  attribution:
+    runs-on: docker
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check commit messages
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.event.pull_request.base.ref }}"
+            ./check-attribution.sh commits "origin/${{ github.event.pull_request.base.ref }}..HEAD"
+          else
+            ./check-attribution.sh commits -1
+          fi
+      - name: Check PR description
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          printf '%s' "$PR_BODY" > /tmp/pr-body.txt
+          ./check-attribution.sh body /tmp/pr-body.txt
