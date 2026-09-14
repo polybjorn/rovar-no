@@ -33,9 +33,12 @@ const ATTEMPTS = 3;
 const HOSTS_AT_ONCE = 6;
 const PAUSE_MS = 250;
 
-// Some hosts answer a bare scripted request with 403 and a browser-shaped one
-// with 200. Saying who we are is both more honest and more accurate than
-// sending no User-Agent at all and then reporting the refusal as a defect.
+// Identify the checker rather than sending no User-Agent at all. An earlier
+// version of this comment also claimed a browser-shaped UA gets served where a
+// scripted one is refused; that was untested and does not hold here. stackoverflow.com
+// refuses this checker with 403 and answers a current Chrome UA string with 403
+// too (#22). So this is the honesty argument only, not an accuracy one: a host
+// that turns us away should be able to see who was asking.
 const HEADERS = {
   'user-agent':
     'rovar-no-link-check/1.0 (+https://github.com/polybjorn/rovar-no; scheduled link check)',
@@ -44,10 +47,13 @@ const HEADERS = {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// HEAD first because it is cheap, GET when HEAD is refused or unimplemented:
-// 405 and 501 mean "not this method", and a surprising number of sites answer
-// 403 or 404 to HEAD while serving the page fine to GET. A 404 is only
-// believed once GET has said it too.
+// HEAD first because it is cheap, GET when HEAD is refused or unimplemented.
+// The case is real and measured: news.ycombinator.com answers HEAD 405 and
+// GET 200. An earlier version claimed "a surprising number" of sites also
+// answer 403 or 404 to HEAD while serving fine to GET - across this site's 14
+// links and 8 large sites checked on purpose, that happened zero times (#22),
+// so treat it as the 405/501 case and not a common one. A 404 is still only
+// believed once GET has said it too, which costs one request on the rare path.
 const request = async (url, method) =>
   fetch(url, {
     method,
