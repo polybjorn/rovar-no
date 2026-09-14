@@ -6,20 +6,23 @@
 # Only branches under herd/ are touched, and only when the PR actually merged.
 # A closed-unmerged PR, anyone else's branch and main are all left alone.
 #
-# Two things here look redundant and are not. Both come from #16, where the
-# first version of this file reported success on PR #15 and left the branch
-# sitting on the remote.
+# The job asks whether the branch is gone rather than trusting what the DELETE
+# answered, and that is the whole point of it. From #16: on PR #15 this job ran,
+# Forgejo answered its DELETE with 204, the log reads "deleted herd/deps-update
+# (204)", the job went green - and the branch was still on the remote. A success
+# status from this API is not evidence the work happened, so the only honest
+# check is the end state.
 #
-# 1. The guard is in the script, not in the job `if:`. A skipped job and a
-#    successful job are the same word through this forge's API - both read
-#    "success", there is no conclusion field - and job logs are not readable
-#    with an agent token at all. So an `if:` that evaluates false produces a
-#    green tick indistinguishable from a green tick that deleted something,
-#    which is exactly what made #15 take an hour to even notice.
+# The guard being in the script rather than the job `if:` is a lesser thing:
+# `/actions/tasks` has a `status` and no `conclusion`, so from that listing a
+# skipped job and a successful one read the same. It was not the cause of #15.
 #
-# 2. The job checks the end state instead of trusting a status code. That is
-#    what makes its success mean "the branch is gone" rather than "the API
-#    answered something I recognised".
+# For whoever debugs this next: job logs ARE readable, at
+# `GET /actions/jobs/{job_id}/logs`. An earlier version of this comment said
+# they were not, which cost an hour. The trap is that `job_id` is a different id
+# space from the `id` in `/actions/tasks`, and passing a task id there returns
+# some other job's log rather than 404ing. Map it with `GET /actions/runs?limit=N`
+# for the run's `id`, then `GET /actions/runs/{id}/jobs` for `{id, task_id}`.
 name: Delete merged branch
 
 on:
