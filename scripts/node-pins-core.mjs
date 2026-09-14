@@ -23,23 +23,49 @@ const major = (value) => {
 
 export const runnerMajor = (version = process.versions.node) => major(version);
 
-// Every `node-version:` in the workflow, so a file that grew a second job with
-// its own pin is an error rather than a silent read of whichever came first.
+// Every `node-version:` and `node-version-file:` in the workflow, so a file
+// that grew a second job with its own pin is an error rather than a silent read
+// of whichever came first.
 const pins = /^[^\S\n]*node-version:[^\S\n]*(.+?)[^\S\n]*$/gm;
+const pinFiles = /^[^\S\n]*node-version-file:[^\S\n]*(.+?)[^\S\n]*$/gm;
 
-// `${{ ... }}` is the shape deploy.yml takes once #12 moves the pin into
-// .nvmrc and reads it from there. The number is then in .nvmrc, so that is
-// where to look - a check that shrugged at an expression would go quietly
-// green on exactly the change it exists to watch.
-export const deployMajor = (workflowYaml, nvmrc = null) => {
-  const found = [...workflowYaml.matchAll(pins)].map((m) => m[1].replace(/^['"]|['"]$/g, '').trim());
-  if (found.length === 0) throw new Error('no node-version: in the deploy workflow');
-  if (found.length > 1) throw new Error(`${found.length} node-version: pins in the deploy workflow: ${found.join(', ')}`);
-  const [pin] = found;
+const unquote = (v) => v.replace(/^['"]|['"]$/g, '').trim();
+const oneOf = (yaml, re, what) => [...yaml.matchAll(re)].map((m) => unquote(m[1]));
+
+// readFile(path) -> contents, or null when it is not there.
+//
+// Three shapes reach this, and a check that understood only the first would go
+// blind on exactly the change it exists to watch:
+//
+//   node-version: 22                              an inline pin
+//   node-version-file: .nvmrc                     what actions/setup-node takes
+//   node-version: ${{ steps.node.outputs.version }}   read from a step
+//
+// The third is what a workflow does when its action has no node-version-file
+// input - withastro/action, which lokalverket-no and polybjorn-en use - and the
+// number is then in .nvmrc anyway, so that is where to look.
+export const deployMajor = (workflowYaml, readFile = () => null) => {
+  const inline = oneOf(workflowYaml, pins);
+  const files = oneOf(workflowYaml, pinFiles);
+  const total = inline.length + files.length;
+  if (total === 0) throw new Error('no node-version: or node-version-file: in the deploy workflow');
+  if (total > 1) throw new Error(`${total} node pins in the deploy workflow: ${[...inline, ...files].join(', ')}`);
+
+  if (files.length === 1) {
+    const path = files[0];
+    const body = readFile(path);
+    if (body === null) throw new Error(`the deploy workflow reads ${path} and it is not there`);
+    const fromFile = major(body);
+    if (fromFile === null) throw new Error(`${path} holds no version number: ${body.trim()}`);
+    return fromFile;
+  }
+
+  const [pin] = inline;
   if (pin.includes('${{')) {
-    if (nvmrc === null) throw new Error(`the deploy pin is the expression ${pin} and there is no .nvmrc to resolve it against`);
-    const fromFile = major(nvmrc);
-    if (fromFile === null) throw new Error(`.nvmrc holds no version number: ${nvmrc.trim()}`);
+    const body = readFile('.nvmrc');
+    if (body === null) throw new Error(`the deploy pin is the expression ${pin} and there is no .nvmrc to resolve it against`);
+    const fromFile = major(body);
+    if (fromFile === null) throw new Error(`.nvmrc holds no version number: ${body.trim()}`);
     return fromFile;
   }
   const fromPin = major(pin);
