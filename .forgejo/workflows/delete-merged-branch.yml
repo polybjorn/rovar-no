@@ -48,8 +48,13 @@ jobs:
         run: |
           node - <<'JS'
           const branch = process.env.BRANCH;
-          // Each segment is escaped but the slashes are left alone: the API
-          // matches a branch name as a path, so herd%2Ffoo does not resolve.
+          // Escapes each segment and leaves the slashes as slashes, matching what
+          // media-tools' urllib.parse.quote does by default. An earlier version of
+          // this comment claimed an encoded slash does not resolve and would 404;
+          // that was a guess and it is wrong. Measured on this repo (#20):
+          // GET and DELETE both accept herd%2Ffoo, and the DELETE really deletes.
+          // So a bare encodeURIComponent would work too. This form is kept only
+          // because it keeps the branch readable in the URL and in the log line.
           const path = branch.split("/").map(encodeURIComponent).join("/");
           const url = `${process.env.API}/branches/${path}`;
           const auth = { Authorization: `token ${process.env.TOKEN}` };
