@@ -1,5 +1,8 @@
-# Test + build on the self-hosted runner (media-runner, docker label ->
-# node:22-bookworm). First workload of the 2026-08-21 Forgejo Actions pilot.
+# Test + build on the self-hosted runner (media-runner, docker label). This
+# header named the image's node major for a year and was wrong by the time
+# anyone read it, so it no longer does: the pins step below prints the major
+# the job actually runs on, every run, which is a measurement rather than a
+# comment. First workload of the 2026-08-21 Forgejo Actions pilot.
 # GitHub Pages deploy stays in .github/workflows/deploy.yml, running off the
 # push mirror - this job is the gate that runs on the forge the push actually
 # lands on. `uses:` resolves via data.forgejo.org, not github.com.
@@ -50,6 +53,13 @@ jobs:
       npm_config_fetch_retry_maxtimeout: 20000
     steps:
       - uses: actions/checkout@v7
+      # Before npm ci, because it needs no dependencies and because a node
+      # disagreement is worth knowing about before spending the install on it.
+      # It fails only when the deploy pin drops below the floor package.json
+      # declares, not on a bare skew - see scripts/node-pins-core.mjs and #26
+      # for why the narrow rule was the one chosen.
+      - name: Check the node pins agree
+        run: npm run pins:check
       - run: npm ci
         timeout-minutes: 5
       - run: npm test
