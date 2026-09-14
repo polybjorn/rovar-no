@@ -44,9 +44,13 @@ jobs:
           TOKEN: ${{ github.token }}
           API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
           BRANCH: ${{ github.event.pull_request.head.ref }}
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
           MERGED: ${{ github.event.pull_request.merged }}
         run: |
           node - <<'JS'
+          const { execFileSync } = require("node:child_process");
+
           const branch = process.env.BRANCH;
           // Escapes each segment and leaves the slashes as slashes, matching what
           // media-tools' urllib.parse.quote does by default. An earlier version of
@@ -59,8 +63,16 @@ jobs:
           const url = `${process.env.API}/branches/${path}`;
           const auth = { Authorization: `token ${process.env.TOKEN}` };
 
-          const done = (msg) => { console.log(msg); process.exit(0); };
-          const fail = (msg) => { console.log(msg); process.exit(1); };
+          // The remote URL carries the token, and execFileSync puts the whole
+          // command line into the message it throws. Without this, one failed
+          // ls-remote prints the credential into a job log that anyone who can
+          // read the repo can read. Every message goes through redact, not just
+          // the ones that look like they might contain it.
+          const redact = (msg) =>
+            String(msg).split(process.env.TOKEN).join("***");
+
+          const done = (msg) => { console.log(redact(msg)); process.exit(0); };
+          const fail = (msg) => { console.log(redact(msg)); process.exit(1); };
 
           (async () => {
             if (process.env.MERGED !== "true") done(`PR closed without merging, leaving ${branch}`);
@@ -68,22 +80,30 @@ jobs:
 
             const del = await fetch(url, { method: "DELETE", headers: auth });
 
+            // Ask the ref store, not the API that was just asked to delete it.
+            // #27: on PR #23 the DELETE returned 2xx AND the verification GET
+            // returned 404, both saying the branch was gone, while the ref
+            // survived - so checking the end state through the same API is not
+            // a check. ls-remote goes over the git transport instead, which is
+            // a different path on the server. git is on this image already:
+            // /usr/bin/git shows up in checkout logs on the docker label.
+            const remote = `${process.env.SERVER.replace("https://", `https://x-access-token:${process.env.TOKEN}@`)}/${process.env.REPO}.git`;
+            const stillThere = () =>
+              execFileSync("git", ["ls-remote", "--heads", remote, `refs/heads/${branch}`], {
+                encoding: "utf8",
+              }).trim() !== "";
+
             // Deliberately not branching on del.status. Forgejo 16.0.4 answers
             // 500 with an empty message when the branch is already gone, not
             // 404 - measured against this repo on 2026-09-14 - so the previous
             // version's "404 means someone got there first" arm was dead code
             // and the already-gone case landed in the failure arm. Asking what
             // is true now is both simpler and correct whatever the API answers.
-            const check = await fetch(url, { headers: auth });
-
-            if (check.status === 404) {
+            if (!stillThere()) {
               done(del.ok ? `deleted ${branch}` : `${branch} is gone (delete said ${del.status})`);
             }
-            if (check.status === 200) {
-              // The #15 shape: something reported success and the branch
-              // survived. Whatever the cause, this has to be red.
-              fail(`${branch} is still on the remote after DELETE answered ${del.status}\n${await del.text()}`);
-            }
-            fail(`cannot tell whether ${branch} is gone: DELETE ${del.status}, GET ${check.status}`);
+            // Covers both shapes: #15, where DELETE alone claimed success, and
+            // #27, where the API agreed with itself twice and was still wrong.
+            fail(`${branch} is still in the ref store after DELETE answered ${del.status}`);
           })().catch((err) => fail(`could not delete ${branch}: ${err.message}`));
           JS
