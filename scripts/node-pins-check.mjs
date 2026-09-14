@@ -19,7 +19,6 @@ import { readFileSync, existsSync } from 'node:fs';
 import { runnerMajor, deployMajor, floorMajor, verdict } from './node-pins-core.mjs';
 
 const DEPLOY = '.github/workflows/deploy.yml';
-const NVMRC = '.nvmrc';
 
 const read = (path) => {
   if (!existsSync(path)) {
@@ -29,10 +28,15 @@ const read = (path) => {
   return readFileSync(path, 'utf8');
 };
 
+// Whatever file the deploy workflow points at, or null when it is missing -
+// the core decides whether a missing one is fatal, because that depends on
+// which of the three pin shapes it found.
+const readIfThere = (path) => (existsSync(path) ? readFileSync(path, 'utf8') : null);
+
 let runner, deploy, floor;
 try {
   runner = runnerMajor();
-  deploy = deployMajor(read(DEPLOY), existsSync(NVMRC) ? readFileSync(NVMRC, 'utf8') : null);
+  deploy = deployMajor(read(DEPLOY), readIfThere);
   floor = floorMajor(JSON.parse(read('package.json')));
 } catch (err) {
   console.error(`Could not compare the node pins: ${err.message}`);

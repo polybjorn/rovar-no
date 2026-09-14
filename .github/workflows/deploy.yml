@@ -30,7 +30,11 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          # The version lives in .nvmrc so one file answers "which node builds
+          # this site" for both halves of CI. The forge gate reads the same file
+          # through scripts/node-pins-check.mjs, which is what stops this and the
+          # runner drifting apart unnoticed again (#12, #26).
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm test
