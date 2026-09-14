@@ -1,0 +1,55 @@
+# Follows every external <a href> in the built site once a week and fails the
+# job when one of them is gone. Scheduled rather than a merge gate on purpose:
+# a link dying is something this repo did not do and cannot fix by blocking
+# someone's pull request, and an external site having a bad afternoon is not a
+# reason a change cannot land. Failing the job is the notification - that is
+# what forgejo-ci-watch reads.
+#
+# What counts as a failure is in scripts/link-check.mjs, not here: 404 and 410
+# and connection failures are real, 403 and 429 and 5xx are reported and
+# tolerated, because a host refusing a scripted request says nothing about
+# whether a reader can follow the link.
+#
+# It reads dist/, so it has to build first. The links live in markdown content
+# and in UI catalogs across 15 languages, and dist/ is the only place all of
+# them exist as something a reader could click.
+name: Link check
+
+on:
+  schedule:
+    # Wednesdays 06:00 UTC. The runner has one slot and three slots are already
+    # taken - nixfleet flake-update Mondays 05:00, nixfleet container-bump
+    # Tuesdays 05:20, polybjorn-en's branch sweep daily at 04:17 - so this sits
+    # clear of all of them rather than queueing behind one.
+    - cron: '0 6 * * 3'
+  workflow_dispatch:
+
+# A weekly job that somehow overlaps itself is two sets of requests to the same
+# small sites, which is the one thing most likely to turn a working check into
+# a 429.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  links:
+    runs-on: docker
+    # The check itself takes seconds; the ceiling is there so a host that
+    # accepts a connection and then never answers cannot hold the runner's only
+    # slot until Forgejo's six hour default.
+    timeout-minutes: 15
+    # npm's default retry chain takes 70 seconds to give up on a registry that
+    # does not answer, and 7m25s in the shape media-runner has failed before
+    # (measured in nixfleet #136). Bounded, the same failure takes 10 seconds.
+    env:
+      npm_config_fetch_retries: 1
+      npm_config_fetch_timeout: 15000
+      # Has to stay above npm's mintimeout of 10s or npm refuses the config
+      # outright and the step fails for an unrelated reason.
+      npm_config_fetch_retry_maxtimeout: 20000
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm ci
+        timeout-minutes: 5
+      - run: npm run build
+      - run: npm run links:check

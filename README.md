@@ -82,6 +82,15 @@ twice, the second time under `TZ=Pacific/Auckland`: a departure board that
 reads the visitor's own clock looks right in Norway and wrong everywhere else.
 CI runs the tests before the build.
 
+`npm run links:check` follows every external link in `dist/`, so it needs a
+build first. A weekly job runs it on the forge rather than on pull requests:
+a link dying is not something a change to this repo caused, and not something
+blocking a merge would fix. Only links a reader can click are checked, not the
+`canonical` and `hreflang` tags, one of which correctly points at a URL that
+answers 404. A link that is gone fails the job; a host that refuses a scripted
+request is reported and tolerated, since that says nothing about whether the
+link works in a browser.
+
 ## License
 
 The code is MIT. The page texts and the photos belong to Røvær øyting and to
