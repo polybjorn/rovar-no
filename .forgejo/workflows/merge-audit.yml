@@ -1,0 +1,75 @@
+# Checks that every pull request the forge says it merged is actually on main.
+#
+# Twice on 2026-09-14, on lokalverket-no, it was not. A merge landed, main moved
+# back, and the merge commit was left unreachable - correct parents, correct
+# content, on no branch. Every signal reported success: the PR said merged=true
+# with a correct merge_commit_sha, the linked issue auto-closed, the head branch
+# was deleted by the cleanup job (which guards on merged == true and cannot
+# know), and the push CI run for the orphaned commit itself went green. Both
+# were caught by a person reading `git log` and knowing which merge commit to
+# expect.
+#
+# This job is that habit, made not-a-habit. It does not prevent the loss and
+# does not explain it - the investigation is nixfleet #172 - it just refuses to
+# let the loss be silent. rovar-no has no orphans today: all 13 merged pull
+# requests were checked against origin/main when #34 was filed and every one was
+# reachable. This is a watchdog, not a fix.
+#
+# Daily rather than per-merge on purpose: the failure is a ref being rolled back
+# some time after the merge reports success, so a check that ran as part of the
+# merge would be asking too early.
+name: Merge audit
+
+on:
+  schedule:
+    # 05:13 daily. Off the hour, and clear of the runner's other two slots -
+    # link-check on Wednesdays at 06:00 and deps-update on the 6th and 20th at
+    # 04:37. Capacity is 1 across seven repos. A 7-day window checked daily
+    # gives any orphan seven chances to be seen before it ages out.
+    - cron: '13 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: docker
+    timeout-minutes: 10
+    steps:
+      # Full history: reachability is the whole question, and a shallow clone
+      # answers it wrong rather than not at all. scripts/check-merged-prs.mjs
+      # refuses to run on one, which is what makes getting this line wrong loud
+      # instead of a page of false orphans.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Before the work, not after. A job that cannot reach the API should say
+      # so in its first seconds rather than looking like a clean audit - which
+      # is exactly the failure mode this job exists to remove.
+      - name: FORGE_PR_TOKEN resolves
+        env:
+          PR_TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+        run: |
+          set -eu
+          if [ -z "${PR_TOKEN:-}" ]; then
+            echo "FORGE_PR_TOKEN is empty or not visible to this repo."
+            echo "It is an Actions secret at user scope. Reading pulls needs it;"
+            echo "the automatic Actions token is answered 404 'Can not read pulls'."
+            exit 1
+          fi
+          # Length only. The value must never reach a log: this one is readable
+          # by anyone who can read the repo.
+          echo "FORGE_PR_TOKEN resolved, ${#PR_TOKEN} characters"
+
+      - name: Every merged PR is on main
+        env:
+          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
+          TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+        run: |
+          set -eu
+          # No `git fetch` here on purpose. This step used to refresh origin/main
+          # in the shell first, which left every other way of running the script
+          # - a local `npm run merges:check` most of all - judging against
+          # whatever the clone last happened to fetch. A stale ref reports
+          # correctly merged pull requests as orphaned, so the fetch lives in the
+          # script now, where it cannot be forgotten.
+          npm run merges:check
