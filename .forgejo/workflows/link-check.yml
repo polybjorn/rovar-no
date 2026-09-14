@@ -38,9 +38,14 @@ jobs:
     # accepts a connection and then never answers cannot hold the runner's only
     # slot until Forgejo's six hour default.
     timeout-minutes: 15
-    # npm's default retry chain takes 70 seconds to give up on a registry that
-    # does not answer, and 7m25s in the shape media-runner has failed before
-    # (measured in nixfleet #136). Bounded, the same failure takes 10 seconds.
+    # Bounds the fast-fail shape only. Measured on the hypervisor: a refused
+    # connection costs 70s by default and 10s with these set. Against a registry
+    # that accepts the connection and never answers, these do nothing at all -
+    # fetch-timeout governs the HTTP response, not the TCP connect - and both
+    # configurations ran past a 150s ceiling. The timeout-minutes above is what
+    # bounds that shape, which is worth knowing before reading these three lines
+    # as the mitigation. nixfleet #136 reports 7m25s for a shape seen on
+    # media-runner; that is their measurement on that host, not one of mine.
     env:
       npm_config_fetch_retries: 1
       npm_config_fetch_timeout: 15000
