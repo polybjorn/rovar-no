@@ -24,11 +24,16 @@ jobs:
   test-build:
     runs-on: docker
     # The job that runs on every push and every pull request, and the only one
-    # here that talks to the npm registry. It had no ceiling, so a wedged
-    # `npm ci` would sit at "running" until Forgejo's six hour default - and the
-    # runner has one slot (901 tasks across the seven repos on 2026-09-14, zero
-    # overlapping), so that is six hours of no CI for every repo, not just this
-    # one. A green run takes about 20 seconds.
+    # here that talks to the npm registry. It had no ceiling of its own, so a
+    # wedged `npm ci` ran until the runner stopped it. That backstop is 30
+    # minutes, not the six hours an earlier version of this comment claimed:
+    # nixfleet modules/forgejo-runner.nix sets `timeout = "30m"` and
+    # `capacity = 1` (six hours is GitHub's hosted-runner default, which is why
+    # the wrong number sounded right). Capacity 1 also means those 30 minutes
+    # are 30 minutes of no CI for all seven repos, not just this one - confirmed
+    # independently by 901 tasks across the seven with zero overlapping starts.
+    # A green run here takes about 20 seconds, so 10 minutes is a wide margin
+    # that still fails three times sooner than the backstop.
     timeout-minutes: 10
     # Bounds the fast-fail shape only: measured on the hypervisor, a refused
     # connection costs 70s by default and 10s with these set. It does NOT bound
