@@ -57,7 +57,10 @@ npm install && npm run dev
 ```
 
 Node 22.12 or newer, which is what Astro 7 asks for and what `engines` in
-`package.json` declares. `npm run build` writes the finished site to `dist/`.
+`package.json` declares. That is the floor rather than the version the site is
+actually built with: `.nvmrc` holds that, currently 24, and both the forge gate
+and the Pages deploy read it so the two cannot drift apart. `npm run build`
+writes the finished site to `dist/`.
 
 ## Calendar
 
@@ -91,6 +94,28 @@ blocking a merge would fix. Only links a reader can click are checked, not the
 answers 404. A link that is gone fails the job; a host that refuses a scripted
 request is reported and tolerated, since that says nothing about whether the
 link works in a browser.
+
+`npm run pins:check` compares three numbers that have to agree: the node the
+job is running on, the version `deploy.yml` builds with, and the floor
+`package.json` declares. It runs in CI before `npm ci`, so the runner's own
+version reaches the log as a measurement rather than as a comment that was true
+once. A difference between the first two is reported and tolerated; the job
+fails only when the deploy version drops below the floor, which is the point
+where the difference can actually break the build.
+
+`npm run merges:check` asks git whether every pull request the forge reports as
+merged is reachable from `main`. A daily job runs it. A merge can report success
+on every signal and leave `main` without the work, and when that happens nothing
+else notices: the pull request says merged, the linked issue closes, and CI goes
+green on a commit that is on no branch. Reachability is decided by git rather
+than by the forge API, because the API is the thing under suspicion, and the
+script refuses to run on a shallow clone instead of guessing, since a truncated
+history reports nearly every merge as lost.
+
+A fortnightly job runs `npm update` and opens one rolling pull request when the
+lockfile moves, with the version changes and a full build of the result in its
+description. It only moves `package-lock.json` inside the ranges `package.json`
+already declares, so it never crosses a major.
 
 ## License
 
