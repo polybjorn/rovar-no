@@ -66,8 +66,10 @@ jobs:
           TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
         run: |
           set -eu
-          # checkout leaves a detached HEAD; the script compares against a
-          # remote-tracking ref, so make sure it is current rather than whatever
-          # the clone happened to bring.
-          git fetch --quiet origin main
+          # No `git fetch` here on purpose. This step used to refresh origin/main
+          # in the shell first, which left every other way of running the script
+          # - a local `npm run merges:check` most of all - judging against
+          # whatever the clone last happened to fetch. A stale ref reports
+          # correctly merged pull requests as orphaned, so the fetch lives in the
+          # script now, where it cannot be forgotten.
           npm run merges:check

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { collectClosed, mergedWithin, classify, summaryLines } from '../scripts/merged-prs-core.mjs';
+import { collectClosed, mergedWithin, classify, summaryLines, remoteRefParts } from '../scripts/merged-prs-core.mjs';
 
 const pr = (number, over = {}) => ({
   number,
@@ -104,4 +104,24 @@ test('plural agreement, because this line is read every day', () => {
   const two = summaryLines(classify([pr(1), pr(2)], () => 'reachable'), { ref: 'main', days: 1 })[0];
   assert.match(one, /1 merged pull request from/);
   assert.match(two, /2 merged pull requests from/);
+});
+
+// A stale remote-tracking ref invents orphans exactly like a shallow clone,
+// and more convincingly: two plausible orphans rather than a broken page of
+// them. This decides what the runner has to refresh before judging.
+test('a remote-tracking ref is recognised so it can be refreshed', () => {
+  assert.deepEqual(remoteRefParts('origin/main', ['origin']), { remote: 'origin', branch: 'main' });
+  assert.deepEqual(remoteRefParts('upstream/release/7.x', ['origin', 'upstream']), {
+    remote: 'upstream',
+    branch: 'release/7.x',
+  });
+});
+
+test('anything not a remote-tracking ref is left alone', () => {
+  assert.equal(remoteRefParts('main', ['origin']), null);
+  assert.equal(remoteRefParts('2641a757564c5b67a9cfcb6b946bd1164cc5aefb', ['origin']), null);
+  // A branch whose name merely starts like a remote is not one.
+  assert.equal(remoteRefParts('feature/thing', ['origin']), null);
+  assert.equal(remoteRefParts('origin/', ['origin']), null);
+  assert.equal(remoteRefParts('/main', ['origin']), null);
 });

@@ -40,6 +40,27 @@ export const mergedWithin = (pulls, days, now = Date.now()) => {
   return pulls.filter((p) => p.merged && p.merge_commit_sha && Date.parse(p.merged_at) >= since);
 };
 
+// Which remote a comparison ref belongs to, or null if it is local.
+//
+// A stale remote-tracking ref invents orphans the same way a shallow clone
+// does, and more convincingly: anything merged since the last fetch is
+// genuinely not an ancestor of the copy on disk. Measured on a twenty-minute-old
+// full clone of this repo, which reported PRs #31 and #33 - both correctly
+// merged, both on main - as ORPHANED with correct parents. Two plausible
+// orphans read as a real finding in a way that 13 of 14 never would.
+//
+// So the runner refreshes the ref before judging, and this decides what there
+// is to refresh. `origin/main` is fetchable; `main`, a raw sha or a tag is not,
+// and is used as it stands.
+export const remoteRefParts = (ref, remotes) => {
+  const slash = ref.indexOf('/');
+  if (slash < 1) return null;
+  const remote = ref.slice(0, slash);
+  const branch = ref.slice(slash + 1);
+  if (!branch || !remotes.includes(remote)) return null;
+  return { remote, branch };
+};
+
 // resolve(sha) -> 'reachable' | 'unreachable' | 'missing'
 //
 // The three outcomes are different faults and a report that flattens them is

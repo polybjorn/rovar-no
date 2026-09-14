@@ -18,7 +18,7 @@
 // wall deps-update.yml hits, so this uses FORGE_PR_TOKEN too.
 
 import { execFileSync } from 'node:child_process';
-import { collectClosed, mergedWithin, classify, summaryLines } from './merged-prs-core.mjs';
+import { collectClosed, mergedWithin, classify, summaryLines, remoteRefParts } from './merged-prs-core.mjs';
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -67,6 +67,31 @@ if (git('rev-parse', '--is-shallow-repository') === 'true') {
     'Nearly every merge would be reported as orphaned.',
     'Use a full clone, or in CI set fetch-depth: 0 on actions/checkout.'
   );
+}
+
+// A stale remote-tracking ref is the second way this tool manufactures false
+// orphans, and the convincing one: everything merged since the last fetch is
+// genuinely not an ancestor of the copy on disk, so the output is one or two
+// plausible orphans rather than an obviously broken page of them. Measured on a
+// twenty-minute-old full clone of this repo: PRs #31 and #33, both correctly
+// merged, both reported ORPHANED with correct parents.
+//
+// The workflow used to do this fetch in the shell before calling the script.
+// That left every other way of running it - a local `npm run merges:check`
+// most of all - trusting whatever the clone last happened to fetch. It belongs
+// here, where nobody can forget it.
+const remotes = git('remote').split('\n').filter(Boolean);
+const parts = remoteRefParts(ref, remotes);
+if (parts) {
+  if (!gitOk('fetch', '--quiet', parts.remote, parts.branch)) {
+    die(
+      `could not fetch ${parts.branch} from ${parts.remote}, so ${ref} may be stale.`,
+      'Judging reachability against a stale ref reports correctly merged pull requests',
+      'as orphaned, so this refuses rather than guessing.'
+    );
+  }
+} else {
+  console.log(`note: ${ref} is not a remote-tracking ref, so it is read as it stands`);
 }
 
 const LIMIT = 50;
