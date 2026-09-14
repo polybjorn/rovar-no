@@ -1,0 +1,236 @@
+# Scheduled `npm update` that opens, or refreshes, one rolling PR with the
+# result. Ported from lokalverket-no's deps-update.yml (rovar-no #32), which is
+# itself modelled on nixfleet's flake-update.yml. npm instead of nix, and node
+# instead of jq for JSON, since the docker label's image guarantees node and
+# nothing else.
+#
+# Fortnightly rather than monthly, on this repo's own drift rather than taste:
+# the last manual bump before #14 was 02d0f40 on 2026-08-25, and twenty days
+# later there were three in-range updates waiting which cleared 2 high and 1
+# critical advisory. A monthly run would have left a critical sitting for up to
+# four weeks. Four dependencies is not much to keep up with, so the cost of
+# looking more often is close to nothing.
+#
+# THE BUILD RUNS HERE, which looks redundant next to ci.yml and is not. Forgejo
+# suppresses workflows triggered by the automatic token, so the pull_request run
+# that gates a human PR is expected NOT to fire for this branch. Without the
+# build in this job, the one PR that most needs a gate is the only one that does
+# not get one. The steps below are ci.yml's test-build job in the same order,
+# for that reason, and the outcome is carried in the PR body.
+#
+# The branch is `deps-update`, deliberately outside the `herd/` prefix:
+# delete-merged-branch.yml returns early on anything not under herd/, so the
+# rolling branch survives its own merge instead of being deleted and recreated
+# every fortnight.
+name: Dependency update
+
+on:
+  schedule:
+    # 04:37 on the 6th and the 20th. Off the hour, and off lokalverket-no's 3rd:
+    # the runner has one slot shared by seven repos and CI has first claim on it.
+    - cron: '37 4 6,20 * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: docker
+    timeout-minutes: 15
+    env:
+      BRANCH: deps-update
+      # Same bounds as ci.yml, for the same measured reason: npm's default retry
+      # chain spends 70 seconds giving up on a registry that does not answer.
+      npm_config_fetch_retries: 1
+      npm_config_fetch_timeout: 15000
+      npm_config_fetch_retry_maxtimeout: 20000
+    steps:
+      - uses: actions/checkout@v7
+
+      # First, before any work. In an earlier version of this job the credential
+      # check lived in the last step, behind the "did anything change" guard - so
+      # a run with nothing to update exited 0 having never looked at the secret,
+      # and a missing or invisible FORGE_PR_TOKEN would only surface on the first
+      # run that actually had work. A job that cannot finish its purpose should
+      # say so in its first ten seconds, not its last.
+      #
+      # It also makes a manual dispatch a real test of the secret rather than of
+      # npm, which is how this check earns its place on a run with no work. That
+      # matters more here than it did where this was ported from: the secret is
+      # held at USER scope rather than on this repo, so the first run here is
+      # what proves rovar-no actually inherits it.
+      - name: FORGE_PR_TOKEN resolves
+        env:
+          PR_TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+        run: |
+          set -eu
+          if [ -z "${PR_TOKEN:-}" ]; then
+            echo "FORGE_PR_TOKEN is empty or not visible to this repo."
+            echo "It is an Actions secret at user scope, covering nixfleet,"
+            echo "lokalverket-no, rovar-no and polybjorn-en. The automatic token"
+            echo "cannot stand in: Forgejo answers POST /pulls with 404"
+            echo "'Can not read pulls' for it, which is the whole reason this exists."
+            exit 1
+          fi
+          # Length only. The value must never reach a log: this one is readable
+          # by anyone who can read the repo.
+          echo "FORGE_PR_TOKEN resolved, ${#PR_TOKEN} characters"
+
+      - name: Registry answers
+        run: npm ping
+        timeout-minutes: 1
+
+      - name: Update the lockfile
+        run: |
+          set -eu
+          cp package-lock.json /tmp/lock.before
+          npm update
+          # `npm update` moves package-lock.json inside the ranges package.json
+          # already declares and leaves package.json itself alone - measured on
+          # npm 11.17.0 against a throwaway package whose lock was pinned below
+          # its range: the lock moved, package.json came back byte-identical.
+          # That is why the commit below can say it only touches the lockfile.
+          if git diff --quiet -- package-lock.json; then
+            echo "no-changes" > /tmp/outcome
+            echo "lockfile unchanged, nothing to do"
+          else
+            echo "changed" > /tmp/outcome
+          fi
+
+      # A clean install from the NEW lockfile, not the incremental tree npm
+      # update left behind - that is the thing a reviewer would actually get.
+      # pins:check, npm test and npm run build are ci.yml's test-build job, in
+      # its order, because this PR will not get that job.
+      - name: Verify the update builds
+        if: success()
+        run: |
+          set -eu
+          [ "$(cat /tmp/outcome)" = changed ] || exit 0
+          rm -rf node_modules
+          if npm ci > /tmp/build.log 2>&1 \
+            && npm run pins:check >> /tmp/build.log 2>&1 \
+            && npm test >> /tmp/build.log 2>&1 \
+            && npm run build >> /tmp/build.log 2>&1; then
+            echo ok > /tmp/check
+          else
+            echo FAILED > /tmp/check
+          fi
+          tail -n 20 /tmp/build.log
+          # Deliberately not failing the step here. A broken update should still
+          # open a PR saying so - that is the signal - rather than vanishing into
+          # a red job nobody opens.
+          echo "build: $(cat /tmp/check)"
+
+      - name: What changed, and does audit still pass
+        if: success()
+        run: |
+          set -eu
+          [ "$(cat /tmp/outcome)" = changed ] || exit 0
+          npm audit > /tmp/audit.log 2>&1 && echo clean > /tmp/audit || echo findings > /tmp/audit
+          # `node -` reads CommonJS whatever package.json says, which matters
+          # here because this package is "type": "module". Checked on node 24
+          # rather than assumed.
+          node - <<'JS' > /tmp/summary.txt
+          const fs = require("fs");
+          const read = (p) => JSON.parse(fs.readFileSync(p, "utf8")).packages || {};
+          const before = read("/tmp/lock.before"), after = read("package-lock.json");
+          const rows = [];
+          for (const [k, v] of Object.entries(after)) {
+            if (!k.startsWith("node_modules/")) continue;
+            const b = before[k];
+            const name = k.replace(/^node_modules\//, "");
+            if (!b) rows.push(`  + ${name} ${v.version}`);
+            else if (b.version !== v.version) rows.push(`  ${name} ${b.version} -> ${v.version}`);
+          }
+          for (const k of Object.keys(before)) {
+            if (k.startsWith("node_modules/") && !after[k]) rows.push(`  - ${k.replace(/^node_modules\//, "")}`);
+          }
+          console.log(rows.length ? rows.join("\n") : "  (no version changes)");
+          JS
+          cat /tmp/summary.txt
+
+      - name: Push and open or refresh the PR
+        if: success()
+        env:
+          TOKEN: ${{ github.token }}
+          PR_TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+        run: |
+          set -eu
+          [ "$(cat /tmp/outcome)" = changed ] || { echo "nothing to push"; exit 0; }
+          if [ -z "${PR_TOKEN:-}" ]; then
+            echo "FORGE_PR_TOKEN is not set or not visible to this repo."
+            echo "The automatic token cannot open a PR (404 Can not read pulls)."
+            exit 1
+          fi
+          # This repo authors machine-made commits as herd and human ones as
+          # Bjørn; six each of the last twelve on main. A scheduled job is
+          # machine-made. lokalverket-no's copy of this file commits as Bjørn
+          # instead, so the two repos differ here on purpose.
+          git config user.name "herd"
+          git config user.email "herd@pebblecove.xyz"
+          git checkout -q -B "$BRANCH"
+          git commit -q -am "chore(deps): update npm dependencies"
+
+          # Neither token goes on a command line. git prints the remote URL in
+          # its error text, and curl's argv shows up in anything that reports a
+          # failed command - so an embedded credential reaches the job log the
+          # first time either one fails. The log is readable by anyone who can
+          # read the repo. A credential store and a curl config file keep both
+          # out of argv; 600 because the workspace outlives the step.
+          umask 077
+          host="${GITHUB_SERVER_URL#https://}"
+          printf 'https://x-access-token:%s@%s\n' "$TOKEN" "$host" > /tmp/git-creds
+          git config --local credential.helper "store --file=/tmp/git-creds"
+          git push -q --force "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "HEAD:refs/heads/$BRANCH"
+
+          printf 'header = "Authorization: token %s"\n' "$PR_TOKEN" > /tmp/curlrc
+          api="$GITHUB_API_URL/repos/$GITHUB_REPOSITORY"
+          curl -sSf -K /tmp/curlrc "$api/pulls?state=open&limit=50" > /tmp/prs.json
+          node - <<'JS'
+          const fs = require("fs"), cp = require("child_process");
+          const api = process.env.GITHUB_API_URL + "/repos/" + process.env.GITHUB_REPOSITORY;
+          // Read from the config file written above rather than taking the token
+          // as an argument: execFileSync puts full argv into any error it throws.
+          const cfg = ["-K", "/tmp/curlrc"];
+          const branch = process.env.BRANCH;
+          const check = fs.readFileSync("/tmp/check", "utf8").trim();
+          const audit = fs.readFileSync("/tmp/audit", "utf8").trim();
+          const summary = fs.readFileSync("/tmp/summary.txt", "utf8");
+          const lines = [
+            `Scheduled \`npm update\`, ${new Date().toISOString().slice(0, 10)}.`,
+            "",
+            `Clean \`npm ci\`, \`npm run pins:check\`, \`npm test\` and \`npm run build\` from the new lockfile: **${check}**.`,
+            `\`npm audit\`: **${audit}**.`,
+            "",
+            "Versions moved:",
+            "```",
+            summary.trimEnd(),
+            "```",
+            "",
+            "`package.json` is not touched - this only moves `package-lock.json` inside the ranges already declared.",
+            "",
+            "This branch gets no `pull_request` run: Forgejo suppresses workflows triggered by the automatic token. The check above is that gate, run inside the job that opened this.",
+          ];
+          if (check !== "ok") {
+            lines.push("", "Build output (tail):", "```", fs.readFileSync("/tmp/build.log", "utf8").split("\n").slice(-40).join("\n").trimEnd(), "```");
+          }
+          if (audit !== "clean") {
+            lines.push("", "Audit output:", "```", fs.readFileSync("/tmp/audit.log", "utf8").split("\n").slice(-30).join("\n").trimEnd(), "```");
+          }
+          const body = lines.join("\n");
+          const open = JSON.parse(fs.readFileSync("/tmp/prs.json", "utf8"));
+          const mine = open.find((p) => p.head && p.head.ref === branch);
+          const write = (o) => fs.writeFileSync("/tmp/payload.json", JSON.stringify(o));
+          if (mine) {
+            write({ body });
+            cp.execFileSync("curl", ["-sSf", ...cfg, "-H", "Content-Type: application/json",
+              "-X", "PATCH", `${api}/pulls/${mine.number}`, "--data", "@/tmp/payload.json"], { stdio: "ignore" });
+            console.log("refreshed PR #" + mine.number);
+          } else {
+            write({ title: "chore(deps): update npm dependencies", head: branch, base: "main", body });
+            const out = cp.execFileSync("curl", ["-sSf", ...cfg, "-H", "Content-Type: application/json",
+              "-X", "POST", `${api}/pulls`, "--data", "@/tmp/payload.json"]).toString();
+            console.log("opened PR #" + JSON.parse(out).number);
+          }
+          // The job goes red if the update does not build. The PR still exists
+          // and says so; this makes the run list agree with it.
+          if (check !== "ok") process.exit(1);
+          JS
