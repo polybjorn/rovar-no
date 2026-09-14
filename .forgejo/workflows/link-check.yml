@@ -17,10 +17,13 @@ name: Link check
 
 on:
   schedule:
-    # Wednesdays 06:00 UTC. The runner has one slot and three slots are already
-    # taken - nixfleet flake-update Mondays 05:00, nixfleet container-bump
-    # Tuesdays 05:20, polybjorn-en's branch sweep daily at 04:17 - so this sits
-    # clear of all of them rather than queueing behind one.
+    # Wednesdays 06:00 UTC. The runner has capacity 1 (nixfleet
+    # modules/forgejo-runner.nix), so scheduled jobs across all seven repos
+    # queue behind each other and this one sits on a day the others do not use.
+    # Deliberately not listing which slots are taken: that list was already
+    # stale within a day of being written, when nixfleet added a Monday sweep.
+    # Before moving this time, grep the crons across the seven repos rather
+    # than trusting a comment.
     - cron: '0 6 * * 3'
   workflow_dispatch:
 

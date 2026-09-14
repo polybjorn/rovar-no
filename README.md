@@ -56,7 +56,8 @@ in the nav.
 npm install && npm run dev
 ```
 
-`npm run build` writes the finished site to `dist/`.
+Node 22.12 or newer, which is what Astro 7 asks for and what `engines` in
+`package.json` declares. `npm run build` writes the finished site to `dist/`.
 
 ## Calendar
 

@@ -6,12 +6,27 @@
 # Only branches under herd/ are touched, and only when the PR actually merged.
 # A closed-unmerged PR, anyone else's branch and main are all left alone.
 #
-# The job asks whether the branch is gone rather than trusting what the DELETE
-# answered, and that is the whole point of it. From #16: on PR #15 this job ran,
-# Forgejo answered its DELETE with 204, the log reads "deleted herd/deps-update
-# (204)", the job went green - and the branch was still on the remote. A success
-# status from this API is not evidence the work happened, so the only honest
-# check is the end state.
+# STOP before adding a fifth check. This file was rewritten four times on
+# 2026-09-14 and every version was superseded within hours:
+#
+#   #8   trusted the DELETE status     - Forgejo answers 500, not 404, for a
+#                                        branch that is already gone
+#   #17  checked with a REST GET       - on PR #23 the API said gone twice
+#                                        while the ref survived
+#   #28  checked with git ls-remote    - on its own merge ls-remote returned
+#                                        empty and the ref was back two minutes
+#                                        later, stably, at the original sha
+#
+# Each was correct about the failure it had seen. They fail together because
+# the ref itself flaps: it can return after the job has exited, so nothing
+# observed during the job settles the question, on any read path. The cause is
+# tracked in nixfleet #172. The replacement shape - a periodic sweep, making
+# correctness a repeated convergence rather than one true observation - is
+# rovar-no #29, deliberately blocked behind #172.
+#
+# So: this job is a fast path that usually works, not a guarantee. A stray
+# branch gets swept by hand with `git push origin --delete` after checking
+# `git merge-base --is-ancestor`, which has held every time.
 #
 # The guard being in the script rather than the job `if:` is a lesser thing:
 # `/actions/tasks` has a `status` and no `conclusion`, so from that listing a
@@ -102,8 +117,10 @@ jobs:
             if (!stillThere()) {
               done(del.ok ? `deleted ${branch}` : `${branch} is gone (delete said ${del.status})`);
             }
-            // Covers both shapes: #15, where DELETE alone claimed success, and
-            // #27, where the API agreed with itself twice and was still wrong.
+            // Catches #15, where DELETE alone claimed success, and #27, where the
+            // API agreed with itself twice. It does NOT catch what happened on
+            // this file's own merge: ls-remote returned empty and the ref came
+            // back. Nothing checked here can - see the header.
             fail(`${branch} is still in the ref store after DELETE answered ${del.status}`);
           })().catch((err) => fail(`could not delete ${branch}: ${err.message}`));
           JS
