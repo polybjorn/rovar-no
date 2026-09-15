@@ -75,8 +75,8 @@ jobs:
     runs-on: docker
     timeout-minutes: 5
     steps:
-      # No checkout. ls-remote and a delete-only push both talk to the remote
-      # without a working tree.
+      # No checkout, but not no repository: see the `git init` in the script.
+      # ls-remote genuinely needs neither, the delete push needs the second.
       - name: Delete the head branch
         env:
           TOKEN: ${{ github.token }}
@@ -91,6 +91,27 @@ jobs:
           # needed has no counterpart: git's own errors do not echo the URL.
           remote="${SERVER/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPO}.git"
           ref="refs/heads/$BRANCH"
+
+          # `git push` has to run from inside a repository even when the
+          # remote is a full URL and the push only deletes a ref: it reads
+          # local config and refs before it ever contacts the remote. On the
+          # merge of #38 this job had no repository to run from and the push
+          # failed with "fatal: not a git repository (or any parent up to
+          # mount point /workspace/bjorn)", so every delete went down the
+          # API fallback below - the one path #172 says cannot be trusted.
+          #
+          # An empty `git init` is enough. A delete pushes no objects, so
+          # there is nothing for the repository to contain; it exists only to
+          # give git a place to stand. `git ls-remote` needs no repository at
+          # all, which is why the checks worked from the bare workspace and
+          # the removal did not.
+          #
+          # nixfleet's copy of this file has the same shape and its pushes
+          # succeed, because its workspace happens to carry a .git from an
+          # earlier job on the same runner. That is luck, not a difference in
+          # the file. Reported as nixfleet #192.
+          git init -q /tmp/delete-repo
+          cd /tmp/delete-repo
 
           # The only question this job ever asks, and it asks git.
           present() { [ -n "$(git ls-remote --heads "$remote" "$ref")" ]; }
