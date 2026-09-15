@@ -42,14 +42,27 @@
 # What matters here is that BOTH are answered by the same design. Ask git, not
 # the API, because in A the API has already been fooled - which is exactly how
 # this file's #17 version logged `deleted` over a ref that was still there on
-# PR #23. Then ask git AGAIN after a pause, because in B the first answer is
-# true when given and false two seconds later.
+# PR #23. Then, if the ref is there, DELETE IT AGAIN rather than reporting a
+# failure, because in B the branch is not lost and nothing is wrong except the
+# forge's timing.
+#
+# That last part was learned the expensive way. The first version of this file
+# to detect B correctly went red on two of the first four merges after it
+# landed, for branches that were merged and harmless. A watchdog that cries
+# wolf on half its runs gets muted, and a muted watchdog hides the next real
+# fault - #27's thread says exactly that about a different check, and it
+# applies to this one.
+#
+# So the loop below converges instead of observing: delete, wait, ask git,
+# delete again. Red is reserved for a ref that survives four attempts, which
+# no longer means "the forge did its thing" and does mean something is new.
 #
 # This also retires the previous header's other half, which said the ref flaps
 # and therefore no read path could ever settle it, so only a sweep could work.
-# The ref does move under you, but not unpredictably: a bounded re-check
-# catches it, and the sweep is a backstop for what lands after the job exits
-# rather than the only workable shape.
+# The right half of that was the diagnosis, not the remedy: the ref does move
+# under you, and the answer is to keep deleting rather than to keep looking.
+# The sweep is the same convergence over a day instead of twenty seconds, and
+# it remains the backstop for what lands after the job exits.
 #
 #   #8   trusted the DELETE status   - Forgejo answers 500, not 404, for a
 #                                      branch that is already gone
@@ -158,48 +171,74 @@ jobs:
             exit 0
           fi
 
-          if ! git push "$remote" --delete "$ref"; then
-            # See the header: this exists for the unproven case where the
-            # actions token cannot delete refs over git. It is loud on purpose
-            # - if this line ever appears, the assumption was wrong and the
-            # header should be corrected rather than the noise tolerated.
-            echo "git push --delete was refused, falling back to the API" >&2
-            code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE \
-              -H "Authorization: token $TOKEN" \
-              "$API/branches/$(printf '%s' "$BRANCH" | sed 's|/|%2F|g')")
-            # No `|| echo 000` on that curl: -w already prints 000 when it
-            # cannot connect, so the fallback appended a second one and the
-            # line read "answered 000000". nixfleet carries that; reported
-            # as nixfleet #190.
-            echo "API DELETE answered ${code:-000}" >&2
-          fi
-
-          # A 2xx from either path is not evidence of anything - that is the
-          # #172 finding. Ask git.
-          if present; then
-            echo "$BRANCH SURVIVED the delete (still on the remote per git)" >&2
-            exit 1
-          fi
-
-          # ONE DELAYED RE-CHECK, and it is not defensive padding - it is the
-          # only thing that catches fault B in the header. It was added for an
-          # observation nothing then explained: on the merge of #28 (logged in
-          # #27) `git ls-remote` reported herd/verify-with-git absent at
-          # 18:27:11 and stably present again at 18:29:04, at the original sha.
+          # CONVERGENCE, NOT ONE SHOT. The forge restores refs it has just
+          # deleted - #42 and nixfleet #194 - and the restore does not land at
+          # a fixed offset, so no arrangement of checks can be made into a
+          # guarantee. Measured here, both read on the host:
           #
-          # It fired on the first merge it was given, #40's, and the host-side
-          # read that followed is what identified the forge restoring its own
-          # deleted refs (#42, nixfleet #194). Fifteen seconds has wide margin
-          # over the 1.8 s measured there, and none at all over #28's two
-          # minutes, so this is a cheap catch rather than a guarantee. The
-          # backstop for what lands after the job exits is the sweep below.
-          sleep 15
+          #   #40  ref reborn 1.775 s AFTER the delete
+          #   #43  ref reborn 0.069 s BEFORE the push printed `- [deleted]`
+          #
+          # A single delete plus checks turned that into a red tick on two of
+          # the first four merges, for a branch nobody had lost. That is the
+          # shape that gets a watchdog muted, and a muted watchdog hides the
+          # next real fault - which is the argument #29 made for a sweep and
+          # applies inside one job run too.
+          #
+          # So: delete, wait, ask git, and delete again if it came back. Every
+          # recorded manual removal of a stuck ref took, and the sweep's job is
+          # the same convergence over a longer period. Bounded at four, because
+          # if the forge restores the ref four times the loop is not going to
+          # win and that is worth a red tick and a look.
+          attempt=0
+          while :; do
+            attempt=$((attempt + 1))
+
+            if ! git push "$remote" --delete "$ref"; then
+              # The API fallback. `github.token` deleting refs over git is
+              # measured rather than assumed now (#40, #41), so this is here
+              # for the case that stops being true, and for the one it did
+              # catch: #39's missing repository.
+              echo "git push --delete was refused, falling back to the API" >&2
+              code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE \
+                -H "Authorization: token $TOKEN" \
+                "$API/branches/$(printf '%s' "$BRANCH" | sed 's|/|%2F|g')")
+              # No `|| echo 000` on that curl: -w already prints 000 when it
+              # cannot connect, so the fallback appended a second one and the
+              # line read "answered 000000". nixfleet carries that; reported
+              # as nixfleet #190.
+              echo "API DELETE answered ${code:-000}" >&2
+            fi
+
+            # A 2xx from either path is not evidence of anything - that is the
+            # #172 finding. Ask git, and ask it late enough that a restore
+            # racing the confirmation has already landed. Five seconds covers
+            # both measurements above with room to spare.
+            sleep 5
+            present || break
+
+            echo "attempt $attempt: $BRANCH is back 5s after a delete git accepted" >&2
+            if [ "$attempt" -ge 4 ]; then
+              echo "$BRANCH SURVIVED 4 delete attempts (still on the remote per git)" >&2
+              exit 1
+            fi
+          done
+
+          # One last look after a longer settle, keeping the coverage the old
+          # 15-second re-check had. It is still not a guarantee: #28's ref came
+          # back after two minutes, and nothing inside a job can wait that out.
+          # The sweep below is what closes that, and it converges the same way
+          # this loop does, over a day instead of twenty seconds.
+          sleep 10
           if present; then
-            echo "$BRANCH came back within 15s of a delete git confirmed" >&2
+            echo "$BRANCH came back after the delete had settled ($attempt attempt(s))" >&2
             exit 1
           fi
 
-          echo "deleted $BRANCH"
+          # The attempt count is the point of this line, not decoration: it is
+          # what rovar-no #44 counts, and a run that needed three attempts is a
+          # different day from one that needed one.
+          echo "deleted $BRANCH ($attempt attempt(s))"
 
   # THE BACKSTOP, AND THE REASON IT IS A SECOND SHAPE RATHER THAN A BETTER
   # VERSION OF THE JOB ABOVE. The delete job runs on `pull_request: closed`,
