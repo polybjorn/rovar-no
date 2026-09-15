@@ -6,31 +6,49 @@
 # Only branches under herd/ are touched, and only when the PR actually merged.
 # A closed-unmerged PR, anyone else's branch and main are all left alone.
 #
-# STOP before adding a fifth check. This file was rewritten four times on
-# 2026-09-14 and every version was superseded within hours:
+# EVERYTHING HERE HAPPENS OVER THE GIT TRANSPORT. That is the finding of
+# nixfleet #172, not a preference: this forge records a ref update in its
+# database that its git ref write did not apply. A DELETE answers 2xx and marks
+# the branch row deleted while `refs/heads/<branch>` never moves. Measured on
+# bjorn/lokalverket-no, where two branches deleted that way were still on the
+# remote:
 #
-#   #8   trusted the DELETE status     - Forgejo answers 500, not 404, for a
-#                                        branch that is already gone
-#   #17  checked with a REST GET       - on PR #23 the API said gone twice
-#                                        while the ref survived
-#   #28  checked with git ls-remote    - on its own merge ls-remote returned
-#                                        empty and the ref was back two minutes
-#                                        later, stably, at the original sha
+#   GET /git/refs/heads   ->  herd/check-tests, herd/deps-credential-precheck, main
+#   GET /branches         ->  main
 #
-# Each was correct about the failure it had seen. They fail together because
-# the ref itself flaps: it can return after the job has exited, so nothing
-# observed during the job settles the question, on any read path. The cause is
-# tracked in nixfleet #172. The replacement shape - a periodic sweep, making
-# correctness a repeated convergence rather than one true observation - is
-# rovar-no #29, deliberately blocked behind #172.
+# The forge's own git layer had them; its branch table did not. So a job that
+# asks the API whether the branch is gone is asking the party that has already
+# been fooled - which is exactly how this file's #17 version logged `deleted`
+# over a ref that was still there on PR #23.
 #
-# So: this job is a fast path that usually works, not a guarantee. A stray
-# branch gets swept by hand with `git push origin --delete` after checking
-# `git merge-base --is-ancestor`, which has held every time.
+# That also retires this file's previous header, which said the ref itself
+# flaps and that therefore no read path settles the question. Three of the four
+# failures on 2026-09-14 were the database being wrong while git was right and
+# consistent throughout, and the git layer is the one both sides of a clone
+# actually use.
 #
-# The guard being in the script rather than the job `if:` is a lesser thing:
-# `/actions/tasks` has a `status` and no `conclusion`, so from that listing a
-# skipped job and a successful one read the same. It was not the cause of #15.
+#   #8   trusted the DELETE status   - Forgejo answers 500, not 404, for a
+#                                      branch that is already gone
+#   #17  checked with a REST GET     - on PR #23 the API said gone twice while
+#                                      the ref survived
+#   #28  checked with git ls-remote  - right surface, but it kept the API
+#                                      DELETE as the thing doing the removal
+#
+# `git push --delete` is the only removal path with a clean record here: every
+# stuck ref cleared by hand was cleared with it, #172's probing put 30 refs
+# through in one push with the branch table staying in step, and it treats an
+# already-gone ref benignly (a warning and exit 0) where the API answers 500.
+#
+# The API DELETE survives only as a fallback, for the one thing not verifiable
+# from outside the runner: whether the automatic `github.token` may delete refs
+# over git. It reads and writes code fine, so it should, but a cleanup job that
+# stops working on an unproven assumption is worse than one carrying four extra
+# lines. Whichever path removes the ref, the verification below is the same.
+#
+# Ported from bjorn/nixfleet's copy of this file, which came from
+# bjorn/media-tools (its #8/#9). Same `docker` label as every other job here,
+# which carries git and curl; nothing in this version parses JSON, so the
+# node-versus-python question the old header argued is moot.
 #
 # For whoever debugs this next: job logs ARE readable, at
 # `GET /actions/jobs/{job_id}/logs`. An earlier version of this comment said
@@ -46,81 +64,80 @@ on:
 
 jobs:
   delete:
+    # The guard is here rather than in the script now that #15's reason for
+    # keeping it there is spent: a job that does not run is clearer in the run
+    # list than a job that runs and decides to do nothing. `/actions/tasks` has
+    # a `status` and no `conclusion`, so a skipped and a successful job still
+    # read the same from that listing - map the run to its jobs instead.
+    if: >-
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'herd/')
     runs-on: docker
     timeout-minutes: 5
     steps:
-      # No checkout: the script is here and node's global fetch is in the
-      # image. media-tools runs the same job on the `python` label with urllib
-      # because that image guarantees the standard library; `docker` here is
-      # node:22-bookworm, so fetch is the equivalent thing that cannot be
-      # missing.
+      # No checkout. ls-remote and a delete-only push both talk to the remote
+      # without a working tree.
       - name: Delete the head branch
         env:
           TOKEN: ${{ github.token }}
-          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
-          BRANCH: ${{ github.event.pull_request.head.ref }}
           SERVER: ${{ github.server_url }}
           REPO: ${{ github.repository }}
-          MERGED: ${{ github.event.pull_request.merged }}
+          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          node - <<'JS'
-          const { execFileSync } = require("node:child_process");
+          set -uo pipefail
+          # Same token-in-URL form ci.yml's manual checkout uses. Nothing here
+          # prints a command line, so the redaction helper the node version
+          # needed has no counterpart: git's own errors do not echo the URL.
+          remote="${SERVER/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPO}.git"
+          ref="refs/heads/$BRANCH"
 
-          const branch = process.env.BRANCH;
-          // Escapes each segment and leaves the slashes as slashes, matching what
-          // media-tools' urllib.parse.quote does by default. An earlier version of
-          // this comment claimed an encoded slash does not resolve and would 404;
-          // that was a guess and it is wrong. Measured on this repo (#20):
-          // GET and DELETE both accept herd%2Ffoo, and the DELETE really deletes.
-          // So a bare encodeURIComponent would work too. This form is kept only
-          // because it keeps the branch readable in the URL and in the log line.
-          const path = branch.split("/").map(encodeURIComponent).join("/");
-          const url = `${process.env.API}/branches/${path}`;
-          const auth = { Authorization: `token ${process.env.TOKEN}` };
+          # The only question this job ever asks, and it asks git.
+          present() { [ -n "$(git ls-remote --heads "$remote" "$ref")" ]; }
 
-          // The remote URL carries the token, and execFileSync puts the whole
-          // command line into the message it throws. Without this, one failed
-          // ls-remote prints the credential into a job log that anyone who can
-          // read the repo can read. Every message goes through redact, not just
-          // the ones that look like they might contain it.
-          const redact = (msg) =>
-            String(msg).split(process.env.TOKEN).join("***");
+          if ! present; then
+            # The merge dialog's own checkbox, or a manual sweep, got here
+            # first. That is the desired end state, not a failure.
+            echo "$BRANCH is already gone"
+            exit 0
+          fi
 
-          const done = (msg) => { console.log(redact(msg)); process.exit(0); };
-          const fail = (msg) => { console.log(redact(msg)); process.exit(1); };
+          if ! git push "$remote" --delete "$ref"; then
+            # See the header: this exists for the unproven case where the
+            # actions token cannot delete refs over git. It is loud on purpose
+            # - if this line ever appears, the assumption was wrong and the
+            # header should be corrected rather than the noise tolerated.
+            echo "git push --delete was refused, falling back to the API" >&2
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE \
+              -H "Authorization: token $TOKEN" \
+              "$API/branches/$(printf '%s' "$BRANCH" | sed 's|/|%2F|g')")
+            # No `|| echo 000` on that curl: -w already prints 000 when it
+            # cannot connect, so the fallback appended a second one and the
+            # line read "answered 000000". nixfleet carries that; reported
+            # as nixfleet #190.
+            echo "API DELETE answered ${code:-000}" >&2
+          fi
 
-          (async () => {
-            if (process.env.MERGED !== "true") done(`PR closed without merging, leaving ${branch}`);
-            if (!branch.startsWith("herd/")) done(`${branch} is not ours, leaving it`);
+          # A 2xx from either path is not evidence of anything - that is the
+          # #172 finding. Ask git.
+          if present; then
+            echo "$BRANCH SURVIVED the delete (still on the remote per git)" >&2
+            exit 1
+          fi
 
-            const del = await fetch(url, { method: "DELETE", headers: auth });
+          # ONE DELAYED RE-CHECK, for this repo's own unexplained observation:
+          # on the merge of #28 (logged in #27) `git ls-remote` reported
+          # herd/verify-with-git absent at 18:27:11 and stably present again at
+          # 18:29:04, at the original sha. #172 accounts for every other case
+          # as the database being wrong while git stayed put, and those are
+          # caught above; it does not account for this one. Fifteen seconds
+          # does not cover a two-minute lag, so this is a cheap catch and not a
+          # guarantee - the backstop for the long tail is a periodic sweep,
+          # which is #29.
+          sleep 15
+          if present; then
+            echo "$BRANCH came back within 15s of a delete git confirmed" >&2
+            exit 1
+          fi
 
-            // Ask the ref store, not the API that was just asked to delete it.
-            // #27: on PR #23 the DELETE returned 2xx AND the verification GET
-            // returned 404, both saying the branch was gone, while the ref
-            // survived - so checking the end state through the same API is not
-            // a check. ls-remote goes over the git transport instead, which is
-            // a different path on the server. git is on this image already:
-            // /usr/bin/git shows up in checkout logs on the docker label.
-            const remote = `${process.env.SERVER.replace("https://", `https://x-access-token:${process.env.TOKEN}@`)}/${process.env.REPO}.git`;
-            const stillThere = () =>
-              execFileSync("git", ["ls-remote", "--heads", remote, `refs/heads/${branch}`], {
-                encoding: "utf8",
-              }).trim() !== "";
-
-            // Deliberately not branching on del.status. Forgejo 16.0.4 answers
-            // 500 with an empty message when the branch is already gone, not
-            // 404 - measured against this repo on 2026-09-14 - so the previous
-            // version's "404 means someone got there first" arm was dead code
-            // and the already-gone case landed in the failure arm. Asking what
-            // is true now is both simpler and correct whatever the API answers.
-            if (!stillThere()) {
-              done(del.ok ? `deleted ${branch}` : `${branch} is gone (delete said ${del.status})`);
-            }
-            // Catches #15, where DELETE alone claimed success, and #27, where the
-            // API agreed with itself twice. It does NOT catch what happened on
-            // this file's own merge: ls-remote returned empty and the ref came
-            // back. Nothing checked here can - see the header.
-            fail(`${branch} is still in the ref store after DELETE answered ${del.status}`);
-          })().catch((err) => fail(`could not delete ${branch}: ${err.message}`));
-          JS
+          echo "deleted $BRANCH"
