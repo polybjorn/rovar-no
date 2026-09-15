@@ -61,6 +61,14 @@ name: Delete merged branch
 on:
   pull_request:
     types: [closed]
+  schedule:
+    # 04:53 daily. Off the hour and clear of every slot this fleet already
+    # uses: deps-update 04:37 here, merge-audit 05:13 here, link-check Wed
+    # 06:00 here, and 04:17 and 04:41 taken by polybjorn-en and media-tools
+    # for the same job. Capacity is 1 runner across seven repos, so these are
+    # a real queue rather than a courtesy.
+    - cron: '53 4 * * *'
+  workflow_dispatch:
 
 jobs:
   delete:
@@ -162,3 +170,121 @@ jobs:
           fi
 
           echo "deleted $BRANCH"
+
+  # THE BACKSTOP, AND THE REASON IT IS A SECOND SHAPE RATHER THAN A BETTER
+  # VERSION OF THE JOB ABOVE. The delete job runs on `pull_request: closed`,
+  # which covers the normal case and nothing else. An event-driven cleanup
+  # cannot fail loudly when the event never arrives: a dropped event leaves the
+  # branch behind forever, and the absence of a run is indistinguishable from
+  # nothing to do. polybjorn-en's #70 merged and produced no delete run at all
+  # while its #71 did, same repo and same forge, which is what this exists for.
+  #
+  # #29 originally argued for this on different grounds - that the ref itself
+  # flapped, so no single observation could settle whether a branch was gone.
+  # #172 disproved that; the delete job above is now a real fix rather than a
+  # fifth guess. The sweep survives on the half of #29 that #172 does not touch:
+  # a PR closed while the runner was down, a branch merged from the Mac, a job
+  # cancelled mid-flight, an event the forge never delivered.
+  #
+  # Alongside the delete job, not instead of it. That one is what makes the
+  # common case immediate; this only catches what it missed.
+  #
+  # THE SAFETY CONDITION IS ANCESTRY, NOT THE NAME. A branch is deleted only
+  # when git says main already contains it. Deleting on the herd/ prefix alone
+  # would eventually eat somebody's in-progress work: the prefix decides WHOSE
+  # branches to consider, never whether one is finished.
+  #
+  # Liveness is checked, unlike in the three copies this is ported from: if this
+  # timer stops firing the branches pile up in the same silence one layer up.
+  # merge-audit.yml runs `npm run sweep:check` daily and fails when no sweep has
+  # succeeded in 48 hours. It needs no schedule of its own that way, which
+  # matters because a watchdog on its own timer needs its own watchdog.
+  sweep:
+    # Never on a merge. The delete job above already handles that, and a sweep
+    # racing it would be two jobs deleting the same ref. This also means every
+    # merge files a SKIPPED `sweep` task - sweep-freshness-core.mjs refuses to
+    # count those as liveness, or merge traffic alone would keep it green.
+    if: github.event_name != 'pull_request'
+    runs-on: docker
+    timeout-minutes: 10
+    steps:
+      # ANCESTRY COMES FROM GIT, NOT FROM THE COMPARE API. Forgejo's compare
+      # path runs a pulls-unit permission lookup, and the automatic
+      # `github.token` is the actions system user, which is no collaborator: it
+      # answers 404 `Can't read pulls or can't read UnitTypeCode`. That token
+      # reads and writes CODE fine, which is all this needs. nixfleet's copy
+      # records hitting that wall on its first run.
+      #
+      # `merge-base --is-ancestor` is the honest form of the question anyway.
+      # `--bare --filter=blob:none` keeps it cheap: commits and trees with no
+      # file contents, because the question is about the commit graph and never
+      # about file content.
+      #
+      # The clone also gives the delete push a repository to run from, which is
+      # the thing the job above had to add a `git init` for - see #39.
+      - name: Find merged herd/ branches
+        env:
+          TOKEN: ${{ github.token }}
+          SERVER: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git clone -q --bare --filter=blob:none \
+            "${SERVER/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPO}.git" /tmp/sweep-repo
+          cd /tmp/sweep-repo
+
+          total=0
+          : > /tmp/merged.txt
+          for b in $(git for-each-ref --format='%(refname:short)' 'refs/heads/herd/*'); do
+            total=$((total + 1))
+            if git merge-base --is-ancestor "$b" main; then
+              printf '%s\n' "$b" >> /tmp/merged.txt
+            else
+              echo "keep   $b (not an ancestor of main)"
+            fi
+          done
+          echo "$total candidate branch(es) under herd/, $(wc -l < /tmp/merged.txt) merged into main"
+
+      # One push for all of them rather than one per branch: 30 refs went in a
+      # single push during #172's probing with the branch table staying in step,
+      # and git reports each ref's outcome separately, so nothing is lost by
+      # batching. Verification is still per branch, because a push reporting
+      # success is exactly the claim #172 established is worthless.
+      - name: Delete them
+        run: |
+          set -uo pipefail
+          cd /tmp/sweep-repo
+          if [ ! -s /tmp/merged.txt ]; then
+            echo "swept 0, failed 0"
+            exit 0
+          fi
+
+          refs=()
+          while IFS= read -r name; do
+            [ -n "$name" ] || continue
+            refs+=("refs/heads/$name")
+          done < /tmp/merged.txt
+
+          # NOT `set -e` around this: a refused push must still be followed by
+          # the per-branch verification below, which is what turns "the push
+          # said something" into a real answer either way.
+          git push origin --delete "${refs[@]}" || \
+            echo "the delete push reported failure; verifying each branch anyway" >&2
+
+          deleted=0
+          failed=0
+          while IFS= read -r name; do
+            [ -n "$name" ] || continue
+            if [ -n "$(git ls-remote --heads origin "refs/heads/$name")" ]; then
+              echo "$name SURVIVED the delete (still on the remote per git)" >&2
+              failed=$((failed + 1))
+            else
+              echo "delete $name"
+              deleted=$((deleted + 1))
+            fi
+          done < /tmp/merged.txt
+
+          # Always a summary, including the nothing-to-do case: a run that
+          # prints nothing is indistinguishable from one that did not happen.
+          echo "swept $deleted, failed $failed"
+          [ "$failed" -eq 0 ]

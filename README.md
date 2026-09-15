@@ -112,6 +112,16 @@ than by the forge API, because the API is the thing under suspicion, and the
 script refuses to run on a shallow clone instead of guessing, since a truncated
 history reports nearly every merge as lost.
 
+`npm run sweep:check` asks whether the branch sweep actually ran. A merged
+branch is normally removed by a job on the merge event, and a daily sweep
+deletes any `herd/` branch that git says `main` already contains, for the
+merges where that event never arrived. The sweep has the same blind spot one
+layer up: if its timer stops firing, nothing says so and the branches pile up
+in the same silence. The daily audit runs this check too, so the answer comes
+from a job that already exists rather than from a second timer that would need
+watching in turn. A skipped run does not count as a run, which is what stops
+the check passing on merge traffic alone.
+
 A fortnightly job runs `npm update` and opens one rolling pull request when the
 lockfile moves, with the version changes and a full build of the result in its
 description. It only moves `package-lock.json` inside the ranges `package.json`

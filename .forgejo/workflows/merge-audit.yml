@@ -9,6 +9,14 @@
 # were caught by a person reading `git log` and knowing which merge commit to
 # expect.
 #
+# It also answers a second question of the same kind, added when the branch
+# sweep landed (#29): did the sweep actually run? The sweep is the backstop
+# for a merge whose delete event never arrived, and it has the same blind spot
+# one layer up - if its timer stops firing, nothing says so and the branches
+# pile up in silence. It lives here rather than on a timer of its own because
+# a watchdog with its own schedule needs its own watchdog, and this job
+# already runs daily for a neighbouring reason.
+#
 # This job is that habit, made not-a-habit. It does not prevent the loss and
 # does not explain it - the investigation is nixfleet #172 - it just refuses to
 # let the loss be silent. rovar-no has no orphans today: all 13 merged pull
@@ -73,3 +81,15 @@ jobs:
           # correctly merged pull requests as orphaned, so the fetch lives in the
           # script now, where it cannot be forgotten.
           npm run merges:check
+
+      # Last, and not gated on the step above: a lost merge and a dead sweep
+      # are independent faults, and finding one must not hide the other. Both
+      # steps fail the job, so a red tick means read the log rather than
+      # assume which half it was.
+      - name: The branch sweep is still running
+        env:
+          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
+          TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+        run: |
+          set -eu
+          npm run sweep:check
