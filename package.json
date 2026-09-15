@@ -15,6 +15,7 @@
     "pins:check": "node scripts/node-pins-check.mjs",
     "merges:check": "node scripts/check-merged-prs.mjs",
   "sweep:check": "node scripts/check-sweep-freshness.mjs",
+  "retries:check": "node scripts/check-delete-retries.mjs",
     "prebuild": "npm run i18n:verify",
     "test": "node --test \"test/*.test.mjs\" && TZ=Pacific/Auckland node --test \"test/*.test.mjs\"",
     "pretest": "npm run i18n:verify"

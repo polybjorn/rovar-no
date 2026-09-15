@@ -93,3 +93,27 @@ jobs:
         run: |
           set -eu
           npm run sweep:check
+
+      # Third watchdog on the same forge, and the one that exists because the
+      # second fix had a hole in it. After #45 the delete job retries when the
+      # forge restores a branch, and the outcomes are asymmetric: a retry that
+      # FAILS turns that job red and somebody sees it, while a retry that WORKS
+      # ends green and is indistinguishable from a merge where nothing
+      # happened. The measurement #44 is open for was the one nothing reported.
+      #
+      # Never fails this job. A working retry is good news and a broken one is
+      # already red elsewhere; `continue-on-error` is not needed because the
+      # script exits 0 either way, and that is deliberate rather than sloppy.
+      #
+      # TALLY_ISSUE is scaffolding for #44 and should be dropped with it - the
+      # printed summary is the part worth keeping. Whether FORGE_PR_TOKEN can
+      # write issue comments is unverified; the script prints the tally and
+      # carries on if the POST is refused, so finding out costs nothing.
+      - name: Did a branch delete need a retry
+        env:
+          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
+          TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+          TALLY_ISSUE: '44'
+        run: |
+          set -eu
+          npm run retries:check
