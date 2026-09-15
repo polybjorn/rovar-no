@@ -122,6 +122,16 @@ from a job that already exists rather than from a second timer that would need
 watching in turn. A skipped run does not count as a run, which is what stops
 the check passing on merge traffic alone.
 
+`npm run retries:check` reads the delete job's own logs and reports how often
+the forge put a branch back and the job's retry cleared it. The daily audit runs
+this too. It exists because the two outcomes are not equally visible: when a
+retry fails the delete job goes red and somebody looks, and when a retry works
+the job goes green and looks exactly like a merge where nothing happened - so
+the evidence that the fix works was the one thing nothing reported. Four
+generations of that workflow appear in the logs it reads, and one of the older
+ones printed an HTTP status where the attempt count now sits, so the parser is
+explicit about which parenthesised number means what.
+
 A fortnightly job runs `npm update` and opens one rolling pull request when the
 lockfile moves, with the version changes and a full build of the result in its
 description. It only moves `package-lock.json` inside the ranges `package.json`
