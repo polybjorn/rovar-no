@@ -6,26 +6,50 @@
 # Only branches under herd/ are touched, and only when the PR actually merged.
 # A closed-unmerged PR, anyone else's branch and main are all left alone.
 #
-# EVERYTHING HERE HAPPENS OVER THE GIT TRANSPORT. That is the finding of
-# nixfleet #172, not a preference: this forge records a ref update in its
-# database that its git ref write did not apply. A DELETE answers 2xx and marks
-# the branch row deleted while `refs/heads/<branch>` never moves. Measured on
-# bjorn/lokalverket-no, where two branches deleted that way were still on the
-# remote:
+# EVERYTHING HERE HAPPENS OVER THE GIT TRANSPORT, because the forge's database
+# is the surface that lies and git is the one every clone actually uses.
 #
-#   GET /git/refs/heads   ->  herd/check-tests, herd/deps-credential-precheck, main
-#   GET /branches         ->  main
+# TWO FAULTS PRODUCE THE SAME END STATE, which is why this took five attempts
+# to characterise: a branch present on every git-reading surface and absent
+# from `GET /branches`, the one surface that reads the branch table.
 #
-# The forge's own git layer had them; its branch table did not. So a job that
-# asks the API whether the branch is gone is asking the party that has already
-# been fooled - which is exactly how this file's #17 version logged `deleted`
-# over a ref that was still there on PR #23.
+#   A. The database deletion happens and the git ref write does not. A DELETE
+#      answers 2xx and marks the branch row deleted while `refs/heads/<branch>`
+#      never moves. nixfleet #172, measured on bjorn/lokalverket-no:
 #
-# That also retires this file's previous header, which said the ref itself
-# flaps and that therefore no read path settles the question. Three of the four
-# failures on 2026-09-14 were the database being wrong while git was right and
-# consistent throughout, and the git layer is the one both sides of a clone
-# actually use.
+#        GET /git/refs/heads -> herd/check-tests, herd/deps-credential-precheck, main
+#        GET /branches       -> main
+#
+#   B. Both deletions happen, and then the forge puts the ref back. rovar-no
+#      #42 and nixfleet #194, read on the pi-rovar host on 2026-09-15 from the
+#      merge of this repo's #40: the delete went through receive-pack at
+#      09:24:54.637, and the loose ref was BORN again at 09:24:56.412 - 1.8
+#      seconds later - with `packed-refs` untouched from the day before and a
+#      single reflog entry reading
+#
+#        0000000... 51b3348 Gitea <gitea@fake.local> ... update by push
+#
+#      The zeros mean creation from nothing, so the delete really took. No
+#      `git-receive-pack` appears in the HTTP log for that window, and
+#      `gitea@fake.local` is the forge's own identity rather than a pusher's,
+#      so the restoring write came from inside the forge process. The branch
+#      table deletion is not undone, which is how B lands on A's end state.
+#
+# Reading the end state cannot tell them apart. That is the whole reason #172
+# concluded, correctly for the specimens it had, that the ref is never actually
+# deleted - and why this file's header said so until the host-side read.
+#
+# What matters here is that BOTH are answered by the same design. Ask git, not
+# the API, because in A the API has already been fooled - which is exactly how
+# this file's #17 version logged `deleted` over a ref that was still there on
+# PR #23. Then ask git AGAIN after a pause, because in B the first answer is
+# true when given and false two seconds later.
+#
+# This also retires the previous header's other half, which said the ref flaps
+# and therefore no read path could ever settle it, so only a sweep could work.
+# The ref does move under you, but not unpredictably: a bounded re-check
+# catches it, and the sweep is a backstop for what lands after the job exits
+# rather than the only workable shape.
 #
 #   #8   trusted the DELETE status   - Forgejo answers 500, not 404, for a
 #                                      branch that is already gone
@@ -39,11 +63,14 @@
 # through in one push with the branch table staying in step, and it treats an
 # already-gone ref benignly (a warning and exit 0) where the API answers 500.
 #
-# The API DELETE survives only as a fallback, for the one thing not verifiable
-# from outside the runner: whether the automatic `github.token` may delete refs
-# over git. It reads and writes code fine, so it should, but a cleanup job that
-# stops working on an unproven assumption is worse than one carrying four extra
-# lines. Whichever path removes the ref, the verification below is the same.
+# The API DELETE survives only as a fallback. It was added for the one thing
+# not verifiable from outside the runner - whether the automatic `github.token`
+# may delete refs over git - and that is now measured rather than assumed: the
+# merges of #40 and #41 both pushed the ref away cleanly, with no fallback line
+# in either log. It is kept anyway, because the first thing it actually caught
+# was not a permission problem at all but the missing repository of #39, and a
+# cleanup job that degrades is better than one that stops. Whichever path
+# removes the ref, the verification below is the same.
 #
 # Ported from bjorn/nixfleet's copy of this file, which came from
 # bjorn/media-tools (its #8/#9). Same `docker` label as every other job here,
@@ -154,15 +181,18 @@ jobs:
             exit 1
           fi
 
-          # ONE DELAYED RE-CHECK, for this repo's own unexplained observation:
-          # on the merge of #28 (logged in #27) `git ls-remote` reported
-          # herd/verify-with-git absent at 18:27:11 and stably present again at
-          # 18:29:04, at the original sha. #172 accounts for every other case
-          # as the database being wrong while git stayed put, and those are
-          # caught above; it does not account for this one. Fifteen seconds
-          # does not cover a two-minute lag, so this is a cheap catch and not a
-          # guarantee - the backstop for the long tail is a periodic sweep,
-          # which is #29.
+          # ONE DELAYED RE-CHECK, and it is not defensive padding - it is the
+          # only thing that catches fault B in the header. It was added for an
+          # observation nothing then explained: on the merge of #28 (logged in
+          # #27) `git ls-remote` reported herd/verify-with-git absent at
+          # 18:27:11 and stably present again at 18:29:04, at the original sha.
+          #
+          # It fired on the first merge it was given, #40's, and the host-side
+          # read that followed is what identified the forge restoring its own
+          # deleted refs (#42, nixfleet #194). Fifteen seconds has wide margin
+          # over the 1.8 s measured there, and none at all over #28's two
+          # minutes, so this is a cheap catch rather than a guarantee. The
+          # backstop for what lands after the job exits is the sweep below.
           sleep 15
           if present; then
             echo "$BRANCH came back within 15s of a delete git confirmed" >&2
