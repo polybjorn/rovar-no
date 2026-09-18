@@ -365,9 +365,27 @@ jobs:
             "${SERVER/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPO}.git" /tmp/sweep-repo
           cd /tmp/sweep-repo
 
+          # `**`, NOT `*`. A single star does not match across a slash in a ref
+          # pattern, so `refs/heads/herd/*` finds `herd/flat` and never sees
+          # `herd/deps/bump` - the branch is simply absent from the candidate
+          # list, the run reports `swept N` over the ones it did see, and the job
+          # is green. Nothing would ever sweep it. #47, measured on git 2.54.0:
+          #
+          #   for-each-ref 'refs/heads/herd/*'   -> herd/flat
+          #   for-each-ref 'refs/heads/herd/**'  -> herd/a/b/c, herd/deps/bump, herd/flat
+          #
+          # `git ls-remote` does NOT share the behaviour: a single star there
+          # matches nested refs, which is part of why this survived - the
+          # verification loop below would have been fine, and only the
+          # enumeration was blind. Covered by test/sweep-glob.test.mjs, which
+          # reads this pattern out of this file and runs it against a real
+          # repository with nested branches rather than asserting the string.
+          #
+          # This makes the sweep SEE more branches, not delete more freely: the
+          # ancestry check below is still what decides whether one is finished.
           total=0
           : > /tmp/merged.txt
-          for b in $(git for-each-ref --format='%(refname:short)' 'refs/heads/herd/*'); do
+          for b in $(git for-each-ref --format='%(refname:short)' 'refs/heads/herd/**'); do
             total=$((total + 1))
             if git merge-base --is-ancestor "$b" main; then
               printf '%s\n' "$b" >> /tmp/merged.txt
