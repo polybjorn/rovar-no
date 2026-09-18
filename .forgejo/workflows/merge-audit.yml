@@ -100,9 +100,11 @@ jobs:
       # the delete job itself now and this is not what surfaces them.
       #
       # It stays because a tick is one event and #44's open question is the
-      # RATE: two merges in four under the observe-only code, and unmeasured
-      # since, because no merge has happened on this repo between 2026-09-15 and
-      # 2026-09-18. This counts them over a window and reports the count.
+      # RATE. This counts them over a window and reports the count, and it is
+      # the only place that number should come from: the two previous versions
+      # of this paragraph each stated a rate and a "nothing since" date, and
+      # both were false within hours of being merged. Whatever is written here
+      # is graded by every merge that follows it. Ask `retries:check`, or #44.
       #
       # Never fails this job. The events it counts are already red where they
       # happened, and an audit that re-failed on them would just double the

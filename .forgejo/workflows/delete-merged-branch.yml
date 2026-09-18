@@ -89,21 +89,45 @@
 # the version of this paragraph that tried it was falsified by the merge of the
 # very PR that added it (#48, fixed in #49). Ask the logs, not the comment.
 #
-# Two things to know before reading a run of green ticks as a fix:
+# Three things to know before reading a run of green ticks as a fix:
 #
 #   - Absence of the fault is not evidence of its absence. It was absent from
-#     #38 and #41 as well, during the stretch when it was firing at one merge in
-#     two, so a quiet week says nothing on its own.
+#     #41 as well, in the same morning that produced both occurrences, so a
+#     quiet week says nothing on its own. (#38 is not a fourth data point for
+#     that morning: its push hit the missing repository of #39 and the branch
+#     went down the API fallback, so it never exercised this path at all.)
 #   - A green tick does not even show which version of this job ran. A clean run
 #     prints `deleted <branch> (1 attempt(s))` and goes green under the one-shot
 #     code, under #45's loop and under this one alike. Only a merge where the ref
 #     comes back distinguishes them.
+#   - THE BRANCH STILL BEING THERE PROVES NOTHING UNTIL THIS JOB HAS RUN, and
+#     "has run" is not "was merged a minute ago". See below.
 #
-# The one reading worth keeping in the file, because it is the first after the
-# 2026-09-16 mirror change and the repo merged nothing between 2026-09-15 11:32
-# and it: #48's own delete, clean on the first attempt, ref gone on `ls-remote`,
-# `GET /git/refs/heads` and `GET /branches` alike 2m18s later - past the
-# two-minute mark #28 set. One clean merge, recorded as one clean merge.
+# HOW LONG TO WAIT BEFORE CALLING A LEFTOVER BRANCH A FAULT. This is the trap
+# that catches a human reader rather than the job, and the numbers are wider
+# than anyone guesses. Observed range from the job logs, over every merge this
+# job had carried to a normal verdict as of 2026-09-18 (#44 has the table). The
+# two occurrences are excluded on purpose: a run that exits early on the fault
+# is not measuring how long a healthy delete takes, and #43's gave up 0.17 s
+# after the push. These are what was seen, not a bound - a busier queue widens
+# the first row and the third with it.
+#
+#   merge -> the delete push     1.97 s .. 892.58 s
+#   the delete push -> verdict   15.27 s .. 15.34 s
+#   merge -> branch really gone  17.31 s .. 907.88 s
+#
+# The second row is this job's own two sleeps and is near enough a constant.
+# The first row is the RUNNER QUEUE - one runner across seven repos, as the
+# cron comment below says - and it is the entire spread: on #46 the delete push
+# went out 14 minutes 52 seconds after the merge. For most of that time the
+# branch is on the remote because nothing has tried to delete it yet, which is
+# indistinguishable, from the outside, from the forge having put it back.
+#
+# So: do not read a branch listing to decide whether the fault fired. Read the
+# job log. `npm run retries:check` does exactly that, and the delete job's own
+# exit code is the other honest surface. A by-hand check of the remote is only
+# worth anything once the run for that merge shows a verdict line - before that
+# it is measuring the queue.
 #
 # This also retires the previous header's other half, which said the ref flaps
 # and therefore no read path could ever settle it, so only a sweep could work.
