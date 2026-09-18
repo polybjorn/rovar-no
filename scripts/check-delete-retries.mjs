@@ -13,10 +13,10 @@
 // the one nothing reported.
 //
 // Needs API and TOKEN. The automatic Actions token cannot read this repo's
-// pulls and is not used anywhere in merge-audit; this uses FORGE_PR_TOKEN like
-// its neighbours. Commenting additionally needs issue write on that token,
-// which is NOT verified - see the --issue handling below, which degrades to
-// printing rather than failing the job if the POST is refused.
+// pulls, so reading runs and job logs uses FORGE_PR_TOKEN like its neighbours.
+// Commenting needs ISSUE_TOKEN, which is the other way round: FORGE_PR_TOKEN is
+// measured 403 on /issues (#54), so the --issue path never worked on it. The
+// POST still degrades to printing rather than failing the job.
 
 import { classifyLog, summarise, summaryLines, tallyComment } from './delete-retries-core.mjs';
 
@@ -30,7 +30,12 @@ const workflow = arg('workflow', 'delete-merged-branch.yml');
 const job = arg('job', 'delete');
 const issue = arg('issue', process.env.TALLY_ISSUE || '');
 const api = process.env.API;
+// Two credentials, because this forge splits them: TOKEN (FORGE_PR_TOKEN)
+// reads the Actions listing and job logs, ISSUE_TOKEN comments. Measured on
+// #54 - FORGE_PR_TOKEN answers 403 on /issues, so the comment below never
+// could have worked with it. Optional: without it the tally still prints.
 const token = process.env.TOKEN;
+const issueToken = process.env.ISSUE_TOKEN ?? '';
 
 const die = (...lines) => {
   for (const l of lines) console.error(l);
@@ -95,16 +100,26 @@ for (const line of summaryLines(summary, { hours })) console.log(line);
 // with it, which is why the number is passed in rather than baked into the
 // core. Everything above this line is the part worth keeping.
 const comment = tallyComment(summary, { hours });
-if (issue && comment) {
+if (issue && comment && !issueToken) {
+  console.error(`ISSUE_TOKEN is not set, so the tally was not posted to #${issue} - it is above`);
+} else if (issue && comment) {
   const res = await fetch(`${api}/issues/${issue}/comments`, {
     method: 'POST',
-    headers: { ...auth, 'Content-Type': 'application/json' },
+    headers: { Authorization: `token ${issueToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ body: comment }),
   });
   if (res.ok) console.log(`reported ${summary.retried.length} retry(ies) on issue #${issue}`);
-  // Deliberately not fatal. Whether FORGE_PR_TOKEN carries issue write is
-  // unverified, and a token scope is not a reason to fail an audit that has
-  // already printed its finding to the log.
+  // Deliberately not fatal, and now for a sharper reason than before: whether
+  // the Actions token can WRITE an issue comment on this forge is unproven. It
+  // is measured to READ issues, which is a different claim, and the only honest
+  // way to find out is the first run that has something to say. A token scope
+  // is not a reason to fail an audit that has already printed its finding.
+  //
+  // NOT DEDUPLICATED, unlike inert:check. The window is 26h against a daily
+  // schedule, so a retry landing in the 2h overlap is reported on two mornings.
+  // That is a known and cheap wrong answer - it over-reports an event that is
+  // rare and wanted - where the inert report is per pull request and would
+  // repeat forever. Worth a marker scan if retries ever become common.
   else console.error(`could not comment on #${issue}: ${res.status} ${res.statusText} - the tally is above`);
 }
 

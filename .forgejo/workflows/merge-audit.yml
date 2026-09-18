@@ -119,6 +119,13 @@ jobs:
         env:
           API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
           TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+          # TWO CREDENTIALS, ONE PER SURFACE. FORGE_PR_TOKEN reads pulls, the
+          # Actions listing and job logs, and answers 403 on anything under
+          # /issues; the automatic token is the reverse. They are complements
+          # rather than a preference order (#54), so a step that reads one and
+          # writes the other needs both. Passing only the "stronger" one is
+          # what made the comment below impossible from the day it was written.
+          ISSUE_TOKEN: ${{ github.token }}
           TALLY_ISSUE: '44'
         run: |
           set -eu
@@ -143,6 +150,11 @@ jobs:
         env:
           API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
           TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+          # Same split as the step above. This one is why #54 existed: the
+          # already-reported scan went out on FORGE_PR_TOKEN, got a 403, and
+          # took the whole audit down with it on the first run that met a real
+          # inert pull request.
+          ISSUE_TOKEN: ${{ github.token }}
         run: |
           set -eu
           npm run inert:check -- --comment

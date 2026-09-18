@@ -1,5 +1,8 @@
 // npm run inert:check                 report on every open pull request
 // npm run inert:check -- --comment    also say so on the ones that are inert
+//
+// API + TOKEN are required; ISSUE_TOKEN is optional and is what --comment needs.
+// Without it this reports to the log only, which is a report, not a failure.
 // npm run inert:history               replay the prover over every merge on main
 //
 // REPORTS ONLY. It merges nothing, has no code path that could, and is not
@@ -18,10 +21,16 @@
 
 import { execFileSync } from 'node:child_process';
 import { classifyChange, verdictLines } from './inert-core.mjs';
+import { reportPlan } from './issue-report-core.mjs';
 
 const arg = (name) => process.argv.includes(`--${name}`);
 const api = process.env.API;
+// TOKEN reads pulls and code; ISSUE_TOKEN reads and writes issue comments.
+// Two variables because they are two credentials on this forge - see
+// issue-report-core.mjs. ISSUE_TOKEN is optional: without it this still
+// reports, it just reports only to the log.
 const token = process.env.TOKEN;
+const issueToken = process.env.ISSUE_TOKEN ?? '';
 
 const die = (...lines) => { for (const l of lines) console.error(l); process.exit(2); };
 
@@ -76,10 +85,35 @@ if (!api) die('API is not set. It is the repo API base, e.g. https://forge/api/v
 if (!token) die('TOKEN is not set. Reading pulls needs FORGE_PR_TOKEN; the automatic Actions token is answered 404.');
 
 const auth = { Authorization: `token ${token}` };
+const issueAuth = { Authorization: `token ${issueToken}` };
+
+// Hard: the pulls listing and the commit status are what this report IS. If
+// they cannot be read there is no report to print and saying nothing would be
+// the fault.
 const get = async (path) => {
   const res = await fetch(`${api}${path}`, { headers: auth });
   if (!res.ok) die(`GET ${path}: ${res.status} ${res.statusText}`);
   return res.json();
+};
+
+// Soft, and a different credential: everything under /issues is the optional
+// half. Returning null rather than throwing is load-bearing - reportPlan reads
+// null as "the scan did not run" and suppresses the comment, where an empty
+// list would mean "read it, nothing there yet". #54: routing this through the
+// hard helper above took the whole audit down on a 403.
+const getIssue = async (path) => {
+  try {
+    const res = await fetch(`${api}${path}`, { headers: issueAuth });
+    if (!res.ok) {
+      console.error(`  GET ${path}: ${res.status} ${res.statusText} - not commenting on this one`);
+      return null;
+    }
+    const body = await res.json();
+    return Array.isArray(body) ? body : null;
+  } catch (e) {
+    console.error(`  GET ${path} failed: ${e.message} - not commenting on this one`);
+    return null;
+  }
 };
 
 const pulls = await get('/pulls?state=open&limit=50');
@@ -126,8 +160,9 @@ for (const pr of pulls) {
   // every morning, and a bot that repeats itself gets filtered out along with
   // the thing it was trying to say.
   const MARK = '<!-- inert-check -->';
-  const existing = await get(`/issues/${n}/comments`);
-  if (existing.some((c) => (c.body ?? '').includes(MARK))) { console.log('  already reported'); continue; }
+  const existing = issueToken ? await getIssue(`/issues/${n}/comments`) : null;
+  const plan = reportPlan({ token: issueToken, existing, mark: MARK });
+  if (!plan.post) { console.log(`  ${plan.why}`); continue; }
 
   const body = [
     MARK,
@@ -141,12 +176,13 @@ for (const pr of pulls) {
   ].join('\n');
 
   const res = await fetch(`${api}/issues/${n}/comments`, {
-    method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ body }),
+    method: 'POST', headers: { ...issueAuth, 'Content-Type': 'application/json' }, body: JSON.stringify({ body }),
   });
   if (res.ok) { reported++; console.log('  reported on the pull request'); }
-  // Not fatal, for the same reason retries:check is not: whether FORGE_PR_TOKEN
-  // carries issue write is unverified, and a token scope is not a reason to fail
-  // a report that has already printed its finding.
+  // Not fatal. Whether the Actions token can WRITE an issue comment here is
+  // unproven - it is measured to READ issues, and that is not the same claim -
+  // so this line is also the experiment. Either way the verdict is already in
+  // the log above and a token scope is not a reason to fail an audit.
   else console.error(`  could not comment on #${n}: ${res.status} ${res.statusText} - the verdict is above`);
 }
 
