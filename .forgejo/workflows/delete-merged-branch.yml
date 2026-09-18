@@ -84,12 +84,22 @@
 # access to read the bare repo's config.
 #
 # WHAT IS STILL UNMEASURED, as of 2026-09-18: whether the fault fires at all
-# any more. It last fired on #43's merge, 2026-09-15. Every merge since - #45
-# and #46 - was clean on the first attempt, and there has been NO merge on this
-# repo since 2026-09-15 11:32, which is before the mirror change. The sweeps on
-# 09-17 and 09-18 found nothing to do. So the rate still rests on #38/#40/#41/
-# #43, two in four, under code that only observed. The next merge is the
-# experiment, and with this file as it now stands its tick is the readout.
+# any more. It last fired on #43's merge, 2026-09-15. #45, #46 and #48 were each
+# clean on the first attempt, and #48's is the only one of those after the
+# 2026-09-16 mirror change - the repo merged nothing at all between 2026-09-15
+# 11:32 and #48, which is why there was no reading to take. Its ref was gone on
+# `ls-remote`, `GET /git/refs/heads` and `GET /branches` alike 2m18s after the
+# delete, past the two-minute mark #28 set.
+#
+# Three clean merges are not a fix, and this is the trap to avoid here: the
+# fault was absent from #38 and #41 too, while it was firing at one in two. The
+# rate still rests on #38/#40/#41/#43 under code that only observed.
+#
+# Nor is a green tick evidence that the paragraph above is even in force. A
+# clean run prints `deleted <branch> (1 attempt(s))` and goes green under the
+# one-shot code, under #45's loop and under this version alike. Only a merge
+# where the ref comes back can tell them apart, and that has not happened since
+# this file started reporting it.
 #
 # This also retires the previous header's other half, which said the ref flaps
 # and therefore no read path could ever settle it, so only a sweep could work.
