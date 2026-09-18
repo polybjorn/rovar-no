@@ -133,6 +133,26 @@ logs it reads, and one of the older ones printed an HTTP status where the
 attempt count now sits, so the parser is explicit about which parenthesised
 number means what.
 
+`npm run inert:check` says which open pull requests are provably inert: every
+file in them is markdown outside the build, or identical to the version on main
+once comments are removed. Those can be merged on green without reading the diff,
+and the daily audit comments on them so nobody has to go looking. It merges
+nothing - that is a separate decision, and `npm run inert:history` replays the
+prover over every merge on main so its verdicts can be checked against what
+actually landed before anyone considers giving it rights.
+
+The prover is allowed to be wrong in one direction only, "not provable". Nothing
+inside a yaml block scalar counts as a comment, because `run:` blocks here embed
+shell and javascript and a `#` line in javascript is a private class field; a
+`//` line inside a template literal is content, not a comment; a trailing comment
+is never stripped, since finding where one starts means knowing whether an
+earlier `/` opened a regular expression; an added, removed or renamed file is
+never inert whatever it contains; and an extension with no prover, `.sh` and
+`.json` included, is never inert. The cost is real - a comment fix inside a
+`run:` block is not provable, which is most of this repo's big comments - and it
+is the right side to err on, because a false "inert" is an unreviewed change on
+main and, since the site deploys on every push there, published.
+
 A fortnightly job runs `npm update` and opens one rolling pull request when the
 lockfile moves, with the version changes and a full build of the result in its
 description. It only moves `package-lock.json` inside the ranges `package.json`
