@@ -13,10 +13,15 @@
 // load-bearing for visibility.
 //
 // What a per-run tick still cannot say is HOW OFTEN, and that is the number #44
-// is open for - the rate was two merges in four under the observe-only code and
-// has not been measured since. A red tick is one event; this counts them over a
-// window and puts the count where the investigation is reading. So it is now a
-// tally rather than a watchdog, which is also why it still never fails the job.
+// is open for. A red tick is one event; this counts them over a window and puts
+// the count where the investigation is reading. So it is now a tally rather than
+// a watchdog, which is also why it still never fails the job.
+//
+// NO RATE IS WRITTEN IN THIS FILE, deliberately. The version of this comment
+// that carried one ("two merges in four, and not measured since") was stale the
+// same day it merged, because the repo kept merging. A tally that states its own
+// answer in a tracked file is grading itself on data it cannot see. The answer
+// is whatever `npm run retries:check` prints today.
 
 // Runner logs carry an RFC3339 timestamp per line. Strip it so the patterns
 // below can anchor, rather than each one carrying a `.*` that would also make
