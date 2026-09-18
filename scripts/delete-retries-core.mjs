@@ -2,18 +2,21 @@
 // test/delete-retries.test.mjs can cover them. Same split as
 // merged-prs-core.mjs, link-check-core.mjs and sweep-freshness-core.mjs.
 //
-// The question this answers: when the forge restored a branch we had just
-// deleted, did the job's retry clear it? #45 made the job delete again instead
-// of going red, and that change had a hole in it - the only outcome that
-// surfaced itself was the bad one. A retry that fails turns the job red and
-// somebody sees it; a retry that WORKS looks exactly like a merge where nothing
-// happened, because both end green. So the thing #44 is waiting to observe was
-// the one thing nothing reported.
+// The question this answers: how often did the forge put back a branch we had
+// just deleted, and did deleting it again clear it?
 //
-// That is the same fault as a lost merge being silent (merge-audit.yml) and a
-// dead sweep timer looking like nothing to do (sweep-freshness-core.mjs). This
-// is the third instance of it in this repo, which is why it reads the logs
-// rather than trusting anyone to remember to.
+// This was written for a job shape that no longer exists, and the reason it
+// survives is not the reason it was added. #45 made a restored ref end GREEN,
+// so a working retry was invisible and this was the only thing that reported
+// it. #44 reversed that on 2026-09-18: a run that needed more than one attempt
+// now exits non-zero, so the event is on the tick again and nothing here is
+// load-bearing for visibility.
+//
+// What a per-run tick still cannot say is HOW OFTEN, and that is the number #44
+// is open for - the rate was two merges in four under the observe-only code and
+// has not been measured since. A red tick is one event; this counts them over a
+// window and puts the count where the investigation is reading. So it is now a
+// tally rather than a watchdog, which is also why it still never fails the job.
 
 // Runner logs carry an RFC3339 timestamp per line. Strip it so the patterns
 // below can anchor, rather than each one carrying a `.*` that would also make
@@ -84,8 +87,9 @@ export const summaryLines = (s, { hours }) => {
   return lines;
 };
 
-// Only the retries go to the tracking issue. A failure already turns the job
-// red, which is its own report; a clean run is not news.
+// Only the retries go to the tracking issue. Both outcomes now turn the job red
+// on their own, so this is not what makes them visible; it is what accumulates
+// them on #44, where the rate is the open question. A clean run is not news.
 export const tallyComment = (s, { hours }) => {
   if (!s.retried.length) return null;
   const body = [
@@ -93,7 +97,7 @@ export const tallyComment = (s, { hours }) => {
     '',
     ...s.retried.map((r) => `- \`${r.branch}\` - cleared on attempt ${r.attempts}`),
     '',
-    'That is the measurement this issue was open for: the forge restored a branch the job had just deleted, the job deleted it again by itself, and it stuck. Reported by `npm run retries:check` from `merge-audit.yml`, which reads the job logs rather than relying on anyone to go looking.',
+    'That is the measurement this issue was open for: the forge restored a branch the job had just deleted, the job deleted it again by itself, and it stuck. Each of those runs is also red on purpose - the branch is clean, the writer that put it back is not explained. Reported by `npm run retries:check` from `merge-audit.yml`, which reads the job logs rather than relying on anyone to go looking.',
   ];
   if (s.failed.length) {
     body.push('', `Also in the same window: **${s.failed.length} run(s) gave up**, which is a red job and a different question - the retry did not win there.`);
