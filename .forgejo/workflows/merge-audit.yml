@@ -121,3 +121,26 @@ jobs:
         run: |
           set -eu
           npm run retries:check
+
+      # Says which open pull requests are provably inert - markdown outside the
+      # build, or identical to main once comments are removed - so those can be
+      # merged on green without anyone reading the diff. #50 measured that 4 of
+      # the first 25 merges here were that and waited on a person anyway.
+      #
+      # IT MERGES NOTHING. There is no code path in the script that could and no
+      # token here that would be allowed to; #50's step two is a separate
+      # decision, and it needs a merge whitelist entry on main that no agent
+      # session can set.
+      #
+      # THIS STEP'S HOME IS WHY IT IS TRUSTWORTHY. merge-audit runs on `schedule`
+      # and `workflow_dispatch` only, so the prover always comes from main. Run
+      # from a `pull_request` trigger it would be judging a diff that had already
+      # been allowed to rewrite it. That also makes any change to inert-core.mjs
+      # `logic` by its own rules, so it can never approve its own loosening.
+      - name: Which open pull requests are inert
+        env:
+          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
+          TOKEN: ${{ secrets.FORGE_PR_TOKEN }}
+        run: |
+          set -eu
+          npm run inert:check -- --comment
