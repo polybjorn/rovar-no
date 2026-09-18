@@ -83,23 +83,27 @@
 # `GET /push_mirrors` answers 403 without repo admin, and herd has no host
 # access to read the bare repo's config.
 #
-# WHAT IS STILL UNMEASURED, as of 2026-09-18: whether the fault fires at all
-# any more. It last fired on #43's merge, 2026-09-15. #45, #46 and #48 were each
-# clean on the first attempt, and #48's is the only one of those after the
-# 2026-09-16 mirror change - the repo merged nothing at all between 2026-09-15
-# 11:32 and #48, which is why there was no reading to take. Its ref was gone on
-# `ls-remote`, `GET /git/refs/heads` and `GET /branches` alike 2m18s after the
-# delete, past the two-minute mark #28 set.
+# WHETHER THE FAULT STILL FIRES IS OPEN, and this file deliberately does not
+# say how often. #44 is the tally and `npm run retries:check` reads it out of
+# the job logs; a count written in here would be stale on the next merge, and
+# the version of this paragraph that tried it was falsified by the merge of the
+# very PR that added it (#48, fixed in #49). Ask the logs, not the comment.
 #
-# Three clean merges are not a fix, and this is the trap to avoid here: the
-# fault was absent from #38 and #41 too, while it was firing at one in two. The
-# rate still rests on #38/#40/#41/#43 under code that only observed.
+# Two things to know before reading a run of green ticks as a fix:
 #
-# Nor is a green tick evidence that the paragraph above is even in force. A
-# clean run prints `deleted <branch> (1 attempt(s))` and goes green under the
-# one-shot code, under #45's loop and under this version alike. Only a merge
-# where the ref comes back can tell them apart, and that has not happened since
-# this file started reporting it.
+#   - Absence of the fault is not evidence of its absence. It was absent from
+#     #38 and #41 as well, during the stretch when it was firing at one merge in
+#     two, so a quiet week says nothing on its own.
+#   - A green tick does not even show which version of this job ran. A clean run
+#     prints `deleted <branch> (1 attempt(s))` and goes green under the one-shot
+#     code, under #45's loop and under this one alike. Only a merge where the ref
+#     comes back distinguishes them.
+#
+# The one reading worth keeping in the file, because it is the first after the
+# 2026-09-16 mirror change and the repo merged nothing between 2026-09-15 11:32
+# and it: #48's own delete, clean on the first attempt, ref gone on `ls-remote`,
+# `GET /git/refs/heads` and `GET /branches` alike 2m18s later - past the
+# two-minute mark #28 set. One clean merge, recorded as one clean merge.
 #
 # This also retires the previous header's other half, which said the ref flaps
 # and therefore no read path could ever settle it, so only a sweep could work.
