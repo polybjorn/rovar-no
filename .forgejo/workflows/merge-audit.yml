@@ -94,16 +94,20 @@ jobs:
           set -eu
           npm run sweep:check
 
-      # Third watchdog on the same forge, and the one that exists because the
-      # second fix had a hole in it. After #45 the delete job retries when the
-      # forge restores a branch, and the outcomes are asymmetric: a retry that
-      # FAILS turns that job red and somebody sees it, while a retry that WORKS
-      # ends green and is indistinguishable from a merge where nothing
-      # happened. The measurement #44 is open for was the one nothing reported.
+      # Third reader on the same forge, and no longer a watchdog. It was added
+      # because #45 let a restored ref end green, which made a working retry
+      # invisible; #44 reversed that on 2026-09-18, so both outcomes are red on
+      # the delete job itself now and this is not what surfaces them.
       #
-      # Never fails this job. A working retry is good news and a broken one is
-      # already red elsewhere; `continue-on-error` is not needed because the
-      # script exits 0 either way, and that is deliberate rather than sloppy.
+      # It stays because a tick is one event and #44's open question is the
+      # RATE: two merges in four under the observe-only code, and unmeasured
+      # since, because no merge has happened on this repo between 2026-09-15 and
+      # 2026-09-18. This counts them over a window and reports the count.
+      #
+      # Never fails this job. The events it counts are already red where they
+      # happened, and an audit that re-failed on them would just double the
+      # noise; `continue-on-error` is not needed because the script exits 0
+      # either way, and that is deliberate rather than sloppy.
       #
       # TALLY_ISSUE is scaffolding for #44 and should be dropped with it - the
       # printed summary is the part worth keeping. Whether FORGE_PR_TOKEN can

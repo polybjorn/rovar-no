@@ -31,6 +31,33 @@ test('a retry that cleared is a retry', () => {
   assert.equal(isRetry(r), true);
 });
 
+// The delete job now exits non-zero on a cleared retry as well, printing two
+// explanatory lines after the verdict. They are checked here because they sit
+// in the log BELOW the line this parser anchors on: if a future edit reorders
+// them, or a pattern here grows loose enough to match one of them, a retry that
+// cleared would be classified as something else and drop out of the tally #44
+// is counting. The attempt count has to survive the run being red.
+test('a cleared retry still classifies as a retry now that the job ends red', () => {
+  const r = classifyLog(stamped(
+    'attempt 1: herd/x is back 5s after a delete git accepted',
+    'deleted herd/x (2 attempt(s))',
+    'herd/x was put back 1 time(s) after a delete git accepted, and is gone now',
+    'failing on purpose: the branch is clean, the writer is unexplained - see rovar-no #44',
+  ));
+  assert.equal(r.outcome, 'deleted');
+  assert.equal(r.branch, 'herd/x');
+  assert.equal(r.attempts, 2);
+  assert.equal(isRetry(r), true);
+  assert.equal(isFailure(r), false);
+});
+
+// And the same two lines on their own must not be read as a verdict at all,
+// which is what would happen if one of the patterns were anchored loosely.
+test('the red-on-purpose lines are not a verdict by themselves', () => {
+  assert.equal(classifyLog(stamped('herd/x was put back 1 time(s) after a delete git accepted, and is gone now')).outcome, 'unknown');
+  assert.equal(classifyLog(stamped('failing on purpose: the branch is clean, the writer is unexplained - see rovar-no #44')).outcome, 'unknown');
+});
+
 test('the loop giving up is a failure, with its count', () => {
   const r = classifyLog(stamped('herd/x SURVIVED 4 delete attempts (still on the remote per git)'));
   assert.equal(r.outcome, 'survived');

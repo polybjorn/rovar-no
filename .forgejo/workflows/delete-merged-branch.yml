@@ -42,20 +42,54 @@
 # What matters here is that BOTH are answered by the same design. Ask git, not
 # the API, because in A the API has already been fooled - which is exactly how
 # this file's #17 version logged `deleted` over a ref that was still there on
-# PR #23. Then, if the ref is there, DELETE IT AGAIN rather than reporting a
-# failure, because in B the branch is not lost and nothing is wrong except the
-# forge's timing.
+# PR #23. Then, if the ref is there, DELETE IT AGAIN, because a second delete
+# against a ref already in that state is measured to stick (#44, two instances:
+# a hand-run removal watched for 3m14s against an untouched control, and the
+# 2026-09-16 sweep clearing the last specimen). Converging is how the branch
+# actually goes away.
 #
-# That last part was learned the expensive way. The first version of this file
-# to detect B correctly went red on two of the first four merges after it
-# landed, for branches that were merged and harmless. A watchdog that cries
-# wolf on half its runs gets muted, and a muted watchdog hides the next real
-# fault - #27's thread says exactly that about a different check, and it
-# applies to this one.
+# AND THEN GO RED ANYWAY. That is the part this file got wrong between #45 and
+# now, and it is worth being exact about which half was wrong, because the
+# reasoning that produced it is still persuasive and still written below.
 #
-# So the loop below converges instead of observing: delete, wait, ask git,
-# delete again. Red is reserved for a ref that survives four attempts, which
-# no longer means "the forge did its thing" and does mean something is new.
+# The argument for ending green was: the branch is not lost, nothing is wrong
+# except the forge's timing, and a watchdog that cries wolf on half its runs
+# gets muted - #27's thread says exactly that about a different check. The
+# CONCLUSION was wrong because the PREMISE was. "Nothing is wrong except the
+# forge's timing" was never measured; it was inferred from the end state being
+# harmless here. Bjørn withdrew it on #44 on 2026-09-16: the same signature on
+# two other repos in this fleet accompanied three merges being rolled back
+# silently. That report is his, from hosts this session cannot reach, and it is
+# recorded here as attribution rather than as something re-measured - but a
+# write into `refs/heads/` that nobody can explain is not a cosmetic quirk, and
+# a quirk was the only thing that made green defensible.
+#
+# So the loop below converges AND reports. The ref gets deleted until git says
+# it is gone, and if that took more than one attempt the job exits non-zero
+# with the count. Red now means "something wrote into refs/heads/ behind us",
+# which is true whether or not the branch survived it, and the muting risk is
+# accepted deliberately: the fix for a red tick on every other merge is to
+# explain the writer, not to stop printing the tick.
+#
+# THE MECHANISM IS OPEN. Do not fill this space in from nixfleet #194 without
+# re-testing there: that issue's explanation was corrected three times and the
+# last version, a push mirror's `fetch = +refs/*:refs/*` refspec writing
+# branches back, was retracted by its own author on 2026-09-16 with a
+# reproduction that failed on two git versions against a passing positive
+# control. Its follow-on advice, "if the delete job starts going red again,
+# check the remote's fetch refspec first", is explicitly NOT repeated here. The
+# refspec is gone from this repo's mirror either way, which was right for a
+# different reason, and this session could not check that it stayed gone:
+# `GET /push_mirrors` answers 403 without repo admin, and herd has no host
+# access to read the bare repo's config.
+#
+# WHAT IS STILL UNMEASURED, as of 2026-09-18: whether the fault fires at all
+# any more. It last fired on #43's merge, 2026-09-15. Every merge since - #45
+# and #46 - was clean on the first attempt, and there has been NO merge on this
+# repo since 2026-09-15 11:32, which is before the mirror change. The sweeps on
+# 09-17 and 09-18 found nothing to do. So the rate still rests on #38/#40/#41/
+# #43, two in four, under code that only observed. The next merge is the
+# experiment, and with this file as it now stands its tick is the readout.
 #
 # This also retires the previous header's other half, which said the ref flaps
 # and therefore no read path could ever settle it, so only a sweep could work.
@@ -179,17 +213,16 @@ jobs:
           #   #40  ref reborn 1.775 s AFTER the delete
           #   #43  ref reborn 0.069 s BEFORE the push printed `- [deleted]`
           #
-          # A single delete plus checks turned that into a red tick on two of
-          # the first four merges, for a branch nobody had lost. That is the
-          # shape that gets a watchdog muted, and a muted watchdog hides the
-          # next real fault - which is the argument #29 made for a sweep and
-          # applies inside one job run too.
-          #
           # So: delete, wait, ask git, and delete again if it came back. Every
           # recorded manual removal of a stuck ref took, and the sweep's job is
           # the same convergence over a longer period. Bounded at four, because
           # if the forge restores the ref four times the loop is not going to
-          # win and that is worth a red tick and a look.
+          # win and that is worth a look of a different kind.
+          #
+          # CONVERGING IS NOT THE SAME AS BEING SATISFIED. The loop's job is to
+          # leave no branch behind; saying what happened is the exit code's job,
+          # below the loop. Between #45 and #44's re-reading those were the same
+          # decision, and collapsing them is what made a restored ref end green.
           attempt=0
           while :; do
             attempt=$((attempt + 1))
@@ -237,8 +270,24 @@ jobs:
 
           # The attempt count is the point of this line, not decoration: it is
           # what rovar-no #44 counts, and a run that needed three attempts is a
-          # different day from one that needed one.
+          # different day from one that needed one. It is also what
+          # scripts/delete-retries-core.mjs anchors on, so the wording is not
+          # free to change - and it is printed before the verdict below rather
+          # than instead of it, so a red run still records what it cleared.
           echo "deleted $BRANCH ($attempt attempt(s))"
+
+          # RED WHEN SOMETHING WROTE THE REF BACK, even though the branch is
+          # gone and no work was lost. One attempt is a normal merge. More than
+          # one means the delete git accepted was undone by a writer nobody in
+          # this fleet can name yet, and that is the event #44 exists to count.
+          # Deleting it again is the right response; ending green is not, and
+          # the header says at length why that distinction took a detour.
+          if [ "$attempt" -gt 1 ]; then
+            restores=$((attempt - 1))
+            echo "$BRANCH was put back $restores time(s) after a delete git accepted, and is gone now" >&2
+            echo "failing on purpose: the branch is clean, the writer is unexplained - see rovar-no #44" >&2
+            exit 1
+          fi
 
   # THE BACKSTOP, AND THE REASON IT IS A SECOND SHAPE RATHER THAN A BETTER
   # VERSION OF THE JOB ABOVE. The delete job runs on `pull_request: closed`,
