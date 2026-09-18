@@ -133,8 +133,12 @@ jobs:
 
       # Says which open pull requests are provably inert - markdown outside the
       # build, or identical to main once comments are removed - so those can be
-      # merged on green without anyone reading the diff. #50 measured that 4 of
-      # the first 25 merges here were that and waited on a person anyway.
+      # merged on green without anyone reading the diff. #50 measured that a
+      # recurring slice of merges here are that and wait on a person anyway.
+      #
+      # The slice is not written down. It grows with the repo, and when it WAS
+      # written down this file and scripts/inert-core.mjs gave two different
+      # numbers for it inside a day. `npm run inert:history` prints today's.
       #
       # IT MERGES NOTHING. There is no code path in the script that could and no
       # token here that would be allowed to; #50's step two is a separate

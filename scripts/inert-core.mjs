@@ -3,9 +3,14 @@
 // check-inert-prs.mjs; everything here is pure so test/inert.test.mjs can cover
 // it, same split as merged-prs-core.mjs and delete-retries-core.mjs.
 //
-// This exists because #50 measured that 4 of the first 24 merges on main were
-// comment or README changes that still waited on a person to merge them. The
-// point of proving it mechanically rather than reading the title is that a
+// This exists because #50 measured that a real and recurring slice of the
+// merges on main were comment or README changes that still waited on a person.
+// The size of that slice is deliberately NOT written here - it moves with every
+// merge, and the two places that did write it down disagreed with each other
+// within a day. `npm run inert:history` replays this prover over main and
+// prints today's figure, which is the only one worth quoting.
+//
+// The point of proving it mechanically rather than reading the title is that a
 // title is a claim: `docs(ci): correct the branch-delete encoding comment`
 // (760c26c2) changed javascript inside a yaml heredoc, and `docs: correct three
 // stale comments` (a05a9328) also changed behaviour.
@@ -36,10 +41,16 @@
 // and a moved file can change what a build picks up.
 export const STRUCTURAL = new Set(['added', 'removed', 'renamed', 'copied']);
 
-// Markdown is inert ONLY outside the build. 16 of this repo's 17 tracked .md
-// files are src/content/pages/**, which is site copy - a blanket ".md is docs"
-// rule would have auto-merged page text. So the allowlist is the repo root and
-// docs/, and anything else is content until proven otherwise.
+// Markdown is inert ONLY outside the build. Nearly every tracked .md file in
+// this repo is src/content/pages/**, which is site copy - a blanket ".md is
+// docs" rule would have auto-merged page text. So the allowlist is the repo
+// root and docs/, and anything else is content until proven otherwise.
+//
+// How near "nearly" is was written in here as a count, and it was wrong: it
+// said 16 of 17 when the repo had 16 tracked .md files, and no one noticed
+// because nothing checks a comment. test/inert.test.mjs now enumerates the real
+// tracked set and asserts this function's verdict on each one, so adding a page
+// cannot quietly widen the rule and there is no number to keep up to date.
 export const isDocs = (path) =>
   /^[^/]+\.md$/.test(path) || /^docs\/[^/]*[^/]\.md$/.test(path);
 

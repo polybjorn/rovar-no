@@ -16,8 +16,9 @@ export const ROVAR_STOP = 'NSR:StopPlace:25940';
 export const HAUGESUND_STOP = 'NSR:StopPlace:26090';
 export const MAX_DAY_OFFSET = 7;
 // A ceiling on the query window, not a horizon: Entur is asked for more than it
-// can have and answers with the whole published timetable, which currently runs
-// out about four months ahead (Kolumbus publishes to a year end). Taking all of
+// can have and answers with the whole published timetable, which ran out about
+// four months ahead when this was measured in 2026 (Kolumbus publishes to a
+// year end, so how far ahead that is depends on when you ask). Taking all of
 // it is what lets the feed survive a deploy that never comes - it stays correct
 // until the timetable it was built from ends, rather than for a fixed 30 days.
 export const FEED_WINDOW_DAYS = 400;
