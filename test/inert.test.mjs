@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { stripYaml, stripJs, isDocs, classifyFile, classifyChange, verdictLines } from '../scripts/inert-core.mjs';
 
 // ---------------------------------------------------------------- yaml
@@ -75,10 +76,46 @@ test('a quote inside a regex makes the prover refuse rather than guess', () => {
 test('markdown inside the build is content, not docs', () => {
   assert.equal(isDocs('README.md'), true);
   assert.equal(isDocs('docs/runbook.md'), true);
-  // 16 of this repo's 17 tracked .md files are these. A blanket rule would have
-  // auto-merged page copy.
   assert.equal(isDocs('src/content/pages/no/home.md'), false);
   assert.equal(isDocs('public/x.md'), false);
+});
+
+// THE REAL FILE SET, not a sample of it, and not a count in a comment. The
+// version of this that lived in a comment said "16 of this repo's 17 tracked
+// .md files are site copy" while the repo had 16 of them - wrong, and invisibly
+// so, because nothing grades a comment. Enumerating the tracked set instead
+// means adding a page cannot quietly widen the rule, and there is no figure for
+// anyone to keep up to date.
+//
+// This asserts the SHAPE of the repo rather than its size: every tracked .md
+// outside the root and docs/ must be content, and at least one of each must
+// exist so that a repo which had lost all its pages could not pass vacuously.
+test('every tracked .md file is classified the way the rule intends', () => {
+  const tracked = execFileSync('git', ['ls-files', '*.md'], { encoding: 'utf8' })
+    .split('\n').filter(Boolean);
+
+  const docs = tracked.filter((f) => isDocs(f));
+  const content = tracked.filter((f) => !isDocs(f));
+
+  assert.ok(tracked.length > 0, 'no tracked .md files found - is this running outside the repo?');
+  assert.ok(docs.length > 0, 'no .md file is classified as docs, so the docs rule is dead code');
+  assert.ok(content.length > 0, 'no .md file is classified as content, which is what the rule exists to protect');
+
+  // A docs file may only be at the repo root or under docs/. Anything else
+  // reaching this list means the pattern widened.
+  for (const f of docs) {
+    assert.ok(/^[^/]+\.md$/.test(f) || f.startsWith('docs/'),
+      `${f} is classified as docs but is neither at the root nor under docs/`);
+  }
+  // Everything the site publishes must be content, whatever it is called.
+  for (const f of content) {
+    assert.ok(!/^[^/]+\.md$/.test(f) && !f.startsWith('docs/'),
+      `${f} is classified as content but sits where docs live`);
+  }
+  // The specific thing #50 nearly got wrong: site copy is the majority here,
+  // so a blanket ".md is docs" rule would have auto-merged page text.
+  assert.ok(content.length > docs.length,
+    'site copy is no longer the majority of tracked markdown - re-read why the allowlist is root-and-docs before relaxing it');
 });
 
 // ---------------------------------------------------------------- files
