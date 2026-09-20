@@ -53,6 +53,13 @@ const VERDICTS = [
   [/^(\S+) came back after the delete had settled \((\d+) attempt\(s\)\)$/, 'returned', 2],
   [/^(\S+) came back within 15s /, 'returned', null],
   [/^(\S+) is already gone$/, 'already-gone', null],
+  // Not a verdict about the branch at all - the job refused to reach one
+  // because `git ls-remote` could not answer, and a read that failed is not a
+  // ref that is gone. It is named here so the daily tally reports it as what
+  // it is instead of "the job's wording may have changed", which is what an
+  // unknown outcome says and would send the next reader looking for an edit
+  // that never happened.
+  [/^git ls-remote could not read the remote, so nothing here can say whether (\S+) is gone$/, 'unreadable', null],
   [/^PR closed without merging, leaving (\S+)$/, 'not-merged', null],
   [/^(\S+) is not ours, leaving it$/, 'not-ours', null],
 ];
