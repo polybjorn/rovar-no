@@ -64,6 +64,13 @@ const VERDICTS = [
   [/^(\S+) is not ours, leaving it$/, 'not-ours', null],
 ];
 
+// Every outcome a pattern above can produce, plus the one classifyLog invents
+// when nothing matched. Exported for test/delete-retries.test.mjs, which
+// asserts each of them lands in exactly one bucket below - so adding a verdict
+// here and forgetting the bucket fails a test instead of quietly shrinking the
+// numbers in the daily summary.
+export const OUTCOMES = [...new Set(VERDICTS.map(([, outcome]) => outcome)), 'unknown'];
+
 export const classifyLog = (text) => {
   for (const raw of String(text).split('\n')) {
     const line = stripStamp(raw).trim();
@@ -83,19 +90,53 @@ export const classifyLog = (text) => {
 export const isRetry = (r) => r.outcome === 'deleted' && r.attempts !== null && r.attempts > 1;
 export const isFailure = (r) => r.outcome === 'survived' || r.outcome === 'returned';
 
-export const summarise = (results) => ({
-  runs: results.length,
-  clean: results.filter((r) => r.outcome === 'deleted' && (r.attempts === null || r.attempts === 1)).length,
-  retried: results.filter(isRetry),
-  failed: results.filter(isFailure),
-  unknown: results.filter((r) => r.outcome === 'unknown').length,
-});
+// Runs where the job correctly did nothing: the branch was gone before it
+// started, the PR was closed unmerged, the branch was not ours. Nothing to
+// report about any of them individually, but they are still runs, and the
+// summary has to say so - see the accounting note on summaryLines.
+const QUIET = new Set(['already-gone', 'not-merged', 'not-ours']);
+export const isQuiet = (r) => QUIET.has(r.outcome);
 
+// Its own bucket rather than a quiet one: the job went RED because git could
+// not read the remote, so nothing was deleted and nothing was verified. That
+// is not a delete failure - the retry never ran - and it is not nothing.
+export const isUnreadable = (r) => r.outcome === 'unreadable';
+
+export const summarise = (results) => {
+  const s = {
+    runs: results.length,
+    clean: results.filter((r) => r.outcome === 'deleted' && (r.attempts === null || r.attempts === 1)).length,
+    retried: results.filter(isRetry),
+    failed: results.filter(isFailure),
+    unreadable: results.filter(isUnreadable),
+    quiet: results.filter(isQuiet).length,
+    unknown: results.filter((r) => r.outcome === 'unknown').length,
+  };
+  s.unaccounted = s.runs - s.clean - s.retried.length - s.failed.length - s.unreadable.length - s.quiet - s.unknown;
+  return s;
+};
+
+// THE BUCKETS HAVE TO ADD UP TO THE TOTAL, and until #60 they did not: the
+// first line printed a count of runs and three numbers that fell short of it,
+// with nothing saying where the rest went. A window of five runs - one clean
+// delete, two already gone, one unreadable remote, one PR closed unmerged -
+// read as "5 delete run(s): 1 clean, 0 needed a retry, 0 gave up", so four
+// runs where the job had nothing to do were indistinguishable from four runs
+// that never happened. That is the same confusion the delete job's own
+// always-print-a-summary rule exists to prevent, one layer up.
+//
+// So every outcome lands in a bucket, and `unaccounted` catches the next
+// verdict added without one - it should always be zero, the test asserts it
+// over OUTCOMES, and if it is ever not, the line says so rather than the
+// numbers quietly shrinking.
 export const summaryLines = (s, { hours }) => {
   const lines = [`${s.runs} delete run(s) in the last ${hours}h: ${s.clean} clean, ${s.retried.length} needed a retry, ${s.failed.length} gave up`];
   for (const r of s.retried) lines.push(`  RETRIED  ${r.branch}  cleared on attempt ${r.attempts}`);
   for (const r of s.failed) lines.push(`  FAILED   ${r.branch}  ${r.line}`);
+  for (const r of s.unreadable) lines.push(`  UNREADABLE  ${r.branch}  the job could not reach the remote, so it deleted and verified nothing`);
+  if (s.quiet) lines.push(`  ${s.quiet} run(s) had nothing to delete`);
   if (s.unknown) lines.push(`  ${s.unknown} run(s) ended on no line this knows - the job's wording may have changed`);
+  if (s.unaccounted) lines.push(`  ${s.unaccounted} run(s) in no bucket at all - an outcome was added to this parser without one`);
   return lines;
 };
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { stripStamp, classifyLog, isRetry, isFailure, summarise, summaryLines, tallyComment } from '../scripts/delete-retries-core.mjs';
+import { stripStamp, classifyLog, isRetry, isFailure, summarise, summaryLines, tallyComment, OUTCOMES } from '../scripts/delete-retries-core.mjs';
 
 const stamped = (...lines) => lines.map((l, i) => `2026-09-15T10:17:2${i}.6558431Z ${l}`).join('\n');
 
@@ -127,6 +127,57 @@ test('a log ending on nothing recognised is unknown, not clean', () => {
   assert.equal(r.outcome, 'unknown');
   assert.equal(isRetry(r), false);
   assert.equal(isFailure(r), false);
+});
+
+// #60: the first summary line prints a total, and the buckets under it have to
+// account for all of it. They did not - already-gone, not-merged and not-ours
+// landed in `runs` and nowhere else, so a window of runs where the job
+// correctly had nothing to do read as a total with three zeroes beneath it and
+// no explanation. This is the test that keeps it true as outcomes are added:
+// every outcome the parser can produce goes in exactly one bucket.
+test('every outcome classifyLog can return lands in exactly one bucket', () => {
+  for (const outcome of OUTCOMES) {
+    const r = { outcome, attempts: outcome === 'deleted' ? 1 : null, branch: 'herd/x', line: 'x' };
+    const s = summarise([r]);
+    const inBuckets = s.clean + s.retried.length + s.failed.length + s.unreadable.length + s.quiet + s.unknown;
+    assert.equal(inBuckets, 1, `${outcome} is in ${inBuckets} buckets, not 1`);
+    assert.equal(s.unaccounted, 0, `${outcome} is unaccounted for`);
+  }
+});
+
+// The regression itself, as the numbers a reader actually sees.
+test('a window of quiet runs says so instead of printing a total with nothing under it', () => {
+  const s = summarise([
+    { outcome: 'deleted', attempts: 1, branch: 'a' },
+    { outcome: 'already-gone', attempts: null, branch: 'b' },
+    { outcome: 'already-gone', attempts: null, branch: 'c' },
+    { outcome: 'not-merged', attempts: null, branch: 'd' },
+  ]);
+  assert.equal(s.runs, 4);
+  assert.equal(s.quiet, 3);
+  assert.equal(s.unaccounted, 0);
+  const lines = summaryLines(s, { hours: 24 });
+  assert.match(lines.join('\n'), /3 run\(s\) had nothing to delete/);
+});
+
+// An unreadable remote is a red job, so it gets a named line rather than being
+// folded in with the runs that had nothing to do. It is not counted as a
+// delete failure either - the retry never got the chance to run.
+test('an unreadable remote gets its own line in the summary', () => {
+  const s = summarise([{ outcome: 'unreadable', attempts: null, branch: 'herd/x', line: 'x' }]);
+  assert.equal(s.failed.length, 0);
+  assert.equal(s.quiet, 0);
+  assert.equal(s.unreadable.length, 1);
+  assert.match(summaryLines(s, { hours: 24 }).join('\n'), /UNREADABLE {2}herd\/x/);
+});
+
+// The escape hatch has to be visible when it fires: an outcome added to the
+// parser with no bucket must show up as a line, not as a total that no longer
+// adds up.
+test('a run in no bucket is reported rather than swallowed', () => {
+  const s = summarise([{ outcome: 'something-new', attempts: null, branch: 'herd/x' }]);
+  assert.equal(s.unaccounted, 1);
+  assert.match(summaryLines(s, { hours: 24 }).join('\n'), /1 run\(s\) in no bucket at all/);
 });
 
 test('the summary counts each kind apart', () => {
