@@ -78,6 +78,7 @@ test('a return during the final settle is a failure', () => {
 
 test('the quiet outcomes are named rather than lumped into unknown', () => {
   assert.equal(classifyLog(stamped('herd/x is already gone')).outcome, 'already-gone');
+  assert.equal(classifyLog(stamped('git ls-remote could not read the remote, so nothing here can say whether herd/x is gone')).outcome, 'unreadable');
   assert.equal(classifyLog(stamped('PR closed without merging, leaving herd/x')).outcome, 'not-merged');
   assert.equal(classifyLog(stamped('bjorn/x is not ours, leaving it')).outcome, 'not-ours');
 });
@@ -88,6 +89,37 @@ test('the quiet outcomes are named rather than lumped into unknown', () => {
 test("git's push output is not mistaken for the verdict", () => {
   const r = classifyLog(stamped('To https://git-ci.pebblecove.xyz:8447/bjorn/rovar-no.git', ' - [deleted]         herd/x', 'herd/x SURVIVED 4 delete attempts (still on the remote per git)'));
   assert.equal(r.outcome, 'survived');
+});
+
+// A remote the job could not read is red and says so, and the tally must not
+// count it as a clean delete: nothing was deleted and nothing was verified.
+// It is not a failure of the retry either - the retry never ran.
+test('an unreadable remote is neither clean nor a retry failure', () => {
+  const r = classifyLog(stamped('fatal: could not read Username', 'git ls-remote could not read the remote, so nothing here can say whether herd/x is gone'));
+  assert.equal(r.outcome, 'unreadable');
+  assert.equal(r.branch, 'herd/x');
+  assert.equal(isRetry(r), false);
+  assert.equal(isFailure(r), false);
+  assert.equal(summarise([r]).clean, 0);
+  assert.equal(summarise([r]).unknown, 0);
+});
+
+// The already-gone path now looks twice before it says so, and when the ref is
+// back on the second look the job deletes it and counts the foreign delete as
+// the first attempt. That is what keeps the verdict line, the exit code and
+// this parser saying one thing: the run is red AND reads as a retry that
+// cleared, rather than red while the tally files it under clean.
+test('a ref that was gone and came back classifies as a cleared retry', () => {
+  const r = classifyLog(stamped(
+    'herd/x read as gone and was back 10s later, so a delete this job did not issue was undone',
+    'To https://git-ci.pebblecove.xyz:8447/bjorn/rovar-no.git',
+    ' - [deleted]         herd/x',
+    'deleted herd/x (2 attempt(s))',
+    'herd/x was put back 1 time(s) after a delete git accepted, and is gone now',
+  ));
+  assert.equal(r.outcome, 'deleted');
+  assert.equal(r.attempts, 2);
+  assert.equal(isRetry(r), true);
 });
 
 test('a log ending on nothing recognised is unknown, not clean', () => {

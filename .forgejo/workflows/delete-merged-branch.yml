@@ -48,6 +48,21 @@
 # 2026-09-16 sweep clearing the last specimen). Converging is how the branch
 # actually goes away.
 #
+# AND SAY NOTHING ABOUT A REF NOBODY LOOKED AT PROPERLY. Two ways this job
+# used to reach "the branch is gone" without establishing it, both on the
+# already-gone path at the top of the script and both fixed there:
+#
+#   - `git ls-remote` prints nothing when the ref is absent and prints nothing
+#     when it could not reach the remote. Testing the output alone made an
+#     unreachable forge, or a token it would not take, read as a clean result -
+#     a green tick over a remote the job never touched. The check a watchdog
+#     cannot fail is the failure mode this repo keeps rediscovering.
+#   - A ref somebody else deleted seconds ago is inside the restore window this
+#     whole file is about, and a single read of it was the last conclusion here
+#     drawn from one sample. It now gets the same settle and second look a ref
+#     this job deleted itself gets, and if it is back, the job converges on it
+#     and goes red like any other restore.
+#
 # AND THEN GO RED ANYWAY. That is the part this file got wrong between #45 and
 # now, and it is worth being exact about which half was wrong, because the
 # reasoning that produced it is still persuasive and still written below.
@@ -234,13 +249,62 @@ jobs:
           cd /tmp/delete-repo
 
           # The only question this job ever asks, and it asks git.
-          present() { [ -n "$(git ls-remote --heads "$remote" "$ref")" ]; }
+          #
+          # A FAILED READ IS NOT AN ABSENT REF. `git ls-remote` prints nothing
+          # and exits 0 when the ref is gone, and prints nothing and exits
+          # non-zero when it could not reach the remote or was refused. The
+          # one-liner this replaces tested the output alone, so a network blip
+          # or a token the forge would not take read as "the branch is gone":
+          # green tick, untouched remote, on the path right below this. Inside
+          # the loop it is worse - it breaks out as if the delete had taken.
+          # This job has one source of truth, and no answer from it is not an
+          # answer.
+          present() {
+            local out
+            if ! out=$(git ls-remote --heads "$remote" "$ref"); then
+              echo "git ls-remote could not read the remote, so nothing here can say whether $BRANCH is gone" >&2
+              exit 1
+            fi
+            [ -n "$out" ]
+          }
+
+          # Initialised here rather than at the loop, because a ref that was
+          # put back before this job pushed anything has already cost one
+          # delete - see the already-gone path below. The count is per ref,
+          # not per push this job made.
+          attempt=0
 
           if ! present; then
-            # The merge dialog's own checkbox, or a manual sweep, got here
-            # first. That is the desired end state, not a failure.
-            echo "$BRANCH is already gone"
-            exit 0
+            # The merge dialog's own checkbox, a sweep, or a removal by hand
+            # got here first, which is the desired end state. But ONE READ IS
+            # NOT A SETTLED STATE, and the rest of this file is that argument
+            # at length: a ref the job deletes itself is never believed on the
+            # first look, it gets `sleep 5` inside the loop and `sleep 10`
+            # after it, because the restore landed 1.775 s after one delete
+            # (#40) and 0.069 s BEFORE another's own confirmation (#43). A ref
+            # somebody else deleted seconds earlier is sitting in exactly that
+            # window, so this was the one conclusion the job still drew from a
+            # single sample - and it drew the cheerful one. If the ref came
+            # back a moment later, nothing looked again until 04:53.
+            sleep 10
+            if ! present; then
+              echo "$BRANCH is already gone"
+              exit 0
+            fi
+
+            # It came back, so this is the same event as a restore inside the
+            # loop: a delete git accepted was undone. Counting it the same way
+            # is what keeps the verdict line, the exit code and
+            # `retries:check` saying one thing instead of three - the loop's
+            # first push becomes attempt 2, the verdict prints one put-back,
+            # and the run is red like any other restore.
+            echo "$BRANCH read as gone and was back 10s later, so a delete this job did not issue was undone" >&2
+            attempt=1
+
+            # The price of looking twice is that a branch recreated inside
+            # that window is deleted rather than left alone. Ten seconds after
+            # its own PR merged, under a prefix only this agent pushes to, and
+            # recoverable from any clone that has the commit - accepted.
           fi
 
           # CONVERGENCE, NOT ONE SHOT. The forge restores refs it has just
@@ -261,7 +325,6 @@ jobs:
           # leave no branch behind; saying what happened is the exit code's job,
           # below the loop. Between #45 and #44's re-reading those were the same
           # decision, and collapsing them is what made a restored ref end green.
-          attempt=0
           while :; do
             attempt=$((attempt + 1))
 
