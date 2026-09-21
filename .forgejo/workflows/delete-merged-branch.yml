@@ -39,14 +39,35 @@
 # concluded, correctly for the specimens it had, that the ref is never actually
 # deleted - and why this file's header said so until the host-side read.
 #
-# What matters here is that BOTH are answered by the same design. Ask git, not
-# the API, because in A the API has already been fooled - which is exactly how
-# this file's #17 version logged `deleted` over a ref that was still there on
-# PR #23. Then, if the ref is there, DELETE IT AGAIN, because a second delete
-# against a ref already in that state is measured to stick (#44, two instances:
-# a hand-run removal watched for 3m14s against an untouched control, and the
-# 2026-09-16 sweep clearing the last specimen). Converging is how the branch
-# actually goes away.
+# What matters here is that BOTH are answered by asking git rather than the
+# API, because in A the API has already been fooled - which is exactly how this
+# file's #17 version logged `deleted` over a ref that was still there on PR #23.
+#
+# THEN, IF THE REF IS THERE, KEEP IT. This file used to delete it again, up to
+# four times, and a second delete against a ref in that state is genuinely
+# measured to stick (#44, twice: a hand-run removal watched for 3m14s against an
+# untouched control, and the 2026-09-16 sweep clearing the last specimen). It
+# worked. It was still wrong, and #65 is the measurement that says why:
+#
+#   DELETING A REF DESTROYS ITS REFLOG. git 2.54.0, bare repo, logAllRefUpdates
+#   on: after the delete, refs/heads/<branch> and logs/refs/heads/<branch> are
+#   both gone, with no trailing sha->0000 entry left behind. Production agrees -
+#   the 2026-09-15 specimen's reflog held EXACTLY ONE entry, stamped at the
+#   restore, because that branch's own push and the delete two minutes later had
+#   gone with the ref.
+#
+# That single zero-old-sha entry is the only thing that has ever told A and B
+# apart. It is what proved the delete applied rather than silently doing
+# nothing, which is the difference between "the forge restores refs" and "a
+# successful receive-pack is not evidence of a ref write" - and the second of
+# those would undermine every delete job in the fleet. The convergence loop
+# erased it about five seconds after the restore and then went red asking for an
+# investigation. Both specimens on record survived only because they predate the
+# loop.
+#
+# So the branch is kept, marked as refs/specimens/<date>/<branch>, and the sweep
+# below honours the marker for seven days. Cleanup is deferred, not abandoned.
+# The branch was never the scarce thing here; the reflog is.
 #
 # AND SAY NOTHING ABOUT A REF NOBODY LOOKED AT PROPERLY. Two ways this job
 # used to reach "the branch is gone" without establishing it, both on the
@@ -230,6 +251,12 @@ jobs:
           REPO: ${{ github.repository }}
           API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
           BRANCH: ${{ github.event.pull_request.head.ref }}
+          # Where a kept specimen announces itself. Scaffolding for #44 and it
+          # goes when #44 does, same as merge-audit.yml's copy: unset, the job
+          # keeps the branch and says so in the log, and only the notice is
+          # lost. github.token is what comments here - FORGE_PR_TOKEN is the
+          # other way round on this forge and 403s on issues.
+          TALLY_ISSUE: '44'
         run: |
           set -uo pipefail
           # Same token-in-URL form ci.yml's manual checkout uses. Nothing here
@@ -279,127 +306,166 @@ jobs:
             [ -n "$out" ]
           }
 
-          # Initialised here rather than at the loop, because a ref that was
-          # put back before this job pushed anything has already cost one
-          # delete - see the already-gone path below. The count is per ref,
-          # not per push this job made.
-          attempt=0
+          # ONE DELETE, THEN STOP. This job used to converge: delete, look,
+          # delete again, up to four times. That was right about the branch and
+          # wrong about the evidence.
+          #
+          # DELETING A REF DESTROYS ITS REFLOG. Measured on git 2.54.0 against a
+          # bare repo with core.logAllRefUpdates on, which is how the forge
+          # keeps these:
+          #
+          #   after push     refs/heads/herd/x  and  logs/refs/heads/herd/x
+          #   after delete   both gone, and no trailing sha->0000 entry behind
+          #
+          # Production says the same, from the specimen this whole investigation
+          # rests on. The 2026-09-15 restore of herd/header-says-what-172-found
+          # was read on pi-rovar and its reflog held EXACTLY ONE entry, stamped
+          # at the restore. That branch's own push at 10:19:11 and the delete at
+          # 10:21:22 were both absent from it, so the delete had taken the
+          # reflog with it and the restore wrote a fresh one.
+          #
+          # That single zero-old-sha entry is the only thing that has ever told
+          # #44's two faults apart - it is what proved the delete applied rather
+          # than silently doing nothing. AND THE CONVERGENCE LOOP DELETED IT. On
+          # a real occurrence the second attempt lands about five seconds after
+          # the restore, so the job erased the only evidence that could name the
+          # writer and then went red asking for an investigation. Both specimens
+          # on record survived only because they predate the loop: the
+          # observe-only job left them where they were.
+          #
+          # So: delete once, and if something puts it back, STOP AND KEEP IT.
+          # The branch is merged and clean, nothing is at risk from it sitting
+          # there, and the sweep below still removes it - cleanup is deferred,
+          # not abandoned. This is also what the repo owner asked for on
+          # 2026-09-16 ("do not add the retry"), for a weaker reason than this
+          # one: there, the retry hid the event. It also destroyed it.
+          #
+          # WHAT THIS GIVES UP, stated rather than glossed: a restored branch is
+          # now removed by the sweep hours later instead of by this job in five
+          # seconds. A second delete is measured to stick (#44, twice), so the
+          # loop did work. It bought a faster cleanup at the price of the only
+          # scarce thing here, and the branch was never the scarce thing.
+          preserve() {
+            local why="$1" sha marked=no
+            sha=$(git ls-remote --heads "$remote" "$ref" | cut -f1) || sha=""
+
+            # A marker ref rather than anything with state behind it. It keeps
+            # the specimen out of the sweep without putting a second row in
+            # anyone's branch list, and the date lives in the ref name so the
+            # sweep can expire it while reading nothing but refs. Probed against
+            # this forge on 2026-09-21: a custom namespace and a nested path are
+            # both accepted and both read back through ls-remote.
+            #
+            # THE EMPTY-SHA GUARD IS NOT DECORATION. `git push remote :refs/x`
+            # with nothing on the left is the delete refspec, so pushing an
+            # unchecked "${sha}:refs/..." on a read that came back empty would
+            # turn the line that preserves the specimen into one that removes a
+            # ref. The read above can come back empty - that is the whole
+            # subject of this file.
+            if [ -z "$sha" ]; then
+              echo "could not read a sha for $BRANCH, so it is not marked and the sweep takes it at 04:53" >&2
+            elif git push "$remote" "${sha}:refs/specimens/$(date -u +%F)/$BRANCH"; then
+              marked=yes
+            else
+              echo "could not mark $BRANCH as a specimen, so the sweep takes it at 04:53" >&2
+            fi
+
+            echo "$BRANCH KEPT as a specimen: $why" >&2
+            printf '\n%s\n%s\n\n  R=%s\n  stat $R/refs/heads/%s\n  cat $R/logs/refs/heads/%s\n\n%s\n%s\n' \
+              "Not deleting it again. The reflog is the evidence and a delete erases it." \
+              "On pi-rovar, as root, while the ref is still there:" \
+              "/var/lib/forgejo/git/repositories/$REPO.git" "$BRANCH" "$BRANCH" \
+              "One entry with an all-zero old sha means the delete took and something recreated the ref." \
+              "The Birth time against this job's push says whether the restore beat the push's own confirmation, which has never been the same twice (#40 +1.775s, #43 -0.069s)." >&2
+
+            if [ "$marked" = yes ]; then
+              echo "marked as a specimen, so the sweep leaves it alone until it expires" >&2
+            fi
+            echo "failing on purpose: the branch is clean and kept, the writer is unexplained - see rovar-no #44" >&2
+
+            # Told at the moment it happens, because the daily tally cannot do
+            # it. `retries:check` runs from merge-audit.yml at 05:13 and the
+            # sweep runs at 04:53, so a tally reporting a live specimen would be
+            # reporting it twenty minutes after the sweep had taken it, every
+            # single time. Best effort: a forge that will not take the comment
+            # must not change this job's verdict, which is decided above.
+            if [ -n "${TALLY_ISSUE:-}" ] && [ -n "$sha" ]; then
+              note="\`$BRANCH\` (\`$sha\`) was put back after a delete git accepted, and this job kept it instead of deleting it again. $why"
+              note="$note\n\nA second delete erases the reflog, which is the only evidence that tells #44's two faults apart. Read it on pi-rovar as root while it is there:\n\n\`\`\`\nR=/var/lib/forgejo/git/repositories/$REPO.git\nstat \$R/refs/heads/$BRANCH\ncat \$R/logs/refs/heads/$BRANCH\n\`\`\`\n\nThe job log carries the push timings to compare the Birth time against."
+              curl -sS -o /dev/null -X POST \
+                -H "Authorization: token $TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "$(printf '{"body":"%s"}' "$note")" \
+                "$API/issues/$TALLY_ISSUE/comments" \
+                || echo "could not comment on #$TALLY_ISSUE; the job log above is the record" >&2
+            fi
+            exit 1
+          }
 
           if ! present; then
-            # The merge dialog's own checkbox, a sweep, or a removal by hand
-            # got here first, which is the desired end state. But ONE READ IS
-            # NOT A SETTLED STATE, and the rest of this file is that argument
-            # at length: a ref the job deletes itself is never believed on the
-            # first look, it gets `sleep 5` inside the loop and `sleep 10`
-            # after it, because the restore landed 1.775 s after one delete
-            # (#40) and 0.069 s BEFORE another's own confirmation (#43). A ref
-            # somebody else deleted seconds earlier is sitting in exactly that
-            # window, so this was the one conclusion the job still drew from a
-            # single sample - and it drew the cheerful one. If the ref came
-            # back a moment later, nothing looked again until 04:53.
+            # The merge dialog's own checkbox, a sweep, or a removal by hand got
+            # here first, which is the desired end state. But ONE READ IS NOT A
+            # SETTLED STATE, and the rest of this file is that argument at
+            # length: a ref this job deletes is never believed on the first
+            # look, because the restore landed 1.775 s after one delete (#40)
+            # and 0.069 s BEFORE another's own confirmation (#43). A ref
+            # somebody else deleted seconds earlier sits in exactly that window,
+            # so this was the one conclusion the job still drew from a single
+            # sample - and it drew the cheerful one.
             sleep 10
             if ! present; then
               echo "$BRANCH is already gone"
               exit 0
             fi
 
-            # It came back, so this is the same event as a restore inside the
-            # loop: a delete git accepted was undone. Counting it the same way
-            # is what keeps the verdict line, the exit code and
-            # `retries:check` saying one thing instead of three - the loop's
-            # first push becomes attempt 2, the verdict prints one put-back,
-            # and the run is red like any other restore.
-            echo "$BRANCH read as gone and was back 10s later, so a delete this job did not issue was undone" >&2
-            attempt=1
-
-            # The price of looking twice is that a branch recreated inside
-            # that window is deleted rather than left alone. Ten seconds after
-            # its own PR merged, under a prefix only this agent pushes to, and
-            # recoverable from any clone that has the commit - accepted.
+            # A delete this job never issued was undone. That is the rarer of
+            # the two specimens and #59 called it out as the one that would
+            # narrow the mechanism: the writer cannot be reacting to anything
+            # this job pushed, because this job has pushed nothing yet.
+            preserve "it read as gone and was back 10s later, so a delete this job did not issue was undone"
           fi
 
-          # CONVERGENCE, NOT ONE SHOT. The forge restores refs it has just
-          # deleted - #42 and nixfleet #194 - and the restore does not land at
-          # a fixed offset, so no arrangement of checks can be made into a
-          # guarantee. Measured here, both read on the host:
-          #
-          #   #40  ref reborn 1.775 s AFTER the delete
-          #   #43  ref reborn 0.069 s BEFORE the push printed `- [deleted]`
-          #
-          # So: delete, wait, ask git, and delete again if it came back. Every
-          # recorded manual removal of a stuck ref took, and the sweep's job is
-          # the same convergence over a longer period. Bounded at four, because
-          # if the forge restores the ref four times the loop is not going to
-          # win and that is worth a look of a different kind.
-          #
-          # CONVERGING IS NOT THE SAME AS BEING SATISFIED. The loop's job is to
-          # leave no branch behind; saying what happened is the exit code's job,
-          # below the loop. Between #45 and #44's re-reading those were the same
-          # decision, and collapsing them is what made a restored ref end green.
-          while :; do
-            attempt=$((attempt + 1))
+          # ONE delete, then ask git twice. A 2xx from either path below is not
+          # evidence of anything - that is the #172 finding - so the verdict
+          # comes from ls-remote and from nothing else.
+          if ! git push "$remote" --delete "$ref"; then
+            # The API fallback. `github.token` deleting refs over git is
+            # measured rather than assumed now (#40, #41), so this is here for
+            # the case that stops being true, and for the one it did catch:
+            # #39's missing repository.
+            echo "git push --delete was refused, falling back to the API" >&2
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE \
+              -H "Authorization: token $TOKEN" \
+              "$API/branches/$(printf '%s' "$BRANCH" | sed 's|/|%2F|g')")
+            # No `|| echo 000` on that curl: -w already prints 000 when it
+            # cannot connect, so the fallback appended a second one and the line
+            # read "answered 000000". nixfleet carries that; reported as
+            # nixfleet #190.
+            echo "API DELETE answered ${code:-000}" >&2
+          fi
 
-            if ! git push "$remote" --delete "$ref"; then
-              # The API fallback. `github.token` deleting refs over git is
-              # measured rather than assumed now (#40, #41), so this is here
-              # for the case that stops being true, and for the one it did
-              # catch: #39's missing repository.
-              echo "git push --delete was refused, falling back to the API" >&2
-              code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE \
-                -H "Authorization: token $TOKEN" \
-                "$API/branches/$(printf '%s' "$BRANCH" | sed 's|/|%2F|g')")
-              # No `|| echo 000` on that curl: -w already prints 000 when it
-              # cannot connect, so the fallback appended a second one and the
-              # line read "answered 000000". nixfleet carries that; reported
-              # as nixfleet #190.
-              echo "API DELETE answered ${code:-000}" >&2
-            fi
-
-            # A 2xx from either path is not evidence of anything - that is the
-            # #172 finding. Ask git, and ask it late enough that a restore
-            # racing the confirmation has already landed. Five seconds covers
-            # both measurements above with room to spare.
-            sleep 5
-            present || break
-
-            echo "attempt $attempt: $BRANCH is back 5s after a delete git accepted" >&2
-            if [ "$attempt" -ge 4 ]; then
-              echo "$BRANCH SURVIVED 4 delete attempts (still on the remote per git)" >&2
-              exit 1
-            fi
-          done
+          # Five seconds covers both measured restores with room to spare.
+          sleep 5
+          if present; then
+            preserve "the forge put it back within 5s of a delete git accepted"
+          fi
 
           # One last look after a longer settle, keeping the coverage the old
           # 15-second re-check had. It is still not a guarantee: #28's ref came
           # back after two minutes, and nothing inside a job can wait that out.
-          # The sweep below is what closes that, and it converges the same way
-          # this loop does, over a day instead of twenty seconds.
+          # The sweep below is what closes that.
           sleep 10
           if present; then
-            echo "$BRANCH came back after the delete had settled ($attempt attempt(s))" >&2
-            exit 1
+            preserve "the forge put it back after the delete had settled"
           fi
 
-          # The attempt count is the point of this line, not decoration: it is
-          # what rovar-no #44 counts, and a run that needed three attempts is a
-          # different day from one that needed one. It is also what
-          # scripts/delete-retries-core.mjs anchors on, so the wording is not
-          # free to change - and it is printed before the verdict below rather
-          # than instead of it, so a red run still records what it cleared.
-          echo "deleted $BRANCH ($attempt attempt(s))"
-
-          # RED WHEN SOMETHING WROTE THE REF BACK, even though the branch is
-          # gone and no work was lost. One attempt is a normal merge. More than
-          # one means the delete git accepted was undone by a writer nobody in
-          # this fleet can name yet, and that is the event #44 exists to count.
-          # Deleting it again is the right response; ending green is not, and
-          # the header says at length why that distinction took a detour.
-          if [ "$attempt" -gt 1 ]; then
-            restores=$((attempt - 1))
-            echo "$BRANCH was put back $restores time(s) after a delete git accepted, and is gone now" >&2
-            echo "failing on purpose: the branch is clean, the writer is unexplained - see rovar-no #44" >&2
-            exit 1
-          fi
+          # The attempt count stays in this line although this job now only ever
+          # makes one attempt. It is the anchor scripts/delete-retries-core.mjs
+          # reads, four generations of logs are still inside the window it
+          # reads, and dropping the count would make a new clean run
+          # indistinguishable from a #38-era one that never recorded a count at
+          # all. "Not recorded" and "one attempt" are different facts.
+          echo "deleted $BRANCH (1 attempt(s))"
 
   # THE BACKSTOP, AND THE REASON IT IS A SECOND SHAPE RATHER THAN A BETTER
   # VERSION OF THE JOB ABOVE. The delete job runs on `pull_request: closed`,
@@ -459,9 +525,18 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+
+          # Where this job keeps its working state. Overridable so the sweep can
+          # be RUN by a test rather than read by one - test/sweep-specimens.test.mjs
+          # points it at a scratch directory and drives these two steps against
+          # a real bare repository over file://. Unset, which is every real run,
+          # it is /tmp exactly as before.
+          W="${SWEEP_WORK:-/tmp}"
+          mkdir -p "$W"
+
           git clone -q --bare --filter=blob:none \
-            "${SERVER/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPO}.git" /tmp/sweep-repo
-          cd /tmp/sweep-repo
+            "${SERVER/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPO}.git" "$W/sweep-repo"
+          cd "$W/sweep-repo"
 
           # `**`, NOT `*`. A single star does not match across a slash in a ref
           # pattern, so `refs/heads/herd/*` finds `herd/flat` and never sees
@@ -482,16 +557,78 @@ jobs:
           # This makes the sweep SEE more branches, not delete more freely: the
           # ancestry check below is still what decides whether one is finished.
           total=0
-          : > /tmp/merged.txt
+          : > "$W/merged.txt"
           for b in $(git for-each-ref --format='%(refname:short)' 'refs/heads/herd/**'); do
             total=$((total + 1))
             if git merge-base --is-ancestor "$b" main; then
-              printf '%s\n' "$b" >> /tmp/merged.txt
+              printf '%s\n' "$b" >> "$W/merged.txt"
             else
               echo "keep   $b (not an ancestor of main)"
             fi
           done
-          echo "$total candidate branch(es) under herd/, $(wc -l < /tmp/merged.txt) merged into main"
+          echo "$total candidate branch(es) under herd/, $(wc -l < "$W/merged.txt") merged into main"
+
+          # SPECIMENS ARE HELD BACK, AND THE HOLD IS BOUNDED. The delete job
+          # marks a branch the forge put back as refs/specimens/<date>/<branch>
+          # and stops, because deleting the ref again erases the reflog that is
+          # the only evidence telling #44's two faults apart. This is the other
+          # half of that: a sweep that took the branch the next morning would
+          # destroy the same evidence a few hours later instead of a few seconds
+          # later, and the daily tally at 05:13 would then report it twenty
+          # minutes after it was gone.
+          #
+          # A FAILED READ IS NOT AN ABSENT MARKER. Same lesson as the delete
+          # job's `present()`, in the one place where getting it wrong means
+          # sweeping the specimen this whole arrangement exists to keep: if the
+          # marker list cannot be read, this step fails rather than proceeding
+          # with an empty skip set, because an empty skip set and an unreadable
+          # remote look identical and only one of them means "nothing to keep".
+          if ! git ls-remote origin 'refs/specimens/*' > "$W/specimens.txt"; then
+            echo "could not read the specimen markers, so this sweep cannot tell which branches to keep" >&2
+            exit 1
+          fi
+
+          # Seven days, in the ref name rather than in any state this job would
+          # have to keep. Long enough for a host-side read that needs a specific
+          # person at a specific machine with root; short enough that a specimen
+          # nobody reads cannot become the branch that lives forever, which is
+          # the exact failure this sweep exists to catch.
+          cutoff=$(date -u -d '7 days ago' +%F)
+          : > "$W/keep.txt"
+          : > "$W/expired.txt"
+          while IFS= read -r line; do
+            [ -n "$line" ] || continue
+            marker=${line#*"$(printf '\t')"}
+            rest=${marker#refs/specimens/}
+            stamp=${rest%%/*}
+            branch=${rest#*/}
+            # A marker this job did not write, or one with a mangled name, is
+            # expired rather than honoured. Keeping it would be the unbounded
+            # case above, reached by a typo.
+            case "$stamp" in
+              [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) ;;
+              *)
+                echo "specimen marker $marker has no readable date, expiring it" >&2
+                printf '%s\n' "$marker" >> "$W/expired.txt"
+                continue ;;
+            esac
+            if [ "$stamp" \< "$cutoff" ]; then
+              echo "specimen $branch expired (marked $stamp, cutoff $cutoff)"
+              printf '%s\n' "$marker" >> "$W/expired.txt"
+            else
+              echo "keep   $branch (specimen marked $stamp, see rovar-no #44)"
+              printf '%s\n' "$branch" >> "$W/keep.txt"
+            fi
+          done < "$W/specimens.txt"
+
+          # Held-back branches come out of the delete list, and the expired
+          # markers go in so a specimen and its marker leave together rather
+          # than the marker outliving the branch it names.
+          if [ -s "$W/keep.txt" ]; then
+            grep -vxF -f "$W/keep.txt" "$W/merged.txt" > "$W/merged.filtered" || :
+            mv "$W/merged.filtered" "$W/merged.txt"
+          fi
+          echo "$(wc -l < "$W/keep.txt") kept as specimen(s), $(wc -l < "$W/expired.txt") marker(s) expired"
 
       # One push for all of them rather than one per branch: 30 refs went in a
       # single push during #172's probing with the branch table staying in step,
@@ -501,17 +638,32 @@ jobs:
       - name: Delete them
         run: |
           set -uo pipefail
-          cd /tmp/sweep-repo
-          if [ ! -s /tmp/merged.txt ]; then
+          W="${SWEEP_WORK:-/tmp}"
+          cd "$W/sweep-repo"
+          [ -f "$W/expired.txt" ] || : > "$W/expired.txt"
+
+          # Nothing to do now covers both lists: no merged branch to sweep and
+          # no expired specimen marker to clear. Still reported rather than
+          # silent, for the reason the summary at the bottom always prints.
+          if [ ! -s "$W/merged.txt" ] && [ ! -s "$W/expired.txt" ]; then
             echo "swept 0, failed 0"
             exit 0
           fi
 
+          # Branches first, then the expired markers, in the same push, so a
+          # specimen and the marker naming it leave together rather than the
+          # marker outliving the branch. An empty array under `set -u` aborts on
+          # some bashes, which is why this is reached only once one of the two
+          # lists above has something in it.
           refs=()
           while IFS= read -r name; do
             [ -n "$name" ] || continue
             refs+=("refs/heads/$name")
-          done < /tmp/merged.txt
+          done < "$W/merged.txt"
+          while IFS= read -r marker; do
+            [ -n "$marker" ] || continue
+            refs+=("$marker")
+          done < "$W/expired.txt"
 
           # NOT `set -e` around this: a refused push must still be followed by
           # the per-branch verification below, which is what turns "the push
@@ -530,7 +682,7 @@ jobs:
               echo "delete $name"
               deleted=$((deleted + 1))
             fi
-          done < /tmp/merged.txt
+          done < "$W/merged.txt"
 
           # Always a summary, including the nothing-to-do case: a run that
           # prints nothing is indistinguishable from one that did not happen.

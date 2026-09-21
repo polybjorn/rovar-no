@@ -1,29 +1,28 @@
 // The delete step's own control flow, run rather than read.
 //
-// This file has been rewritten six times and the script inside it had never
-// been executed by anything except the forge. The test suite covered the parser
-// that reads its logs and one glob out of the sweep; the step's branching - the
-// already-gone path, the loop, the bound, the fallback, the exit codes - was
-// only ever exercised by a real merge.
+// This file has been rewritten seven times and the script inside it had never
+// been executed by anything except the forge until #62. The suite covered the
+// parser that reads its logs and one glob out of the sweep; the step's
+// branching - the already-gone path, the fallback, the exit codes - was only
+// ever exercised by a real merge.
 //
 // That is the wrong way round for this particular script, because of the thing
 // #44 keeps running into: A CLEAN RUN PRINTS THE SAME LINE UNDER EVERY VERSION
 // OF THIS JOB. `deleted <branch> (1 attempt(s))` and a green tick is what the
-// one-shot code, #45's loop and #48's red-on-restore all produce when the forge
-// does not interfere. So a merge confirms almost nothing, and the paths that
-// matter are the ones no merge can be made to produce: a ref that comes back, a
-// remote that will not answer, four restores in a row. Both defects fixed in
-// #59 were in a path no merge since has entered.
+// one-shot code, #45's loop, #48's red-on-restore and the preserve-the-specimen
+// shape below all produce when the forge does not interfere. So a merge
+// confirms almost nothing, and the paths that matter are the ones no merge can
+// be made to produce: a ref that comes back, a remote that will not answer.
 //
 // Same shape as sweep-glob.test.mjs: read the real thing out of the workflow
 // and run THAT. Asserting on the text of the file would pass on a script that
 // could not run at all.
 //
-// #62.
+// #62, and #65 for the specimen rules.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, chmodSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -52,13 +51,21 @@ const deleteStep = () => {
   // re-indentation fails here rather than silently testing three lines.
   assert.match(src, /git ls-remote/, 'the extracted block does not look like the delete step');
   assert.match(src, /deleted \$BRANCH/, 'the extracted block is missing its verdict line');
+  assert.match(src, /KEPT as a specimen/, 'the extracted block is missing the preserve path');
   return src;
 };
 
 // A stub git driven by a state directory. `present` is whether the ref is on
 // the remote, `restores` how many pushes get undone by the forge before one
 // sticks, `reappear_after` how many reads happen before an absent ref comes
-// back, `lsfail` and `pushfail` make those commands refuse.
+// back, `lsfail`, `pushfail` and `markerfail` make those commands refuse.
+//
+// DELETE PUSHES AND MARKER PUSHES ARE COUNTED SEPARATELY, and that separation
+// is the point of this file now. `git push <remote> --delete <ref>` removes the
+// branch and the reflog with it; `git push <remote> <sha>:refs/specimens/...`
+// writes a marker and must not touch the branch at all. A stub that counted
+// both as "a push" would let a script that deleted the specimen pass the test
+// that exists to stop exactly that.
 //
 // `#!/usr/bin/env bash`, and bash invoked off PATH below: the hypervisor these
 // agents run on has no /bin/bash, so a hardcoded shebang exits 127 there while
@@ -77,28 +84,33 @@ case "$1" in
     if [ "$n" != "-1" ] && [ "$(wc -l < "$ST/reads")" -gt "$n" ]; then
       echo 1 > "$ST/present"; echo -1 > "$ST/reappear_after"
     fi
-    [ "$(cat "$ST/present")" = 1 ] && printf 'deadbeef\\trefs/heads/${BRANCH}\\n'
+    [ "$(cat "$ST/present")" = 1 ] && printf '${'deadbeef'}\\trefs/heads/${BRANCH}\\n'
     exit 0 ;;
   push)
-    echo push >> "$ST/pushes"
-    if [ "$(cat "$ST/pushfail")" = 1 ]; then echo "remote: permission denied" >&2; exit 1; fi
-    echo " - [deleted]         ${BRANCH}" >&2
-    r=$(cat "$ST/restores")
-    if [ "$r" -gt 0 ]; then echo $((r - 1)) > "$ST/restores"; else echo 0 > "$ST/present"; fi
+    if [ "\${3:-}" = "--delete" ]; then
+      echo push >> "$ST/pushes"
+      if [ "$(cat "$ST/pushfail")" = 1 ]; then echo "remote: permission denied" >&2; exit 1; fi
+      echo " - [deleted]         ${BRANCH}" >&2
+      r=$(cat "$ST/restores")
+      if [ "$r" -gt 0 ]; then echo $((r - 1)) > "$ST/restores"; else echo 0 > "$ST/present"; fi
+      exit 0
+    fi
+    printf '%s\\n' "\${3:-}" >> "$ST/markers"
+    if [ "$(cat "$ST/markerfail")" = 1 ]; then echo "remote: denied" >&2; exit 1; fi
     exit 0 ;;
 esac
 echo "stub git: unhandled $*" >&2; exit 99
 `;
 
 const STUB_SLEEP = '#!/usr/bin/env bash\nexit 0\n';
-const STUB_CURL = '#!/usr/bin/env bash\nST="${ST:?}"\necho curl >> "$ST/curls"\nprintf 500\n';
+const STUB_CURL = '#!/usr/bin/env bash\nST="${ST:?}"\nprintf "%s\\n" "$*" >> "$ST/curls"\nprintf 500\n';
 
-const count = (dir, name) => {
-  try { return readFileSync(join(dir, name), 'utf8').split('\n').filter(Boolean).length; } catch { return 0; }
+const lines = (dir, name) => {
+  try { return readFileSync(join(dir, name), 'utf8').split('\n').filter(Boolean); } catch { return []; }
 };
 
 // Runs the real step against the stubs and returns what a job log would show.
-const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfail = 0 } = {}) => {
+const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfail = 0, markerfail = 0, tallyIssue = '' } = {}) => {
   const dir = mkdtempSync(join(tmpdir(), 'delete-step-'));
   try {
     const bin = join(dir, 'bin');
@@ -108,10 +120,9 @@ const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfa
       writeFileSync(p, src);
       chmodSync(p, 0o755);
     }
-    const state = { present, restores, reappear_after: reappearAfter, lsfail, pushfail };
+    const state = { present, restores, reappear_after: reappearAfter, lsfail, pushfail, markerfail };
     for (const [k, v] of Object.entries(state)) writeFileSync(join(dir, k), `${v}\n`);
-    writeFileSync(join(dir, 'reads'), '');
-    writeFileSync(join(dir, 'pushes'), '');
+    for (const f of ['reads', 'pushes', 'markers', 'curls']) writeFileSync(join(dir, f), '');
 
     const script = join(dir, 'step.sh');
     writeFileSync(script, deleteStep());
@@ -129,14 +140,16 @@ const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfa
         REPO: 'bjorn/rovar-no',
         API: 'https://forge/api/v1/repos/bjorn/rovar-no',
         BRANCH,
+        TALLY_ISSUE: tallyIssue,
       },
     });
     return {
       code: r.status,
       log: `${r.stdout}${r.stderr}`,
-      pushes: count(dir, 'pushes'),
-      reads: count(dir, 'reads'),
-      curls: count(dir, 'curls'),
+      pushes: lines(dir, 'pushes').length,
+      markers: lines(dir, 'markers'),
+      reads: lines(dir, 'reads').length,
+      curls: lines(dir, 'curls'),
     };
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -149,31 +162,60 @@ const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfa
 test('the harness actually drives the script', () => {
   assert.equal(run({ present: 0 }).pushes, 0, 'a remote with no ref should not be pushed to');
   assert.equal(run({ present: 1 }).pushes, 1);
-  assert.equal(run({ present: 1, restores: 1 }).pushes, 2, 'a restored ref should be pushed away twice');
+  assert.equal(run({ present: 1, restores: 1 }).markers.length, 1, 'a restored ref should be marked');
 });
 
-test('a normal merge: one push, one attempt, green', () => {
+test('a normal merge: one delete, no specimen, green', () => {
   const r = run({ present: 1 });
   assert.equal(r.code, 0);
   assert.match(r.log, new RegExp(`deleted ${BRANCH} \\(1 attempt\\(s\\)\\)`));
   assert.equal(r.pushes, 1);
+  assert.deepEqual(r.markers, [], 'nothing was restored, so nothing should be marked');
 });
 
-// #48: converging and being satisfied are two decisions. The branch goes away
-// AND the run reports that something wrote the ref back.
-test('a ref the forge puts back is deleted again and the run still goes red', () => {
+// THE ONE THIS FILE EXISTS FOR. #65: deleting a ref destroys its reflog, which
+// is the only evidence separating #44's two faults - measured on git 2.54.0 and
+// confirmed by the 2026-09-15 specimen, whose reflog held exactly one entry
+// because its own earlier push and delete had gone with the ref.
+//
+// The convergence loop this replaced deleted the restored ref about five
+// seconds later. It converged correctly and destroyed the evidence on its way,
+// then went red asking somebody to investigate. So the assertion is not on the
+// wording of the verdict, it is on the PUSH COUNT: exactly one delete ever
+// reaches the remote, no matter how many times the ref comes back.
+test('a ref the forge puts back is kept, not deleted again', () => {
   const r = run({ present: 1, restores: 1 });
   assert.equal(r.code, 1, 'a restored ref must not end green');
-  assert.match(r.log, new RegExp(`deleted ${BRANCH} \\(2 attempt\\(s\\)\\)`));
-  assert.match(r.log, /was put back 1 time\(s\)/);
-  assert.equal(r.pushes, 2);
+  assert.match(r.log, new RegExp(`${BRANCH} KEPT as a specimen`));
+  assert.equal(r.pushes, 1, 'the restored ref must never be deleted a second time - that erases the reflog');
+  assert.doesNotMatch(r.log, /deleted herd\/x \(/, 'a kept specimen must not also claim the branch is gone');
 });
 
-test('the loop is bounded rather than fighting the forge forever', () => {
+test('a ref that keeps coming back is still only ever deleted once', () => {
   const r = run({ present: 1, restores: 99 });
   assert.equal(r.code, 1);
-  assert.match(r.log, /SURVIVED 4 delete attempts/);
-  assert.equal(r.pushes, 4, 'the bound is four deletes, not four of something else');
+  assert.match(r.log, /KEPT as a specimen/);
+  assert.equal(r.pushes, 1, 'no bound to reach, because the job no longer fights the forge');
+});
+
+test('the kept branch is marked so the sweep leaves it alone', () => {
+  const r = run({ present: 1, restores: 1 });
+  assert.equal(r.markers.length, 1);
+  assert.match(r.markers[0], new RegExp(`^deadbeef:refs/specimens/\\d{4}-\\d{2}-\\d{2}/${BRANCH}$`),
+    'the marker must carry a sha, a date the sweep can expire, and the branch name');
+});
+
+// `git push <remote> :refs/x` with nothing on the left of the colon is the
+// DELETE refspec. The sha comes from an ls-remote that this whole file exists
+// because it can come back empty, so an unguarded "${sha}:refs/..." would turn
+// the line that preserves the specimen into one that removes a ref.
+test('an empty sha never becomes a delete refspec', () => {
+  const r = run({ present: 1, restores: 1, lsfail: 0, markerfail: 1 });
+  for (const m of r.markers) {
+    assert.doesNotMatch(m, /^:/, 'a marker refspec with an empty left side is a delete');
+  }
+  assert.match(r.log, /could not mark/, 'a refused marker must be reported, not swallowed');
+  assert.equal(r.code, 1);
 });
 
 test('a branch already gone is the desired end state, not a failure', () => {
@@ -183,15 +225,17 @@ test('a branch already gone is the desired end state, not a failure', () => {
   assert.equal(r.pushes, 0);
 });
 
-// #59, first defect. The restore window is the whole subject of this file, and
-// a ref somebody else deleted seconds ago is sitting in it. One read of it used
-// to be a conclusion, and the cheerful one.
-test('a ref that reads as gone and comes back is converged on, not believed', () => {
+// #59, first defect, and the rarer specimen of the two: a delete this job never
+// issued was undone, so the writer cannot be reacting to anything this job
+// pushed. #59 converged on it; #65 keeps it, for the same reflog reason, and
+// here the job must not push a delete at all.
+test('a ref that reads as gone and comes back is kept, and never deleted', () => {
   const r = run({ present: 0, reappearAfter: 1 });
   assert.equal(r.code, 1, 'a ref that came back must not end green');
   assert.match(r.log, /read as gone and was back/);
-  assert.match(r.log, new RegExp(`deleted ${BRANCH} \\(2 attempt\\(s\\)\\)`));
-  assert.equal(r.pushes, 1, 'the job issues one delete here; the other attempt was somebody else\'s');
+  assert.match(r.log, /KEPT as a specimen/);
+  assert.equal(r.pushes, 0, 'this job issued no delete here, and must not issue one now');
+  assert.equal(r.markers.length, 1);
 });
 
 // #59, second defect, and the one this repo keeps rediscovering in other
@@ -210,15 +254,33 @@ test('a remote that will not answer fails the job instead of reading as gone', (
 // is #172's finding, and #17's bug.
 test('the API fallback fires on a refused push, and git still gives the verdict', () => {
   const r = run({ present: 1, pushfail: 1, restores: 0 });
-  assert.ok(r.curls > 0, 'a refused push should fall back to the API');
+  assert.ok(r.curls.some((c) => c.includes('DELETE')), 'a refused push should fall back to the API');
   assert.match(r.log, /falling back to the API/);
   assert.equal(r.code, 1, 'the ref is still there, so the run is red whatever the API said');
-  assert.match(r.log, /SURVIVED 4 delete attempts/);
+  assert.match(r.log, /KEPT as a specimen/);
+});
+
+// The notice has to come from the job. `retries:check` runs at 05:13 and the
+// sweep at 04:53, so a tally reporting a live specimen is always twenty minutes
+// too late by construction.
+test('a kept specimen announces itself on the tracking issue, when it has one', () => {
+  const withIssue = run({ present: 1, restores: 1, tallyIssue: '44' });
+  assert.ok(withIssue.curls.some((c) => c.includes('/issues/44/comments')),
+    'a kept specimen should comment on the tracking issue');
+
+  const without = run({ present: 1, restores: 1 });
+  assert.equal(without.curls.length, 0, 'no tally issue configured means no comment attempted');
+  assert.equal(without.code, 1, 'and the verdict is the same either way');
+});
+
+test('a forge that will not take the comment does not change the verdict', () => {
+  const r = run({ present: 1, restores: 1, tallyIssue: '44' });
+  assert.equal(r.code, 1);
+  assert.match(r.log, /KEPT as a specimen/, 'the log is the record when the comment fails');
 });
 
 // The tick and the tally have to agree about the same run. #59 had to reason
-// this out by hand: without seeding the attempt count, the gone-then-back case
-// exits non-zero while classifyLog files it under clean.
+// this out by hand; now every path is checked against the parser.
 //
 // Green means the tally reports no trouble - not that it counts the run as a
 // delete, because a branch that was already gone is a green run with nothing
@@ -227,11 +289,12 @@ test('the API fallback fires on a refused push, and git still gives the verdict'
 test('every run classifies the way its exit code says it should', () => {
   const cases = [
     ['clean', { present: 1 }, 0],
-    ['restored', { present: 1, restores: 1 }, 1],
-    ['gave up', { present: 1, restores: 99 }, 1],
+    ['kept', { present: 1, restores: 1 }, 1],
+    ['kept repeatedly', { present: 1, restores: 99 }, 1],
     ['already gone', { present: 0 }, 0],
     ['gone then back', { present: 0, reappearAfter: 1 }, 1],
     ['unreadable', { present: 1, lsfail: 1 }, 1],
+    ['push refused', { present: 1, pushfail: 1 }, 1],
   ];
   for (const [name, opts, expected] of cases) {
     const r = run(opts);
@@ -240,7 +303,7 @@ test('every run classifies the way its exit code says it should', () => {
     assert.notEqual(c.outcome, 'unknown', `${name}: the tally does not recognise this run's last line`);
     const s = summarise([c]);
     if (expected === 0) {
-      assert.equal(s.retried.length + s.failed.length + s.unreadable.length, 0,
+      assert.equal(s.retried.length + s.failed.length + s.unreadable.length + s.preserved.length, 0,
         `${name}: the job exited 0 and the tally reports trouble`);
     } else {
       assert.equal(s.clean, 0, `${name}: the job exited ${r.code} and the tally counts it clean`);
