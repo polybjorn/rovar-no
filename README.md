@@ -115,23 +115,28 @@ history reports nearly every merge as lost.
 `npm run sweep:check` asks whether the branch sweep actually ran. A merged
 branch is normally removed by a job on the merge event, and a daily sweep
 deletes any `herd/` branch that git says `main` already contains, for the
-merges where that event never arrived. The sweep has the same blind spot one
-layer up: if its timer stops firing, nothing says so and the branches pile up
-in the same silence. The daily audit runs this check too, so the answer comes
-from a job that already exists rather than from a second timer that would need
-watching in turn. A skipped run does not count as a run, which is what stops
-the check passing on merge traffic alone.
+merges where that event never arrived. It honours a specimen marker for seven
+days and then expires the marker and the branch together, so a branch held
+back for a host-side read cannot quietly become the branch that never goes
+away. The sweep has the same blind spot one layer up: if its timer stops
+firing, nothing says so and the branches pile up in the same silence. The
+daily audit runs this check too, so the answer comes from a job that already
+exists rather than from a second timer that would need watching in turn. A
+skipped run does not count as a run, which is what stops the check passing on
+merge traffic alone.
 
 `npm run retries:check` reads the delete job's own logs and counts how often the
 forge put a branch back after a delete git had accepted. The daily audit runs
-this too. The delete job deletes the ref again when that happens, because a
-second delete is measured to stick, and then exits non-zero anyway: the branch
-being clean and the writer being unexplained are two different facts, and only
-the first of them is fixed. This check exists for the rate rather than for the
-event, which is on the tick. Four generations of that workflow appear in the
-logs it reads, and one of the older ones printed an HTTP status where the
-attempt count now sits, so the parser is explicit about which parenthesised
-number means what.
+this too. The delete job no longer deletes the ref again when that happens:
+deleting a ref destroys its reflog, and that reflog is the only evidence of
+whether the delete applied before something recreated it. The branch is kept
+instead, marked as `refs/specimens/<date>/<branch>`, and the run exits
+non-zero. The branch being clean and the writer being unexplained are two
+different facts, and removing the evidence fixes neither. This check exists
+for the rate rather than for the event, which is on the tick. Four
+generations of that workflow appear in the logs it reads, and one of the
+older ones printed an HTTP status where the attempt count now sits, so the
+parser is explicit about which parenthesised number means what.
 
 `npm run inert:check` says which open pull requests are provably inert: every
 file in them is markdown outside the build, or identical to the version on main
