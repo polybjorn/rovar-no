@@ -48,6 +48,11 @@ const VERDICTS = [
   [/^deleted (\S+) \((\d+) attempt\(s\)\)$/, 'deleted', 2],
   [/^deleted (\S+) \(\d+\)$/, 'deleted', null],
   [/^deleted (\S+)$/, 'deleted', null],
+  // The current job's restore verdict. It does NOT delete the ref again, so
+  // there is no attempt count to capture and no "gone now" to report: the
+  // branch is still on the remote on purpose, because a second delete erases
+  // the reflog that is the only evidence separating #44's two faults.
+  [/^(\S+) KEPT as a specimen: /, 'preserved', null],
   [/^(\S+) SURVIVED (\d+) delete attempts /, 'survived', 2],
   [/^(\S+) SURVIVED the delete /, 'survived', null],
   [/^(\S+) came back after the delete had settled \((\d+) attempt\(s\)\)$/, 'returned', 2],
@@ -90,6 +95,13 @@ export const classifyLog = (text) => {
 export const isRetry = (r) => r.outcome === 'deleted' && r.attempts !== null && r.attempts > 1;
 export const isFailure = (r) => r.outcome === 'survived' || r.outcome === 'returned';
 
+// Its own bucket, and the one this tally now exists to count. A preserved run
+// is not a failure - nothing went wrong that the job could have done better,
+// and the branch is deliberately still there. It is the event #44 is open for,
+// and unlike every other outcome here it has a DEADLINE: the specimen is
+// readable until the sweep expires it.
+export const isPreserved = (r) => r.outcome === 'preserved';
+
 // Runs where the job correctly did nothing: the branch was gone before it
 // started, the PR was closed unmerged, the branch was not ours. Nothing to
 // report about any of them individually, but they are still runs, and the
@@ -107,12 +119,13 @@ export const summarise = (results) => {
     runs: results.length,
     clean: results.filter((r) => r.outcome === 'deleted' && (r.attempts === null || r.attempts === 1)).length,
     retried: results.filter(isRetry),
+    preserved: results.filter(isPreserved),
     failed: results.filter(isFailure),
     unreadable: results.filter(isUnreadable),
     quiet: results.filter(isQuiet).length,
     unknown: results.filter((r) => r.outcome === 'unknown').length,
   };
-  s.unaccounted = s.runs - s.clean - s.retried.length - s.failed.length - s.unreadable.length - s.quiet - s.unknown;
+  s.unaccounted = s.runs - s.clean - s.retried.length - s.preserved.length - s.failed.length - s.unreadable.length - s.quiet - s.unknown;
   return s;
 };
 
@@ -130,7 +143,8 @@ export const summarise = (results) => {
 // over OUTCOMES, and if it is ever not, the line says so rather than the
 // numbers quietly shrinking.
 export const summaryLines = (s, { hours }) => {
-  const lines = [`${s.runs} delete run(s) in the last ${hours}h: ${s.clean} clean, ${s.retried.length} needed a retry, ${s.failed.length} gave up`];
+  const lines = [`${s.runs} delete run(s) in the last ${hours}h: ${s.clean} clean, ${s.preserved.length} kept as a specimen, ${s.retried.length} needed a retry, ${s.failed.length} gave up`];
+  for (const r of s.preserved) lines.push(`  SPECIMEN ${r.branch}  ${r.line}`);
   for (const r of s.retried) lines.push(`  RETRIED  ${r.branch}  cleared on attempt ${r.attempts}`);
   for (const r of s.failed) lines.push(`  FAILED   ${r.branch}  ${r.line}`);
   for (const r of s.unreadable) lines.push(`  UNREADABLE  ${r.branch}  the job could not reach the remote, so it deleted and verified nothing`);
@@ -140,20 +154,45 @@ export const summaryLines = (s, { hours }) => {
   return lines;
 };
 
-// Only the retries go to the tracking issue. Both outcomes now turn the job red
-// on their own, so this is not what makes them visible; it is what accumulates
-// them on #44, where the rate is the open question. A clean run is not news.
+// What goes to the tracking issue, and what deliberately does not.
+//
+// THIS IS THE RECORD, NOT THE ALARM, and the schedule is why. This runs from
+// merge-audit.yml at 05:13 and the sweep runs at 04:53, so a specimen that
+// appeared overnight has already been expired or swept by the time anything
+// here could mention it - twenty minutes late, every time, by construction.
+// Moving the cron would only change which twenty minutes. So the delete job
+// comments on the issue itself the moment it keeps a specimen, and this says
+// what happened over a window, in the past tense it has actually earned.
+//
+// A clean run is not news and never appears here.
 export const tallyComment = (s, { hours }) => {
-  if (!s.retried.length) return null;
-  const body = [
-    `**The retry fired and worked.** ${s.retried.length} delete run(s) in the last ${hours}h needed more than one attempt and cleared:`,
-    '',
-    ...s.retried.map((r) => `- \`${r.branch}\` - cleared on attempt ${r.attempts}`),
-    '',
-    'That is the measurement this issue was open for: the forge restored a branch the job had just deleted, the job deleted it again by itself, and it stuck. Each of those runs is also red on purpose - the branch is clean, the writer that put it back is not explained. Reported by `npm run retries:check` from `merge-audit.yml`, which reads the job logs rather than relying on anyone to go looking.',
-  ];
-  if (s.failed.length) {
-    body.push('', `Also in the same window: **${s.failed.length} run(s) gave up**, which is a red job and a different question - the retry did not win there.`);
+  if (!s.preserved.length && !s.retried.length) return null;
+  const body = [];
+
+  if (s.preserved.length) {
+    body.push(
+      `**${s.preserved.length} delete run(s) in the last ${hours}h kept a branch as a specimen.** The forge put back a ref after a delete git accepted, and the job left it there rather than deleting it again.`,
+      '',
+      ...s.preserved.map((r) => `- \`${r.branch}\` - ${r.line}`),
+      '',
+      'Each of those is red on purpose and each posted its own comment here when it happened, with the host-side read to run. This line is the tally rather than the notice: by the time it is written the sweep has usually been past. If one of these was never read, the reflog is gone and that occurrence is spent - the rate is still worth having, the specimen is not recoverable.',
+    );
   }
+
+  if (s.retried.length) {
+    if (body.length) body.push('');
+    body.push(
+      `**${s.retried.length} run(s) in the same window needed more than one attempt.** Those are from the convergence loop, which this repo removed: a second delete erased the reflog about five seconds after the restore, which is the only evidence that tells this issue's two faults apart.`,
+      '',
+      ...s.retried.map((r) => `- \`${r.branch}\` - cleared on attempt ${r.attempts}`),
+      '',
+      'A run in this bucket today means an older job shape is still live somewhere, because the current one never makes a second attempt.',
+    );
+  }
+
+  if (s.failed.length) {
+    body.push('', `Also in the window: **${s.failed.length} run(s) gave up**, which is a red job and an older shape again.`);
+  }
+
   return body.join('\n');
 };

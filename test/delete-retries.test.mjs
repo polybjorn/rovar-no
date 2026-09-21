@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { stripStamp, classifyLog, isRetry, isFailure, summarise, summaryLines, tallyComment, OUTCOMES } from '../scripts/delete-retries-core.mjs';
+import { stripStamp, classifyLog, isRetry, isFailure, isPreserved, summarise, summaryLines, tallyComment, OUTCOMES } from '../scripts/delete-retries-core.mjs';
 
 const stamped = (...lines) => lines.map((l, i) => `2026-09-15T10:17:2${i}.6558431Z ${l}`).join('\n');
 
@@ -139,7 +139,7 @@ test('every outcome classifyLog can return lands in exactly one bucket', () => {
   for (const outcome of OUTCOMES) {
     const r = { outcome, attempts: outcome === 'deleted' ? 1 : null, branch: 'herd/x', line: 'x' };
     const s = summarise([r]);
-    const inBuckets = s.clean + s.retried.length + s.failed.length + s.unreadable.length + s.quiet + s.unknown;
+    const inBuckets = s.clean + s.retried.length + s.preserved.length + s.failed.length + s.unreadable.length + s.quiet + s.unknown;
     assert.equal(inBuckets, 1, `${outcome} is in ${inBuckets} buckets, not 1`);
     assert.equal(s.unaccounted, 0, `${outcome} is unaccounted for`);
   }
@@ -186,15 +186,18 @@ test('the summary counts each kind apart', () => {
     { outcome: 'deleted', attempts: null, branch: 'b' },
     { outcome: 'deleted', attempts: 3, branch: 'c' },
     { outcome: 'survived', attempts: 4, branch: 'd', line: 'd SURVIVED 4 delete attempts ' },
+    { outcome: 'preserved', attempts: null, branch: 'e', line: 'e KEPT as a specimen: x' },
     { outcome: 'unknown', attempts: null, branch: null },
   ]);
-  assert.equal(s.runs, 5);
+  assert.equal(s.runs, 6);
   assert.equal(s.clean, 2);
   assert.deepEqual(s.retried.map((r) => r.branch), ['c']);
   assert.deepEqual(s.failed.map((r) => r.branch), ['d']);
+  assert.deepEqual(s.preserved.map((r) => r.branch), ['e']);
   assert.equal(s.unknown, 1);
+  assert.equal(s.unaccounted, 0);
   const out = summaryLines(s, { hours: 26 }).join('\n');
-  assert.match(out, /5 delete run\(s\) in the last 26h: 2 clean, 1 needed a retry, 1 gave up/);
+  assert.match(out, /6 delete run\(s\) in the last 26h: 2 clean, 1 kept as a specimen, 1 needed a retry, 1 gave up/);
   assert.match(out, /RETRIED {2}c {2}cleared on attempt 3/);
 });
 
@@ -205,14 +208,19 @@ test('a window with no retries produces no comment', () => {
   assert.equal(tallyComment(summarise([{ outcome: 'survived', attempts: 4, branch: 'd', line: 'x' }]), { hours: 26 }), null);
 });
 
+// A retry in a fresh window would now mean an older job shape is still running
+// somewhere, because the current one never makes a second attempt. The parser
+// keeps reading the line either way: four generations of this workflow are
+// inside the 240h window it reads.
 test('a retry produces a comment, and a failure in the same window is mentioned', () => {
   const body = tallyComment(summarise([
     { outcome: 'deleted', attempts: 2, branch: 'herd/x' },
     { outcome: 'survived', attempts: 4, branch: 'herd/y', line: 'x' },
   ]), { hours: 26 });
-  assert.match(body, /The retry fired and worked/);
+  assert.match(body, /needed more than one attempt/);
   assert.match(body, /`herd\/x` - cleared on attempt 2/);
   assert.match(body, /1 run\(s\) gave up/);
+  assert.match(body, /an older job shape is still live/);
 });
 
 // The trap that a first pass walked straight into. The #8-era job printed the
@@ -233,4 +241,56 @@ test('the three success shapes are told apart', () => {
   assert.equal(classifyLog(stamped('deleted herd/x (3 attempt(s))')).attempts, 3);
   assert.equal(classifyLog(stamped('deleted herd/x (204)')).attempts, null);
   assert.equal(classifyLog(stamped('deleted herd/x')).attempts, null);
+});
+
+// #65. The current job's restore verdict. A kept specimen is not a failure and
+// not a retry: nothing went wrong that the job could have done better, and the
+// branch is deliberately still on the remote so its reflog survives to be read.
+test('a kept specimen is recognised and is its own outcome', () => {
+  const r = classifyLog('2026-09-21T10:00:00Z herd/x KEPT as a specimen: the forge put it back within 5s of a delete git accepted');
+  assert.equal(r.outcome, 'preserved');
+  assert.equal(r.branch, 'herd/x');
+  assert.equal(r.attempts, null, 'there is no attempt count to record when the job never retries');
+  assert.ok(isPreserved(r));
+  assert.ok(!isFailure(r), 'a kept specimen is not the job giving up');
+  assert.ok(!isRetry(r), 'a kept specimen is not a retry - that is the shape this replaced');
+});
+
+// The line git itself prints on a delete push contains "[deleted]", and a
+// preserved run's log still carries the push output above its verdict. The
+// parser must not read that as the job's own verdict.
+test('a kept specimen is not read as a clean delete', () => {
+  const log = [
+    '2026-09-21T10:00:00Z To https://forge/bjorn/rovar-no.git',
+    '2026-09-21T10:00:00Z  - [deleted]         herd/x',
+    '2026-09-21T10:00:05Z herd/x KEPT as a specimen: the forge put it back within 5s of a delete git accepted',
+  ].join('\n');
+  const s = summarise([classifyLog(log)]);
+  assert.equal(s.clean, 0, 'a kept specimen must never be counted clean');
+  assert.equal(s.preserved.length, 1);
+  assert.equal(s.unaccounted, 0);
+});
+
+test('the summary names a kept specimen on its own line', () => {
+  const s = summarise([classifyLog('herd/x KEPT as a specimen: the forge put it back after the delete had settled')]);
+  const out = summaryLines(s, { hours: 24 }).join('\n');
+  assert.match(out, /1 kept as a specimen/);
+  assert.match(out, /SPECIMEN herd\/x/);
+});
+
+// The tally posts the record; the job posts the notice. The distinction is not
+// stylistic: merge-audit.yml runs this at 05:13 and the sweep runs at 04:53, so
+// anything written here about a live specimen is twenty minutes late by
+// construction and must not be phrased as a call to action.
+test('the tally reports a kept specimen without pretending it is still actionable', () => {
+  const s = summarise([classifyLog('herd/x KEPT as a specimen: the forge put it back within 5s of a delete git accepted')]);
+  const body = tallyComment(s, { hours: 24 });
+  assert.ok(body, 'a window with a kept specimen is news');
+  assert.match(body, /herd\/x/);
+  assert.match(body, /posted its own comment/, 'it should point at the notice rather than be the notice');
+});
+
+test('a window of nothing but clean runs still says nothing', () => {
+  const s = summarise([classifyLog('deleted herd/x (1 attempt(s))')]);
+  assert.equal(tallyComment(s, { hours: 24 }), null);
 });
