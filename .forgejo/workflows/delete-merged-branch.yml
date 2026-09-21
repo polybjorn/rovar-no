@@ -177,6 +177,17 @@
 # which carries git and curl; nothing in this version parses JSON, so the
 # node-versus-python question the old header argued is moot.
 #
+# THE STEP BELOW IS RUN BY THE TEST SUITE, in test/delete-step.test.mjs. It
+# lifts this `run:` block out of the YAML by its indentation and executes it
+# against a stub git and a no-op sleep, so the paths no merge can produce on
+# demand - a ref that comes back, a remote that will not answer, four restores
+# in a row - are checked on every push. Two consequences for editing this file.
+# Re-indenting the block, or moving the delete step below the sweep, breaks the
+# extraction and the test says so rather than silently passing. And the wording
+# of the verdict lines is load-bearing twice over now: scripts/
+# delete-retries-core.mjs anchors on it, and that test asserts the tick and the
+# tally agree about the same run.
+#
 # For whoever debugs this next: job logs ARE readable, at
 # `GET /actions/jobs/{job_id}/logs`. An earlier version of this comment said
 # they were not, which cost an hour. The trap is that `job_id` is a different id
