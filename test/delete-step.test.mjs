@@ -289,10 +289,24 @@ test('a ref that reads as gone and comes back is kept, and never deleted', () =>
 // THE POINT OF THESE THREE IS THAT IT CHANGES NOTHING. Not the verdict, not the
 // push count, not the marker. A probe that could flip a red run to green, or
 // that pushed anything, would be a worse bug than the blind spot it closes.
+// The replies are copied from measured ones rather than invented. The first
+// two are what this forge answered on 2026-09-22; the third is what git 2.39.5
+// answers for the same refused no-op that 2.54.0 calls "incorrect old value
+// provided", which is how the CI image and the hypervisor disagreed on PR #68.
+// The step does not match on any of those words - see below - and these three
+// are here to prove that.
+const REPLY = {
+  there: 'unpack ok\nok refs/heads/herd/x\n',
+  absent: 'unpack ok\nng refs/heads/herd/x reference does not exist\n',
+  moved: 'unpack ok\nng refs/heads/herd/x incorrect old value provided\n',
+  movedOldGit: 'unpack ok\nng refs/heads/herd/x failed to update ref\n',
+};
+
 for (const [name, reply] of [
-  ['the ref is there', 'unpack ok\nok refs/heads/herd/x\n'],
-  ['the ref is not there', 'unpack ok\nng refs/heads/herd/x reference does not exist\n'],
-  ['the ref moved again', 'unpack ok\nng refs/heads/herd/x incorrect old value provided\n'],
+  ['the ref is there', REPLY.there],
+  ['the ref is not there', REPLY.absent],
+  ['the ref moved again', REPLY.moved],
+  ['an older git on the server words it differently', REPLY.movedOldGit],
   ['the forge did not answer', ''],
 ]) {
   test(`the ref-lock probe decides nothing when ${name}`, () => {
@@ -304,13 +318,27 @@ for (const [name, reply] of [
   });
 }
 
-test('the probe reports which of the four answers it got', () => {
-  assert.match(run({ present: 1, restores: 1, rpReply: 'unpack ok\nok refs/heads/herd/x\n' }).log,
+// THE REFUSAL REASON IS QUOTED, NOT PARSED. A case arm per phrasing would have
+// read as "could not ask the forge" the first time a server worded it
+// differently, and the two wordings below are the same refusal from two git
+// versions this repo actually runs. So the step splits on accept versus refuse,
+// which is what carries the meaning, and prints the server's own words for why.
+test('the probe reports what it was told, in the server s own words', () => {
+  assert.match(run({ present: 1, restores: 1, rpReply: REPLY.there }).log,
     /the forge confirms herd\/x is on disk/);
-  assert.match(run({ present: 1, restores: 1, rpReply: 'unpack ok\nng refs/heads/herd/x reference does not exist\n' }).log,
-    /those two surfaces disagree/);
-  assert.match(run({ present: 1, restores: 1, rpReply: 'unpack ok\nng refs/heads/herd/x incorrect old value provided\n' }).log,
-    /moved again between the two reads/);
+
+  for (const [name, reply, why] of [
+    ['absent', REPLY.absent, 'reference does not exist'],
+    ['moved', REPLY.moved, 'incorrect old value provided'],
+    ['moved, older git', REPLY.movedOldGit, 'failed to update ref'],
+  ]) {
+    const log = run({ present: 1, restores: 1, rpReply: reply }).log;
+    assert.match(log, /the forge refused a no-op/, `${name}: a refusal is reported as one`);
+    assert.ok(log.includes(`"${why}"`), `${name}: the server's reason is quoted rather than interpreted`);
+    assert.doesNotMatch(log, /could not ask the forge/,
+      `${name}: an answer the step did not expect the wording of is still an answer`);
+  }
+
   assert.match(run({ present: 1, restores: 1, rpReply: '' }).log,
     /could not ask the forge/, 'a probe with no answer says so rather than implying one');
 });
@@ -345,7 +373,7 @@ test('the request the step builds is one a real receive-pack answers, and it wri
     assert.notEqual(sha, other);
     git(['-C', bare, 'update-ref', 'refs/heads/herd/x', sha]);
 
-    const r = run({ present: 1, restores: 1, sha, rpReply: 'unpack ok\nok refs/heads/herd/x\n' });
+    const r = run({ present: 1, restores: 1, sha, rpReply: REPLY.there });
     assert.ok(r.request, 'the probe should have POSTed a request');
     assert.ok(r.request.includes(`${sha} ${sha} refs/heads/herd/x`),
       'the command should be a no-op update on the sha ls-remote advertised');
@@ -355,17 +383,24 @@ test('the request the step builds is one a real receive-pack answers, and it wri
     const value = () => git(['-C', bare, 'rev-parse', '--verify', '-q', 'refs/heads/herd/x']).stdout.trim();
     const reflog = () => git(['-C', bare, 'reflog', 'show', 'refs/heads/herd/x']).stdout.trim();
 
+    // ACCEPTED OR REFUSED, not the wording. git 2.54.0 refuses a moved ref with
+    // "incorrect old value provided" and git 2.39.5 with "failed to update
+    // ref", which is how this test first failed: it passed on the hypervisor
+    // and went red in CI, over a difference the step does not depend on. The
+    // phrasings live in REPLY above, as fixtures, and what is asserted here is
+    // the thing the step is built on - that a real server answers this request,
+    // and answers it differently in the three states.
     const before = reflog();
     assert.match(ask(), /ok refs\/heads\/herd\/x/, 'the ref is there at that sha, so the server accepts the no-op');
     assert.equal(value(), sha, 'and the ref is untouched');
     assert.equal(reflog(), before, 'and nothing was appended to the reflog');
 
     git(['-C', bare, 'update-ref', 'refs/heads/herd/x', other]);
-    assert.match(ask(), /ng refs\/heads\/herd\/x incorrect old value/, 'a ref at another sha is refused');
+    assert.match(ask(), /ng refs\/heads\/herd\/x /, 'a ref at another sha is refused');
     assert.equal(value(), other, 'and left where it was');
 
     git(['-C', bare, 'update-ref', '-d', 'refs/heads/herd/x']);
-    assert.match(ask(), /ng refs\/heads\/herd\/x reference does not exist/,
+    assert.match(ask(), /ng refs\/heads\/herd\/x /,
       'and an advertised ref the server does not have is the answer this probe exists for');
     assert.equal(value(), '', 'the probe must not create the ref it failed to find');
   } finally {
