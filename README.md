@@ -132,7 +132,14 @@ deleting a ref destroys its reflog, and that reflog is the only evidence of
 whether the delete applied before something recreated it. The branch is kept
 instead, marked as `refs/specimens/<date>/<branch>`, and the run exits
 non-zero. The branch being clean and the writer being unexplained are two
-different facts, and removing the evidence fixes neither. This check exists
+different facts, and removing the evidence fixes neither. A kept branch is
+also checked against the forge itself rather than only against `git
+ls-remote`: the read everything else here uses returns the ref
+advertisement, which is a report about the refs, so the job additionally
+asks the server to take the ref lock and say whether the branch is really
+at that sha. That answer goes in the log and in the notice, and changes no
+verdict - it is there for the case where nobody can reach the disk, which
+has now been every case. This check exists
 for the rate rather than for the event, which is on the tick. Four
 generations of that workflow appear in the logs it reads, and one of the
 older ones printed an HTTP status where the attempt count now sits, so the

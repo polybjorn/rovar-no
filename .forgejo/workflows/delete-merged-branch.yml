@@ -69,6 +69,17 @@
 # below honours the marker for seven days. Cleanup is deferred, not abandoned.
 # The branch was never the scarce thing here; the reflog is.
 #
+# AND THE KEPT BRANCH IS CHECKED AGAINST THE FORGE, NOT ONLY AGAINST THE
+# ADVERTISEMENT. `git ls-remote` reads the ref advertisement a server sends at
+# the start of a connection, which is a report about the refs rather than the
+# refs - the same kind of surface #172 caught being wrong on the API's branch
+# list, and the only kind this job had. A receive-pack command whose old and new
+# values are both the sha just read is a no-op the server can accept only after
+# taking the ref lock and finding that ref at that value, so it answers the
+# question from the refs themselves and writes nothing whatever the answer. It
+# runs on the preserve path only, it cannot change the verdict, and the detail
+# is on `under_the_ref_lock` below. #67.
+#
 # AND SAY NOTHING ABOUT A REF NOBODY LOOKED AT PROPERLY. Two ways this job
 # used to reach "the branch is gone" without establishing it, both on the
 # already-gone path at the top of the script and both fixed there:
@@ -346,7 +357,7 @@ jobs:
           # loop did work. It bought a faster cleanup at the price of the only
           # scarce thing here, and the branch was never the scarce thing.
           preserve() {
-            local why="$1" sha marked=no
+            local why="$1" sha marked=no lock_says
             sha=$(git ls-remote --heads "$remote" "$ref" | cut -f1) || sha=""
 
             # A marker ref rather than anything with state behind it. It keeps
@@ -370,7 +381,24 @@ jobs:
               echo "could not mark $BRANCH as a specimen, so the sweep takes it at 04:53" >&2
             fi
 
+            # Asked after the marker is written, so a slow or wedged probe can
+            # never be the reason a specimen went unprotected. Skipped with no
+            # sha, because the question needs a value to compare against.
+            #
+            # THE `||` IS LOAD BEARING, not a habit. This step runs under `-e`,
+            # and a command substitution that exits non-zero takes the whole job
+            # with it: made to return 1 deliberately, the probe turned every
+            # preserve test in delete-step.test.mjs red, which is a specimen
+            # dropped on the floor by the instrument that was added to examine
+            # it. Nothing this function does is allowed to reach the verdict.
+            lock_says="the forge was not asked whether $BRANCH is really there, for want of a sha to ask about"
+            if [ -n "$sha" ]; then
+              lock_says=$(under_the_ref_lock "$sha") \
+                || lock_says="the probe for whether $ref is really there did not complete, so the ls-remote reading above is all there is"
+            fi
+
             echo "$BRANCH KEPT as a specimen: $why" >&2
+            echo "$lock_says" >&2
             printf '\n%s\n%s\n\n  R=%s\n  stat $R/refs/heads/%s\n  cat $R/logs/refs/heads/%s\n\n%s\n%s\n' \
               "Not deleting it again. The reflog is the evidence and a delete erases it." \
               "On pi-rovar, as root, while the ref is still there:" \
@@ -391,6 +419,7 @@ jobs:
             # must not change this job's verdict, which is decided above.
             if [ -n "${TALLY_ISSUE:-}" ] && [ -n "$sha" ]; then
               note="\`$BRANCH\` (\`$sha\`) was put back after a delete git accepted, and this job kept it instead of deleting it again. $why"
+              note="$note\n\n$lock_says."
               note="$note\n\nA second delete erases the reflog, which is the only evidence that tells #44's two faults apart. Read it on pi-rovar as root while it is there:\n\n\`\`\`\nR=/var/lib/forgejo/git/repositories/$REPO.git\nstat \$R/refs/heads/$BRANCH\ncat \$R/logs/refs/heads/$BRANCH\n\`\`\`\n\nThe job log carries the push timings to compare the Birth time against."
               curl -sS -o /dev/null -X POST \
                 -H "Authorization: token $TOKEN" \
@@ -400,6 +429,92 @@ jobs:
                 || echo "could not comment on #$TALLY_ISSUE; the job log above is the record" >&2
             fi
             exit 1
+          }
+
+          # THE ADVERTISEMENT IS NOT THE REF. Every check above asks
+          # `git ls-remote`, which reads the REF ADVERTISEMENT the server sends
+          # at the start of a connection. That is a report about the refs rather
+          # than the refs, and a surface that reports is a surface that can be
+          # wrong - nixfleet #172 is this repo's own case of exactly that, on the
+          # API's branch list, and the verdict above rests on the git side of the
+          # same question from a single kind of read.
+          #
+          # There is one question the forge will answer from the refs themselves.
+          # A receive-pack command whose old and new values are both the sha we
+          # just read is a no-op, and the server can only accept it after taking
+          # the ref lock and finding that ref at that value:
+          #
+          #   ref there, at that sha   ok <ref>
+          #   ref there, at another    ng <ref> <the server's reason>
+          #   ref not there            ng <ref> <the server's reason>
+          #
+          # It writes nothing in any of the three. Measured against this forge on
+          # 2026-09-22 in all three states, with the ref and its reflog unchanged
+          # after each, which is the only reason it is allowed anywhere near a
+          # specimen: #65's whole finding is that the reflog is the scarce thing.
+          # #67, and rovar-no #44 for the measurement.
+          #
+          # `git push` cannot ask it. `--force-with-lease=<ref>:` refuses
+          # client-side off the advertisement without sending anything, so the
+          # request is built here by hand. Two things that cost an hour each when
+          # they were got wrong: the content type is
+          # `application/x-git-receive-pack-request`, and the shorter
+          # `application/x-git-receive-pack` answers 401 with an empty body,
+          # which reads exactly like a credential fault and is not one.
+          #
+          # IT DECIDES NOTHING. The verdict is already made by the time this
+          # runs and this cannot change it, including when it says the ref is not
+          # there. A new instrument disagreeing with an old one on its first
+          # outing is not grounds for believing the new one, and a job that went
+          # from red to green on one reading from one probe would be the
+          # single-sample conclusion this file has now removed twice.
+          under_the_ref_lock() {
+            local sha="$1" caps='report-status object-format=sha1' body out reason
+            body=$(mktemp)
+            {
+              printf '%04x' "$(( 4 + ${#sha} + 1 + ${#sha} + 1 + ${#ref} + 1 + ${#caps} + 1 ))"
+              printf '%s %s %s' "$sha" "$sha" "$ref"
+              printf '\0%s\n' "$caps"
+              printf '0000'
+              # A delete pushes no objects and neither does a no-op, but the
+              # protocol still wants a pack, so it gets an empty one.
+              git pack-objects --stdout </dev/null 2>/dev/null || true
+            } > "$body"
+
+            out=$(curl -sS -m 30 --data-binary "@$body" \
+              -H 'Content-Type: application/x-git-receive-pack-request' \
+              -u "x-access-token:$TOKEN" \
+              "$SERVER/$REPO.git/git-receive-pack" 2>&1) || out=''
+            rm -f "$body"
+
+            # ACCEPTED OR REFUSED, AND THE SERVER'S OWN WORDS FOR WHY. The
+            # refusal reason is deliberately not matched against: it is not
+            # stable across git versions, and this job does not control which
+            # one the forge runs. git 2.54.0 refuses a moved ref with "incorrect
+            # old value provided" where git 2.39.5 says "failed to update ref" -
+            # found when this repo's CI image disagreed with the hypervisor
+            # about it on #68. A case arm per phrasing would have read as "could
+            # not ask the forge" the day the forge was upgraded, which is the
+            # silent loss of the one check that had something to say. So the
+            # split is accept versus refuse, which is where the meaning is, and
+            # the reason is quoted rather than interpreted.
+            case "$out" in
+              *"ok $ref"*)
+                echo "the forge confirms $BRANCH is on disk at $sha, so the reading above is the refs and not only the advertisement" ;;
+              *"ng $ref"*)
+                # sed rather than parameter expansion, because cutting at the
+                # newline means writing one down and this block lives in YAML.
+                # `|` as the delimiter, since the ref has slashes in it and
+                # cannot have a pipe. `sed -n 1p` rather than `head -1` because
+                # this runs under pipefail, where head closing the pipe early
+                # would make the assignment non-zero on a script running under
+                # -e, which is the one thing this function must never do.
+                reason=$(printf '%s\n' "$out" | sed -n "s|.*ng $ref ||p" | sed -n 1p) || reason='no reason given'
+                echo "the forge refused a no-op on $ref at the $sha ls-remote advertised (\"$reason\"), so the advertisement and the refs do not agree about this ref - #172's shape, on the git side. The verdict above stands anyway; see rovar-no #67" ;;
+              *)
+                echo "could not ask the forge whether $ref is really there, so the ls-remote reading above is all there is" ;;
+            esac
+            return 0
           }
 
           if ! present; then

@@ -73,7 +73,11 @@ const deleteStep = () => {
 const STUB_GIT = `#!/usr/bin/env bash
 ST="\${ST:?}"
 case "$1" in
-  init) shift; while [ $# -gt 1 ]; do shift; done; mkdir -p "$1"; exit 0 ;;
+  # A real repository, not a mkdir. The step's own comment explains why it
+  # needs one at all (#39), and since #67 it also runs \`git pack-objects\`
+  # there: a faked init left that with nowhere to stand, and the empty pack
+  # came back empty in a way only the real-receive-pack test below noticed.
+  init) shift; while [ $# -gt 1 ]; do shift; done; exec "\${REAL_GIT:?}" init -q "$1" ;;
   ls-remote)
     echo read >> "$ST/reads"
     if [ "$(cat "$ST/lsfail")" = 1 ]; then
@@ -84,7 +88,7 @@ case "$1" in
     if [ "$n" != "-1" ] && [ "$(wc -l < "$ST/reads")" -gt "$n" ]; then
       echo 1 > "$ST/present"; echo -1 > "$ST/reappear_after"
     fi
-    [ "$(cat "$ST/present")" = 1 ] && printf '${'deadbeef'}\\trefs/heads/${BRANCH}\\n'
+    [ "$(cat "$ST/present")" = 1 ] && printf '%s\\trefs/heads/${BRANCH}\\n' "$(cat "$ST/sha")"
     exit 0 ;;
   push)
     if [ "\${3:-}" = "--delete" ]; then
@@ -98,19 +102,51 @@ case "$1" in
     printf '%s\\n' "\${3:-}" >> "$ST/markers"
     if [ "$(cat "$ST/markerfail")" = 1 ]; then echo "remote: denied" >&2; exit 1; fi
     exit 0 ;;
+  pack-objects)
+    # Delegated to the real git rather than faked. What it returns goes into the
+    # request #67's probe builds, and a test below feeds that request to a real
+    # \`git receive-pack\`. A stubbed pack would let that test pass over a request
+    # no server would take.
+    exec "\${REAL_GIT:?}" "$@" ;;
 esac
 echo "stub git: unhandled $*" >&2; exit 99
 `;
 
 const STUB_SLEEP = '#!/usr/bin/env bash\nexit 0\n';
-const STUB_CURL = '#!/usr/bin/env bash\nST="${ST:?}"\nprintf "%s\\n" "$*" >> "$ST/curls"\nprintf 500\n';
+
+// Two callers now, wanting different things on stdout. The API fallback and the
+// tally comment read an HTTP status; #67's ref-lock probe reads a receive-pack
+// report. The probe is also the only one that POSTs a body, and that body is
+// kept so a test can check a real server would take it.
+const STUB_CURL = `#!/usr/bin/env bash
+ST="\${ST:?}"
+printf "%s\\n" "$*" >> "$ST/curls"
+case "$*" in
+  *git-receive-pack*)
+    prev=
+    for a in "$@"; do
+      case "$a" in
+        --data-binary) prev=data ;;
+        @*) [ "$prev" = data ] && cp "\${a#@}" "$ST/rp-body.bin"; prev= ;;
+        *) prev= ;;
+      esac
+    done
+    cat "$ST/rp_reply"
+    exit 0 ;;
+esac
+printf 500
+`;
+
+// Resolved once, here, because every run below puts the stub directory first on
+// PATH and the stub needs a way back to the real thing.
+const REAL_GIT = spawnSync('sh', ['-c', 'command -v git'], { encoding: 'utf8' }).stdout.trim();
 
 const lines = (dir, name) => {
   try { return readFileSync(join(dir, name), 'utf8').split('\n').filter(Boolean); } catch { return []; }
 };
 
 // Runs the real step against the stubs and returns what a job log would show.
-const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfail = 0, markerfail = 0, tallyIssue = '' } = {}) => {
+const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfail = 0, markerfail = 0, tallyIssue = '', sha = 'deadbeef', rpReply = '' } = {}) => {
   const dir = mkdtempSync(join(tmpdir(), 'delete-step-'));
   try {
     const bin = join(dir, 'bin');
@@ -120,7 +156,7 @@ const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfa
       writeFileSync(p, src);
       chmodSync(p, 0o755);
     }
-    const state = { present, restores, reappear_after: reappearAfter, lsfail, pushfail, markerfail };
+    const state = { present, restores, reappear_after: reappearAfter, lsfail, pushfail, markerfail, sha, rp_reply: rpReply };
     for (const [k, v] of Object.entries(state)) writeFileSync(join(dir, k), `${v}\n`);
     for (const f of ['reads', 'pushes', 'markers', 'curls']) writeFileSync(join(dir, f), '');
 
@@ -141,6 +177,7 @@ const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfa
         API: 'https://forge/api/v1/repos/bjorn/rovar-no',
         BRANCH,
         TALLY_ISSUE: tallyIssue,
+        REAL_GIT,
       },
     });
     return {
@@ -150,6 +187,7 @@ const run = ({ present = 1, restores = 0, reappearAfter = -1, lsfail = 0, pushfa
       markers: lines(dir, 'markers'),
       reads: lines(dir, 'reads').length,
       curls: lines(dir, 'curls'),
+      request: (() => { try { return readFileSync(join(dir, 'rp-body.bin')); } catch { return null; } })(),
     };
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -238,6 +276,146 @@ test('a ref that reads as gone and comes back is kept, and never deleted', () =>
   assert.equal(r.markers.length, 1);
 });
 
+// #67. Every other check in this job asks `git ls-remote`, which reads the ref
+// ADVERTISEMENT the server sends at the start of a connection - a report about
+// the refs, not the refs. #172 is this repo's own case of a reporting surface
+// being wrong, on the API's branch list, and a kept specimen is the one moment
+// where nobody will be able to go and look at the disk instead.
+//
+// The probe asks the server to take the ref lock: a receive-pack command whose
+// old and new values are both the sha just read is a no-op it can only accept
+// if the ref is there at that value.
+//
+// THE POINT OF THESE THREE IS THAT IT CHANGES NOTHING. Not the verdict, not the
+// push count, not the marker. A probe that could flip a red run to green, or
+// that pushed anything, would be a worse bug than the blind spot it closes.
+// The replies are copied from measured ones rather than invented. The first
+// two are what this forge answered on 2026-09-22; the third is what git 2.39.5
+// answers for the same refused no-op that 2.54.0 calls "incorrect old value
+// provided", which is how the CI image and the hypervisor disagreed on PR #68.
+// The step does not match on any of those words - see below - and these three
+// are here to prove that.
+const REPLY = {
+  there: 'unpack ok\nok refs/heads/herd/x\n',
+  absent: 'unpack ok\nng refs/heads/herd/x reference does not exist\n',
+  moved: 'unpack ok\nng refs/heads/herd/x incorrect old value provided\n',
+  movedOldGit: 'unpack ok\nng refs/heads/herd/x failed to update ref\n',
+};
+
+for (const [name, reply] of [
+  ['the ref is there', REPLY.there],
+  ['the ref is not there', REPLY.absent],
+  ['the ref moved again', REPLY.moved],
+  ['an older git on the server words it differently', REPLY.movedOldGit],
+  ['the forge did not answer', ''],
+]) {
+  test(`the ref-lock probe decides nothing when ${name}`, () => {
+    const r = run({ present: 1, restores: 1, rpReply: reply });
+    assert.equal(r.code, 1, 'the verdict is made before the probe runs and the probe cannot move it');
+    assert.match(r.log, /KEPT as a specimen/);
+    assert.equal(r.pushes, 1, 'the probe must not push anything, least of all a second delete');
+    assert.equal(r.markers.length, 1, 'and the specimen is still marked for the sweep');
+  });
+}
+
+// THE REFUSAL REASON IS QUOTED, NOT PARSED. A case arm per phrasing would have
+// read as "could not ask the forge" the first time a server worded it
+// differently, and the two wordings below are the same refusal from two git
+// versions this repo actually runs. So the step splits on accept versus refuse,
+// which is what carries the meaning, and prints the server's own words for why.
+test('the probe reports what it was told, in the server s own words', () => {
+  assert.match(run({ present: 1, restores: 1, rpReply: REPLY.there }).log,
+    /the forge confirms herd\/x is on disk/);
+
+  for (const [name, reply, why] of [
+    ['absent', REPLY.absent, 'reference does not exist'],
+    ['moved', REPLY.moved, 'incorrect old value provided'],
+    ['moved, older git', REPLY.movedOldGit, 'failed to update ref'],
+  ]) {
+    const log = run({ present: 1, restores: 1, rpReply: reply }).log;
+    assert.match(log, /the forge refused a no-op/, `${name}: a refusal is reported as one`);
+    assert.ok(log.includes(`"${why}"`), `${name}: the server's reason is quoted rather than interpreted`);
+    assert.doesNotMatch(log, /could not ask the forge/,
+      `${name}: an answer the step did not expect the wording of is still an answer`);
+  }
+
+  assert.match(run({ present: 1, restores: 1, rpReply: '' }).log,
+    /could not ask the forge/, 'a probe with no answer says so rather than implying one');
+});
+
+// THE ONE THAT CHECKS THE REQUEST IS REAL. Everything above runs against a stub
+// that answers whatever it is told to, so on its own it would pass over a
+// malformed request no server would take - the pkt-line length is computed in
+// shell and is exactly the kind of thing that is wrong by one byte. So the
+// bytes the step actually built are fed to a real `git receive-pack`, against a
+// real bare repository, in all three states of the ref.
+//
+// It also asserts what the probe is allowed to cost: the ref and its reflog are
+// unchanged afterwards. #65's finding is that the reflog is the scarce thing,
+// and a probe that appended to it would be taking the evidence it was added to
+// protect.
+test('the request the step builds is one a real receive-pack answers, and it writes nothing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'delete-step-srv-'));
+  const bare = join(dir, 'srv.git');
+  const git = (args, opts = {}) => spawnSync('git', args, {
+    encoding: 'utf8',
+    env: { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' },
+    ...opts,
+  });
+  try {
+    git(['init', '-q', '--bare', bare]);
+    git(['-C', bare, 'config', 'core.logAllRefUpdates', 'true']);
+    // commit-tree rather than commit: it writes an object without running a
+    // hook, and this host has a global hooksPath.
+    const tree = git(['-C', bare, 'hash-object', '-t', 'tree', '-w', '--stdin'], { input: '' }).stdout.trim();
+    const sha = git(['-C', bare, 'commit-tree', tree, '-m', 'x'], { input: '' }).stdout.trim();
+    const other = git(['-C', bare, 'commit-tree', tree, '-m', 'y'], { input: '' }).stdout.trim();
+    assert.notEqual(sha, other);
+    git(['-C', bare, 'update-ref', 'refs/heads/herd/x', sha]);
+
+    const r = run({ present: 1, restores: 1, sha, rpReply: REPLY.there });
+    assert.ok(r.request, 'the probe should have POSTed a request');
+    assert.ok(r.request.includes(`${sha} ${sha} refs/heads/herd/x`),
+      'the command should be a no-op update on the sha ls-remote advertised');
+    assert.ok(r.request.includes('PACK'), 'the protocol wants a pack even when there is nothing to send');
+
+    const ask = () => spawnSync('git', ['receive-pack', bare], { input: r.request }).stdout.toString('latin1');
+    const value = () => git(['-C', bare, 'rev-parse', '--verify', '-q', 'refs/heads/herd/x']).stdout.trim();
+    const reflog = () => git(['-C', bare, 'reflog', 'show', 'refs/heads/herd/x']).stdout.trim();
+
+    // ACCEPTED OR REFUSED, not the wording. git 2.54.0 refuses a moved ref with
+    // "incorrect old value provided" and git 2.39.5 with "failed to update
+    // ref", which is how this test first failed: it passed on the hypervisor
+    // and went red in CI, over a difference the step does not depend on. The
+    // phrasings live in REPLY above, as fixtures, and what is asserted here is
+    // the thing the step is built on - that a real server answers this request,
+    // and answers it differently in the three states.
+    const before = reflog();
+    assert.match(ask(), /ok refs\/heads\/herd\/x/, 'the ref is there at that sha, so the server accepts the no-op');
+    assert.equal(value(), sha, 'and the ref is untouched');
+    assert.equal(reflog(), before, 'and nothing was appended to the reflog');
+
+    git(['-C', bare, 'update-ref', 'refs/heads/herd/x', other]);
+    assert.match(ask(), /ng refs\/heads\/herd\/x /, 'a ref at another sha is refused');
+    assert.equal(value(), other, 'and left where it was');
+
+    git(['-C', bare, 'update-ref', '-d', 'refs/heads/herd/x']);
+    assert.match(ask(), /ng refs\/heads\/herd\/x /,
+      'and an advertised ref the server does not have is the answer this probe exists for');
+    assert.equal(value(), '', 'the probe must not create the ref it failed to find');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the probe answer reaches the tracking issue, not just the log', () => {
+  const r = run({ present: 1, restores: 1, tallyIssue: '44', rpReply: 'unpack ok\nok refs/heads/herd/x\n' });
+  const comment = r.curls.find((c) => c.includes('/issues/44/comments'));
+  assert.ok(comment, 'a kept specimen still comments');
+  assert.ok(comment.includes('the forge confirms'),
+    'the comment is what a reader sees first, so the probe answer belongs in it');
+});
+
 // #59, second defect, and the one this repo keeps rediscovering in other
 // shapes: a check that cannot fail. `git ls-remote` prints nothing when the ref
 // is gone and prints nothing when it was refused.
@@ -269,7 +447,8 @@ test('a kept specimen announces itself on the tracking issue, when it has one', 
     'a kept specimen should comment on the tracking issue');
 
   const without = run({ present: 1, restores: 1 });
-  assert.equal(without.curls.length, 0, 'no tally issue configured means no comment attempted');
+  assert.equal(without.curls.filter((c) => c.includes('/comments')).length, 0,
+    'no tally issue configured means no comment attempted');
   assert.equal(without.code, 1, 'and the verdict is the same either way');
 });
 
