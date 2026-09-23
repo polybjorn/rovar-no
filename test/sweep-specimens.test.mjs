@@ -29,8 +29,9 @@ const WORKFLOW = '.forgejo/workflows/delete-merged-branch.yml';
 
 // Every `run: |` block in the workflow, lifted by indentation. No YAML parser:
 // the repo has no yaml dependency of its own and a transitive one is not
-// something a test should reach into. Block 0 is the delete step, 1 and 2 are
-// the sweep's.
+// something a test should reach into. Both blocks are the sweep's: the delete
+// job above it is bjorn/ci-actions/delete-merged-branch@v1 and carries no
+// script here to lift.
 const runBlocks = () => {
   const lines = readFileSync(WORKFLOW, 'utf8').split('\n');
   const out = [];
@@ -50,8 +51,8 @@ const runBlocks = () => {
 
 const sweepSteps = () => {
   const blocks = runBlocks();
-  assert.equal(blocks.length, 3, `expected 3 run blocks in ${WORKFLOW}, found ${blocks.length} - has a step been added or re-indented?`);
-  const [, find, del] = blocks;
+  assert.equal(blocks.length, 2, `expected 2 run blocks in ${WORKFLOW}, found ${blocks.length} - has a step been added or re-indented?`);
+  const [find, del] = blocks;
   assert.match(find, /refs\/specimens/, 'the find step does not look like the one that reads specimen markers');
   assert.match(del, /swept \$deleted/, 'the delete step is missing its summary line');
   return { find, del };
