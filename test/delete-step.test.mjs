@@ -69,7 +69,7 @@ const deleteStep = () => {
 //
 // `#!/usr/bin/env bash`, and bash invoked off PATH below: the hypervisor these
 // agents run on has no /bin/bash, so a hardcoded shebang exits 127 there while
-// passing in CI. Same trap as the repo's own check-attribution.sh.
+// passing in CI. Same trap the shared attribution gate carries a selftest for.
 const STUB_GIT = `#!/usr/bin/env bash
 ST="\${ST:?}"
 case "$1" in

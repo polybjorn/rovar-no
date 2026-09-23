@@ -127,7 +127,7 @@ test('a file that appears or disappears is never a comment change', () => {
 });
 
 test('an extension with no prover is logic, not a free pass', () => {
-  assert.equal(classifyFile({ path: 'check-attribution.sh', status: 'modified', before: '# a\n', after: '# b\n' }).verdict, 'logic');
+  assert.equal(classifyFile({ path: 'some-gate.sh', status: 'modified', before: '# a\n', after: '# b\n' }).verdict, 'logic');
   assert.equal(classifyFile({ path: 'package.json', status: 'modified', before: '{}', after: '{}' }).verdict, 'logic');
   assert.equal(classifyFile({ path: 'src/pages/index.astro', status: 'modified', before: 'a', after: 'a' }).verdict, 'logic');
 });

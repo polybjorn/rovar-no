@@ -147,8 +147,8 @@ export const STRIPPERS = new Map([
   ['mjs', stripJs], ['js', stripJs], ['ts', stripJs], ['mts', stripJs],
 ]);
 // Deliberately absent: .sh, because shell heredocs are a third dialect this
-// would have to learn, and check-attribution.sh is the last file in the repo
-// that should ever land without being read. .json and .astro have no comment
+// would have to learn, and a shell gate is the last kind of file that should
+// ever land without being read. .json and .astro have no comment
 // syntax to speak of. Anything not listed is not provable, which is the safe
 // default rather than an oversight.
 
