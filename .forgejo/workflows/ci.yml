@@ -7,13 +7,14 @@
 # push mirror - this job is the gate that runs on the forge the push actually
 # lands on. `uses:` resolves via data.forgejo.org, not github.com.
 #
-# check-attribution.sh gates AI attribution in commit messages and PR
+# The attribution gate is bjorn/ci-actions/attribution@v1 since nixfleet #149,
+# not a script in this tree. It gates AI attribution in commit messages and PR
 # descriptions: co-author trailers, generated-with lines, the per-session
-# trailer a harness injects, and bare assistant URLs. CLAUDE.md says not to add
-# these; an agent has followed a conflicting session-level instruction and
-# added them anyway more than once regardless. Enforced by memory alone until
-# this, and memory alone did not hold. Ported from dashboard's own gate, whose
-# pattern covered only the first two shapes until 2026-09-11.
+# trailer a harness injects, and vendor URLs. CLAUDE.md says not to add these;
+# an agent has followed a conflicting session-level instruction and added them
+# anyway more than once regardless. The copy ported from dashboard asked for
+# the vendor name after the colon, so the trailer carrying it in the KEY walked
+# through; the action carries the widened pattern and a selftest ahead of it.
 name: CI
 
 on:
@@ -69,42 +70,17 @@ jobs:
     runs-on: docker
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      # One copy, in bjorn/ci-actions, replacing the seven this gate had
+      # drifted into (nixfleet #149). No checkout step: the action does its own
+      # in pure git, which is also what lets the same reference work on the
+      # python and nix labels, where actions/checkout cannot run. The full URL
+      # is required - a bare namespaced reference resolves to data.forgejo.org.
+      - uses: https://git-ci.pebblecove.xyz:8447/bjorn/ci-actions/attribution@v1
         with:
-          fetch-depth: 0
-      - name: Check commit messages
-        env:
-          BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.event.after }}
-        run: |
-          set -eu
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git fetch origin "${{ github.event.pull_request.base.ref }}"
-            ./check-attribution.sh commits "origin/${{ github.event.pull_request.base.ref }}..HEAD"
-            exit 0
-          fi
-          # On a push, read what the push actually added. This used to be
-          # `commits -1`, which on main is the merge commit and nothing else -
-          # and a merge commit carries none of the trailers its parents do, so
-          # anything that got past the pull_request job was invisible from then
-          # on.
-          zero=0000000000000000000000000000000000000000
-          after=${AFTER:-HEAD}
-          [ "$after" = "$zero" ] && after=HEAD
-          if [ -n "${BEFORE:-}" ] && [ "$BEFORE" != "$zero" ] && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
-            range="$BEFORE..$after"
-          else
-            # First push of a branch, or a runner that does not hand us the
-            # previous tip. For a merge this is the branch it merged in; for a
-            # plain commit it is that commit, which is what the old form did.
-            range="$after^1..$after"
-          fi
-          echo "Checking $range"
-          ./check-attribution.sh commits "$range"
-      - name: Check PR description
-        if: github.event_name == 'pull_request'
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: |
-          printf '%s' "$PR_BODY" > /tmp/pr-body.txt
-          ./check-attribution.sh body /tmp/pr-body.txt
+          token: ${{ github.token }}
+          event-name: ${{ github.event_name }}
+          sha: ${{ github.sha }}
+          base-ref: ${{ github.event.pull_request.base.ref }}
+          before: ${{ github.event.before }}
+          pr-body: ${{ github.event.pull_request.body }}
+
