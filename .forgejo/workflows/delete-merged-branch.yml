@@ -14,12 +14,13 @@
 # measurements. The sweep below is unchanged and still honours the marker for
 # seven days.
 #
-# WHAT WENT WITH THE LOCAL COPY, so nobody looks for it: `under_the_ref_lock`,
-# #67's receive-pack no-op that asked the forge whether a kept specimen is
-# really on disk rather than only in the ref advertisement. The action has no
-# equivalent, so a preserved run now reports what ls-remote saw and nothing
-# more. It never changed the verdict, so this costs evidence rather than
-# correctness - #71 is where it goes next.
+# `under_the_ref_lock` IS BACK, as the action's `ref-lock-probe` input, which
+# this job turns on below. #67's receive-pack no-op left this repo when the
+# delete script did, so for a day a preserved run reported what ls-remote saw
+# and nothing more; #71 put it in the action and it is on here because this is
+# the repo where the fault has actually fired. It is an input rather than the
+# default because it needs curl, and an action in ci-actions may rely on bash,
+# git, grep and mktemp and on nothing else.
 #
 # THE MECHANISM IS OPEN. Do not fill this space in from nixfleet #194 without
 # re-testing there: that issue's explanation was corrected three times and the
@@ -106,6 +107,17 @@ jobs:
       # moment a specimen is kept, because the sweep that expires the marker
       # runs at 04:53 and merge-audit's daily tally at 05:13 - a tally-only
       # notice would arrive twenty minutes after the specimen was taken.
+      #
+      # ref-lock-probe asks the forge, under the ref lock, whether a kept
+      # specimen is really at the sha ls-remote advertised - #67's question,
+      # answered from the refs rather than from the advertisement that can race.
+      # It writes nothing in any outcome, which is the only reason it is allowed
+      # near a specimen at all: #65's finding is that the reflog is the scarce
+      # thing here. It decides nothing either - ls-remote stays the verdict, and
+      # a forge that will not answer keeps the specimen and still exits non-zero.
+      # Whether github.token is accepted on that endpoint is the one thing that
+      # cannot be checked from outside a runner, so the first real specimen is
+      # also the first time that half is known.
       - uses: https://git-ci.pebblecove.xyz:8447/bjorn/ci-actions/delete-merged-branch@v1
         with:
           token: ${{ github.token }}
@@ -113,6 +125,7 @@ jobs:
           server-url: ${{ github.server_url }}
           repository: ${{ github.repository }}
           tally-issue: '44'
+          ref-lock-probe: "true"
 
   # THE BACKSTOP, AND THE REASON IT IS A SECOND SHAPE RATHER THAN A BETTER
   # VERSION OF THE JOB ABOVE. The delete job runs on `pull_request: closed`,
