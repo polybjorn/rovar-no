@@ -46,6 +46,12 @@ jobs:
       # answers it wrong rather than not at all. scripts/check-merged-prs.mjs
       # refuses to run on one, which is what makes getting this line wrong loud
       # instead of a page of false orphans.
+      #
+      # Still actions/checkout rather than bjorn/ci-actions/checkout@v1, unlike
+      # the rest of the repo: check-merged-prs.mjs refreshes origin/main itself
+      # and exits 2 when it cannot, and that fetch is authenticated by
+      # persist-credentials, which the other action deliberately does not do.
+      # bjorn/nixfleet#1000.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0

