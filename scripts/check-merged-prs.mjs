@@ -65,7 +65,7 @@ if (git('rev-parse', '--is-shallow-repository') === 'true') {
   die(
     'this is a shallow clone, so reachability cannot be decided here.',
     'Nearly every merge would be reported as orphaned.',
-    'Use a full clone, or in CI set fetch-depth: 0 on actions/checkout.'
+    'Use a full clone, or in CI pass depth: 0 to the checkout action.'
   );
 }
 

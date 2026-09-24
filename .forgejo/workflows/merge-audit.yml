@@ -47,14 +47,19 @@ jobs:
       # refuses to run on one, which is what makes getting this line wrong loud
       # instead of a page of false orphans.
       #
-      # Still actions/checkout rather than bjorn/ci-actions/checkout@v1, unlike
-      # the rest of the repo: check-merged-prs.mjs refreshes origin/main itself
-      # and exits 2 when it cannot, and that fetch is authenticated by
-      # persist-credentials, which the other action deliberately does not do.
-      # bjorn/nixfleet#1000.
-      - uses: actions/checkout@v7
+      # credential-helper, because check-merged-prs.mjs refreshes origin/main
+      # itself and exits 2 when it cannot, and this repo is private - which is
+      # what kept this call site on actions/checkout when the rest of the repo
+      # moved (bjorn/nixfleet#1000). The token now goes in a 0600 file in the
+      # runner's scratch with only its path in .git/config, rather than in
+      # persist-credentials' extraheader inside the workspace, where every later
+      # step can read it. The inert and retry checks below fetch refs/pull/*
+      # through the same credential. bjorn/ci-actions#18.
+      - uses: https://git-ci.pebblecove.xyz:8447/bjorn/ci-actions/checkout@v1
         with:
-          fetch-depth: 0
+          token: ${{ github.token }}
+          depth: 0
+          credential-helper: true
 
       # Before the work, not after. A job that cannot reach the API should say
       # so in its first seconds rather than looking like a clean audit - which
