@@ -16,6 +16,7 @@
     "merges:check": "node scripts/check-merged-prs.mjs",
   "sweep:check": "node scripts/check-sweep-freshness.mjs",
   "retries:check": "node scripts/check-delete-retries.mjs",
+  "verdict:check": "node scripts/check-verdict-contract.mjs",
     "inert:check": "node scripts/check-inert-prs.mjs",
     "inert:history": "node scripts/check-inert-prs.mjs --history",
     "prebuild": "npm run i18n:verify",

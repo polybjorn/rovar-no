@@ -67,6 +67,12 @@ const VERDICTS = [
   [/^git ls-remote could not read the remote, so nothing here can say whether (\S+) is gone$/, 'unreadable', null],
   [/^PR closed without merging, leaving (\S+)$/, 'not-merged', null],
   [/^(\S+) is not ours, leaving it$/, 'not-ours', null],
+  // The same refusal in the action's wording, which is not the one above. The
+  // job-level `if:` in delete-merged-branch.yml means this repo cannot reach
+  // it, so it had diverged unnoticed since #72 and only turned up when
+  // scripts/verdict-contract-core.mjs went looking - which is the argument for
+  // that file in one line.
+  [/^refusing: (\S+) is not under \S+, so this action will not touch it$/, 'not-ours', null],
 ];
 
 // Every outcome a pattern above can produce, plus the one classifyLog invents

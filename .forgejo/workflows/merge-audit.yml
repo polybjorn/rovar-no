@@ -142,6 +142,25 @@ jobs:
           set -eu
           npm run retries:check
 
+      # The tally above counts verdicts; this checks they are still verdicts it
+      # can count. Since #72 the delete step is an action in another repo, so
+      # the wordings scripts/delete-retries-core.mjs matches are that repo's to
+      # change, and a reword would land every delete run in the tally's
+      # `unknown` bucket - a count going quietly down, not a red tick. #76.
+      #
+      # Fails this job, unlike the tally. A tally that cannot classify its runs
+      # is reporting on nothing, and the one event #44 is open for is the one
+      # that would be lost. Comes after the tally so a wording change does not
+      # stop the count that is still readable.
+      #
+      # No TOKEN: bjorn/ci-actions is public, which its own README requires
+      # because a job's automatic token is answered 403 on any other private
+      # repo. The check sends one only if it is set.
+      - name: The delete job still prints the verdicts the tally parses
+        run: |
+          set -eu
+          npm run verdict:check
+
       # Says which open pull requests are provably inert - markdown outside the
       # build, or identical to main once comments are removed - so those can be
       # merged on green without anyone reading the diff. #50 measured that a

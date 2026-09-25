@@ -40,9 +40,21 @@
 # move. scripts/delete-retries-core.mjs classifies a run by matching the last
 # line the job prints, and those lines are the action's to change: a reworded
 # `deleted <branch> (1 attempt(s))` would land in this repo's daily tally as
-# `unknown` with nothing here to notice. Both sides know it - the action's own
-# comment says the attempt count stays for this file's sake - and neither can
-# assert it.
+# `unknown`, which is a count going quietly down rather than a red tick.
+#
+# This side now asserts it (#76). scripts/verdict-contract-core.mjs declares the
+# wordings the tally depends on; `npm test` checks each one still classifies
+# here, and merge-audit runs `npm run verdict:check` daily to check each one is
+# still in the action source at the ref this file pins - so the assertion
+# follows the `uses:` line below rather than a copy of it. Finding it was worth
+# it: the action's out-of-prefix refusal had already diverged from the tally's
+# wording, harmlessly, because this job's `if:` means that path cannot fire here.
+#
+# WHAT IT STILL CANNOT SEE is a verdict the action ADDS. Nothing on this side
+# enumerates the action's output, so a new terminal line is unmatched by the
+# tally and unmentioned by the check, and the `unknown` count is the only
+# signal. Closing that needs the action to declare its own verdicts, which is
+# that repo's call.
 #
 # HOW LONG TO WAIT BEFORE CALLING A LEFTOVER BRANCH A FAULT. This is the trap
 # that catches a human reader rather than the job, and the numbers are wider
