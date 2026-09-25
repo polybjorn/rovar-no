@@ -145,6 +145,17 @@ generations of that workflow appear in the logs it reads, and one of the
 older ones printed an HTTP status where the attempt count now sits, so the
 parser is explicit about which parenthesised number means what.
 
+`npm run verdict:check` asks whether the delete job still prints the lines
+`retries:check` parses. The delete step is an action in another repo, so those
+wordings are not this repo's to change, and a reword would land every run in the
+tally's `unknown` bucket - a count going quietly down rather than a red tick. The
+wordings are declared once: the test suite checks each still classifies here, and
+the daily audit checks each is still in the action source at the ref the workflow
+pins, reading the pin out of the workflow rather than from a copy of it. It found
+one wording already diverged, on a path this repo's job guard means cannot fire.
+What it cannot see is a verdict the action adds, which needs the action to
+declare its own.
+
 `npm run inert:check` says which open pull requests are provably inert: every
 file in them is markdown outside the build, or identical to the version on main
 once comments are removed. Those can be merged on green without reading the diff,
