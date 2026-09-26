@@ -103,6 +103,17 @@ once. A difference between the first two is reported and tolerated; the job
 fails only when the deploy version drops below the floor, which is the point
 where the difference can actually break the build.
 
+The CI job also scans the lockfile for known vulnerabilities, with
+`bjorn/ci-actions/osv-scan@v1`. It is offline: the scanner and the OSV databases
+are cached on the runner host and mounted read-only at `/osv`, so no part of
+this repo's package list reaches osv.dev. It runs before `npm ci`, on the
+committed tree rather than on one with `node_modules` in it, and it refuses
+rather than skips - an absent mount, an absent scanner or a cache older than a
+week fail the step, because a scanner with nothing to read prints a summary that
+looks exactly like a clean one. A finding is silenced with an `osv-scanner.toml`
+in the repo root carrying an `[[IgnoredVulns]]` entry with an id and a reason;
+the scanner reads that file natively and nothing here parses it.
+
 `npm run merges:check` asks git whether every pull request the forge reports as
 merged is reachable from `main`. A daily job runs it. A merge can report success
 on every signal and leave `main` without the work, and when that happens nothing

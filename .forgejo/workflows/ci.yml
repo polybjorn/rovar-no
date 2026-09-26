@@ -63,6 +63,27 @@ jobs:
       # for why the narrow rule was the one chosen.
       - name: Check the node pins agree
         run: npm run pins:check
+      # Offline dependency CVE gate. The scanner and the OSV databases are
+      # cached on the runner HOST and bind-mounted read-only at /osv
+      # (nixfleet modules/forgejo-runner.nix), so nothing about this repo's
+      # package list reaches osv.dev.
+      #
+      # Before `npm ci`, so the tree it scans is exactly what the commit
+      # carries: no node_modules and no dist, rather than a directory the
+      # scanner has to be trusted to exclude. The cost is that an advisory
+      # published overnight reds the run ahead of the tests, for a reason no
+      # commit here caused; the answer to that is an `osv-scanner.toml` in the
+      # repo root with an `[[IgnoredVulns]]` entry carrying an id and a reason,
+      # which the scanner reads natively from the scanned directory.
+      #
+      # IT REFUSES RATHER THAN SKIPS - absent mount, absent scanner, empty or
+      # week-old cache all fail the step - because osv-scanner prints a
+      # clean-looking summary and reports zero findings when the cache answers
+      # nothing. So a green tick here is not on its own evidence that the
+      # database had content. What proves that is a call that MUST be refused,
+      # and ci-actions' own three gate jobs make one against the same /osv
+      # (bjorn/ci-actions#23, #24); a caller does not repeat it.
+      - uses: https://git-ci.pebblecove.xyz:8447/bjorn/ci-actions/osv-scan@v1
       - run: npm ci
         timeout-minutes: 5
       - run: npm test
