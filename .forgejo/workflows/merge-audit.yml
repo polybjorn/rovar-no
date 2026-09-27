@@ -30,10 +30,11 @@ name: Merge audit
 
 on:
   schedule:
-    # 05:13 daily. Off the hour, and clear of the runner's other two slots -
-    # link-check on Wednesdays at 06:00 and deps-update on the 6th and 20th at
-    # 04:37. Capacity is 1 across seven repos. A 7-day window checked daily
-    # gives any orphan seven chances to be seen before it ages out.
+    # 05:13 daily. Off the hour, and clear of this repo's other slots -
+    # delete-merged-branch at 04:53 daily and link-check on Wednesdays at
+    # 06:00. The 6th-and-20th 04:37 slot was deps-update.yml, removed on
+    # 2026-09-27. Capacity is 1 across seven repos. A 7-day window checked
+    # daily gives any orphan seven chances to be seen before it ages out.
     - cron: '13 5 * * *'
   workflow_dispatch:
 

@@ -15,7 +15,7 @@
 //
 // Needs API and TOKEN in the environment. The automatic Actions token is not
 // enough: Forgejo answers 404 "Can not read pulls" for it, which is the same
-// wall deps-update.yml hits, so this uses FORGE_PR_TOKEN too.
+// wall every other forge read in this repo hits, so this uses FORGE_PR_TOKEN too.
 
 import { execFileSync } from 'node:child_process';
 import { collectClosed, mergedWithin, classify, summaryLines, remoteRefParts } from './merged-prs-core.mjs';

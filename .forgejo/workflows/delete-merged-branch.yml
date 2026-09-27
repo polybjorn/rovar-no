@@ -93,10 +93,10 @@ on:
     types: [closed]
   schedule:
     # 04:53 daily. Off the hour and clear of every slot this fleet already
-    # uses: deps-update 04:37 here, merge-audit 05:13 here, link-check Wed
-    # 06:00 here, and 04:17 and 04:41 taken by polybjorn-en and media-tools
-    # for the same job. Capacity is 1 runner across seven repos, so these are
-    # a real queue rather than a courtesy.
+    # uses: merge-audit 05:13 here, link-check Wed 06:00 here, and 04:17 and
+    # 04:41 taken by polybjorn-en and media-tools for the same job. Capacity
+    # is 1 runner across seven repos, so these are a real queue rather than a
+    # courtesy.
     - cron: '53 4 * * *'
   workflow_dispatch:
 

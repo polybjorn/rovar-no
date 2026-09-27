@@ -176,8 +176,8 @@ prover over every merge on main so its verdicts can be checked against what
 actually landed before anyone considers giving it rights.
 
 The prover is allowed to be wrong in one direction only, "not provable". Nothing
-inside a yaml block scalar counts as a comment, because `run:` blocks here embed
-shell and javascript and a `#` line in javascript is a private class field; a
+inside a yaml block scalar counts as a comment, because a `run:` block can embed
+shell or javascript and a `#` line in javascript is a private class field; a
 `//` line inside a template literal is content, not a comment; a trailing comment
 is never stripped, since finding where one starts means knowing whether an
 earlier `/` opened a regular expression; an added, removed or renamed file is
@@ -187,10 +187,14 @@ never inert whatever it contains; and an extension with no prover, `.sh` and
 is the right side to err on, because a false "inert" is an unreviewed change on
 main and, since the site deploys on every push there, published.
 
-A fortnightly job runs `npm update` and opens one rolling pull request when the
-lockfile moves, with the version changes and a full build of the result in its
-description. It only moves `package-lock.json` inside the ranges `package.json`
-already declares, so it never crosses a major.
+Renovate owns npm updates. It runs on the fleet host rather than as a job here,
+is configured in nixfleet's `modules/renovate.nix`, and groups this repo's npm
+bumps into one pull request before 6am on Mondays; its dependency dashboard is
+issue #58. This repo also had its own fortnightly `npm update` job until
+2026-09-27, which raised the same bumps as a second pull request, so that job
+was removed rather than kept beside Renovate. The difference to read for:
+Renovate edits `package.json` as well as the lockfile, so a bump can cross a
+major, where the removed job never could.
 
 ## License
 
