@@ -105,5 +105,4 @@ jobs:
           sha: ${{ github.sha }}
           base-ref: ${{ github.event.pull_request.base.ref }}
           before: ${{ github.event.before }}
-          pr-body: ${{ github.event.pull_request.body }}
 
