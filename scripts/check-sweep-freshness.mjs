@@ -14,7 +14,7 @@
 //
 // Needs API and TOKEN in the environment. TOKEN must be able to read the repo's
 // Actions listing; the automatic Actions token is not enough on this forge, the
-// same wall merges:check and deps-update hit, so this uses FORGE_PR_TOKEN too.
+// same wall merges:check hits, so this uses FORGE_PR_TOKEN too.
 
 import { collectTasks, verdict, summaryLines } from './sweep-freshness-core.mjs';
 

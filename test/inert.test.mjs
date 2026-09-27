@@ -21,10 +21,12 @@ test('a comment change inside a run block is not provable', () => {
   assert.notEqual(stripYaml(mk('old')), stripYaml(mk('new')));
 });
 
-// deps-update.yml embeds javascript in `node - <<'JS'` heredocs, and `#count`
-// is a legal private class field. A `#` stripper that reached inside a block
-// scalar would read a change to one as cosmetic, which is the exact shape of
-// unsoundness this file exists to prevent.
+// deps-update.yml embedded javascript in `node - <<'JS'` heredocs until it was
+// removed on 2026-09-27, and `#count` is a legal private class field. A `#`
+// stripper that reached inside a block scalar would read a change to one as
+// cosmetic, which is the exact shape of unsoundness this file exists to
+// prevent. The fixture is built here rather than read off disk, so the test
+// outlives the file that motivated it.
 test('a hash line inside an embedded heredoc is code, not a comment', () => {
   const mk = (v) => `jobs:\n  a:\n    steps:\n      - run: |\n          node - <<'JS'\n          class C {\n          #count = ${v};\n          }\n          JS\n`;
   assert.notEqual(stripYaml(mk('0')), stripYaml(mk('1')));

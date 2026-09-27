@@ -21,14 +21,17 @@
 // GitHub Pages on every push there, published. A false "not inert" costs one
 // human merge, which is the thing we have today.
 
-// Two hazards make the naive version of this unsound, and both are present in
-// this repo rather than hypothetical.
+// Two hazards make the naive version of this unsound. The second is present in
+// this repo today; the first was, in a file that has since gone.
 //
-//   1. A `#` line is not always a yaml comment. deps-update.yml embeds
+//   1. A `#` line is not always a yaml comment. deps-update.yml embedded
 //      javascript in `node - <<'JS'` heredocs, and `#count = 0` is a legal
 //      private class field. A stripper that treats every `#` line as a comment
-//      would read a change to one as cosmetic. So nothing inside a block scalar
-//      is ever treated as a comment - see stripYaml.
+//      would have read a change to one as cosmetic. That file was removed on
+//      2026-09-27 and the rule stays: soundness cannot depend on which files
+//      happen to exist today, and the next embedded heredoc would arrive with
+//      nobody re-checking this. So nothing inside a block scalar is ever
+//      treated as a comment - see stripYaml.
 //   2. A `//` line is not always a javascript comment. It can sit inside a
 //      template literal, which is the one string that spans lines. So stripJs
 //      tracks template literals and refuses when it cannot follow the file.
