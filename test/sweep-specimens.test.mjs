@@ -95,14 +95,14 @@ const remoteRefs = (origin) =>
 
 // Runs both sweep steps the way the runner would, in order, sharing a work
 // directory exactly as two steps of one job share /tmp.
-const runSweep = ({ root, origin, gitWrapper = null }) => {
+const runSweep = ({ root, origin, gitWrapper = null, token = 'x', server = null }) => {
   const W = mkdtempSync(join(tmpdir(), 'sweep-work-'));
   const env = {
     ...process.env,
     SWEEP_WORK: W,
-    SERVER: `file://${root}`,
+    SERVER: server ?? `file://${root}`,
     REPO: 'origin',
-    TOKEN: 'x',
+    TOKEN: token,
   };
   if (gitWrapper) {
     const bin = join(W, 'bin');
@@ -235,6 +235,84 @@ test('a branch that is not merged is still left alone, marker or none', () => {
     assert.equal(steps.at(-1).code, 0, steps.map((s) => s.log).join('\n'));
     assert.ok(remoteRefs(o.origin).includes('refs/heads/herd/live'));
     assert.match(steps[0].log, /keep {3}herd\/live \(not an ancestor of main\)/);
+  } finally {
+    rmSync(o.root, { recursive: true, force: true });
+  }
+});
+
+// THE TOKEN IS NEVER AN ARGUMENT. Every local account on the runner host can
+// read argv, and nixfleet's agent-argv-scan pages on a credential found there
+// (nixfleet #1506) - the shape this replaced put it in the clone URL, so `git`
+// and `git-remote-http` carried it for the whole clone. Run, not read: the
+// wrapper is real git for everything, records each argv, and on the clone asks
+// git's own `credential fill` with the same leading options, so the helper that
+// carries the token is executed rather than matched as a string. Both halves
+// are asserted, because a step that had simply stopped authenticating would
+// also keep the token out of argv.
+test('the token reaches git from the environment, never as an argument', () => {
+  const o = makeOrigin({ branches: ['herd/a'] });
+  const token = 'tok-!$*()-secret';
+  const argvLog = join(o.root, 'argv.log');
+  const filledLog = join(o.root, 'filled.log');
+  writeFileSync(argvLog, '');
+  writeFileSync(filledLog, '');
+  try {
+    const steps = runSweep({
+      ...o,
+      token,
+      gitWrapper: `#!/usr/bin/env bash
+printf '%s\\n' "$*" >> '${argvLog}'
+pre=()
+while [ "$#" -gt 0 ] && [ "$1" = -c ]; do pre+=("$1" "$2"); shift 2; done
+if [ "\${1:-}" = clone ]; then
+  printf 'protocol=https\\nhost=127.0.0.1:1\\n\\n' \\
+    | "\${REAL_GIT}" "\${pre[@]}" credential fill 2>/dev/null \\
+    | grep '^password=' >> '${filledLog}' || true
+fi
+exec "\${REAL_GIT}" "\${pre[@]}" "$@"
+`,
+    });
+    assert.equal(steps.at(-1).code, 0, steps.map((s) => s.log).join('\n'));
+    const argv = readFileSync(argvLog, 'utf8');
+    assert.ok(argv.includes('clone'), 'the wrapper saw no clone, so it observed nothing');
+    assert.ok(!argv.includes(token),
+      'the token was on a git command line, where every local account on the runner host can read it');
+    assert.ok(readFileSync(filledLog, 'utf8').split('\n').includes(`password=${token}`),
+      'the credential helper did not hand the token back, so the clone only worked because file:// needs no auth');
+  } finally {
+    rmSync(o.root, { recursive: true, force: true });
+  }
+});
+
+// The other half, and the one the old shape fails on. Over file:// there is no
+// credential to put anywhere, so the test above cannot see the defect: it was
+// `${SERVER/https:\/\//https:\/\/x-access-token:${TOKEN}@}`, which fires only
+// on an https server URL. So this one hands the step https://127.0.0.1:1 - a
+// closed port, so the clone fails, which is fine because the argv is written
+// before the connection is tried. Same trick as bjorn/ci-actions' own
+// checkout selftest. The token in these two cases carries no `&`: in the
+// shape being replaced that is bash's back-reference to the text the pattern
+// matched, so a token holding one came out mangled rather than merely exposed.
+test('an https remote is cloned with no credential in the command line', () => {
+  const o = makeOrigin({ branches: [] });
+  const token = 'tok-!$*()-secret';
+  const argvLog = join(o.root, 'argv-https.log');
+  writeFileSync(argvLog, '');
+  try {
+    const steps = runSweep({
+      ...o,
+      token,
+      server: 'https://127.0.0.1:1',
+      gitWrapper: `#!/usr/bin/env bash
+printf '%s\\n' "$*" >> '${argvLog}'
+exec "\${REAL_GIT}" "$@"
+`,
+    });
+    assert.notEqual(steps[0].code, 0, 'a clone from a closed port should fail, so this case proves nothing');
+    const argv = readFileSync(argvLog, 'utf8');
+    assert.ok(argv.includes('clone'), 'the wrapper saw no clone, so it observed nothing');
+    assert.ok(!argv.includes(token),
+      'the token was on the clone command line, where every local account on the runner host can read it');
   } finally {
     rmSync(o.root, { recursive: true, force: true });
   }

@@ -206,8 +206,23 @@ jobs:
           W="${SWEEP_WORK:-/tmp}"
           mkdir -p "$W"
 
-          git clone -q --bare --filter=blob:none \
-            "${SERVER/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPO}.git" "$W/sweep-repo"
+          # THE TOKEN COMES FROM THE ENVIRONMENT, NOT THE URL. A credential in
+          # a clone URL sits in the argv of `git` and `git-remote-http` for the
+          # whole clone, where every local account on the runner host can read
+          # it and nixfleet's agent-argv-scan pages on it (nixfleet #1506);
+          # the helper's own argv carries the variable name, and echo is a
+          # builtin. The empty helper first drops whatever else is configured.
+          # Shape from bjorn/ci-actions bb21f3b, and driven rather than read:
+          # test/sweep-specimens.test.mjs logs every git argv this step makes.
+          git() {
+            command git -c credential.helper= \
+              -c 'credential.helper=!f() { echo username=x-access-token; echo "password=$TOKEN"; }; f' "$@"
+          }
+
+          # origin is the clean URL, so the delete step below inherits no
+          # credential from .git/config the way it did from the authed clone -
+          # it defines the same helper instead.
+          git clone -q --bare --filter=blob:none "${SERVER}/${REPO}.git" "$W/sweep-repo"
           cd "$W/sweep-repo"
 
           # `**`, NOT `*`. A single star does not match across a slash in a ref
@@ -308,10 +323,21 @@ jobs:
       # batching. Verification is still per branch, because a push reporting
       # success is exactly the claim #172 established is worthless.
       - name: Delete them
+        env:
+          TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           W="${SWEEP_WORK:-/tmp}"
           cd "$W/sweep-repo"
+
+          # The clone left by the step above carries no credential, so this
+          # step needs its own helper for the push and the ls-remote reads
+          # below. Same reason as there: the token never becomes an argument.
+          git() {
+            command git -c credential.helper= \
+              -c 'credential.helper=!f() { echo username=x-access-token; echo "password=$TOKEN"; }; f' "$@"
+          }
+
           [ -f "$W/expired.txt" ] || : > "$W/expired.txt"
 
           # Nothing to do now covers both lists: no merged branch to sweep and
