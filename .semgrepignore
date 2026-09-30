@@ -1,0 +1,18 @@
+# Target exclusions for the `static` job in .forgejo/workflows/ci.yml.
+#
+# This file REPLACES semgrep's built-in ignore list rather than adding to it
+# (measured on 1.178.0 in bjorn/polybjorn-en#130), so deleting a line below
+# puts that directory back in scope rather than restoring a default.
+#
+# The point of the file is the line that is not in it: `test/`. The built-in
+# list drops `test/` and `tests/`, which would leave this repo's whole test
+# suite unscanned without anyone having decided that. The rest is the built-in
+# list as polybjorn-en probed it.
+node_modules/
+vendor/
+dist/
+build/
+.venv/
+.tox/
+.npm/
+*.min.js

@@ -106,3 +106,36 @@ jobs:
           base-ref: ${{ github.event.pull_request.base.ref }}
           before: ${{ github.event.before }}
 
+
+  static:
+    # Offline semgrep over the tree, from bjorn/ci-actions#29, which rolled the
+    # gate out to four repos and left the three Astro sites off the list (#81,
+    # #84). The `semgrep` label and nowhere else: semgrep publishes no standalone
+    # binary, so nixfleet #1106 put the official image behind a label of its
+    # own, and semgrep-scan refuses to run anywhere it cannot find /semgrep.
+    # Not a required context on main until Bjorn makes it one - that is a
+    # branch-protection change and admin-only.
+    runs-on: semgrep
+    timeout-minutes: 10
+    steps:
+      # Alpine, so no node - the composite checkout rather than actions/checkout.
+      - uses: https://git-ci.pebblecove.xyz:8447/bjorn/ci-actions/checkout@v1
+        with:
+          token: ${{ github.token }}
+      - uses: https://git-ci.pebblecove.xyz:8447/bjorn/ci-actions/semgrep-scan@v1
+        with:
+          # These two rather than `default`, whose python half would scan
+          # nothing here. semgrep does not parse .astro, so those files and the
+          # script blocks inside them are out of scope - the real gap in this
+          # gate's coverage. test/ is in scope only because .semgrepignore
+          # replaces the built-in list that drops it; read the scanned count off
+          # the job's own `Ran N rules on M files` line, and treat `on 0 files`
+          # as a broken gate rather than a clean tree.
+          rulesets: javascript typescript
+          # Every finding, not only what a change introduces, which is where
+          # bjorn/media-tools landed after #33 and #34: `new` needs a baseline
+          # commit, history on the checkout and a workflow_dispatch special
+          # case. A finding gets fixed, or its line gets a trailing
+          # `// nosemgrep: <rule-id>` with the reason above it, rather than
+          # this moving back to `new`.
+          fail-on: any
