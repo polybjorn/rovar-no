@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import { ui } from '../i18n/ui.js';
 import Sentence from './Sentence.astro';
-import { kolumbusUrl, ENTUR_SITE, weekdayNames } from '../scripts/departures-core.js';
+import { kolumbusUrl, ENTUR_SITE } from '../scripts/departures-core.js';
 import { defaultLocale, localeInfo } from '../i18n/locales.js';
 import { facts } from '../data/facts.js';
 import boatImg from '../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
@@ -101,20 +101,27 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
       <svg class="dep-pick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>
       {t.board.pickStart}
     </button>
-    <div class="dep-pick-bar" id="dep-pick-bar" role="group" aria-label={t.board.pickStart} tabindex="-1" hidden>
-      <p class="dep-pick-hint">{t.board.pickHint} <span class="dep-pick-count" id="dep-pick-count" aria-live="polite"></span></p>
-      <div class="dep-pick-repeat">
-        <span class="dep-pick-repeat-label" id="dep-pick-repeat-label">{t.board.pickRepeat}</span>
-        <div class="dep-pick-days" id="dep-pick-days" role="group" aria-labelledby="dep-pick-repeat-label">
-          {weekdayNames(localeInfo(lang).intl).map((name, i) => (
-            <button type="button" class="dep-pick-day" data-day={i} aria-pressed="false">{name}</button>
-          ))}
-        </div>
+    <div class="dep-pick-bar" id="dep-pick-bar" role="region" aria-labelledby="dep-pick-title" tabindex="-1" hidden>
+      <div class="dep-pick-head">
+        <p class="dep-pick-title" id="dep-pick-title">{t.board.pickTitle}<span class="dep-pick-count" id="dep-pick-count" aria-live="polite" hidden></span></p>
+        <button type="button" class="dep-pick-close" id="dep-pick-cancel" aria-label={t.board.pickCancel}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+        </button>
       </div>
+      <p class="dep-pick-hint" id="dep-pick-hint">{t.board.pickHint}</p>
+      <ul class="dep-pick-list" id="dep-pick-list" hidden></ul>
+      <label class="dep-pick-weekly">
+        <input type="checkbox" role="switch" id="dep-pick-weekly" />
+        <span class="dep-pick-switch" aria-hidden="true"></span>
+        <span>{t.board.pickWeekly}</span>
+      </label>
+      <p class="dep-pick-note" id="dep-pick-note" aria-live="polite" hidden></p>
       <div class="dep-pick-actions">
-        <button type="button" class="dep-pick-btn dep-pick-primary" id="dep-pick-save" disabled>{t.board.pickSave}</button>
-        <a class="dep-pick-btn" id="dep-pick-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
-        <button type="button" class="dep-pick-btn" id="dep-pick-cancel">{t.board.pickCancel}</button>
+        <button type="button" class="dep-pick-save" id="dep-pick-save" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          {t.board.pickSave}
+        </button>
+        <a class="dep-pick-google" id="dep-pick-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
       </div>
     </div>
   </div>
@@ -722,152 +729,360 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   }
 
   .dep-pick {
-    font-size: 0.85rem;
-    color: var(--color-text-light);
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
+    margin-top: 0.75rem;
   }
 
   .dep-pick-start {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0;
-    border: none;
-    background: none;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-foam);
+    color: var(--color-ocean);
     font: inherit;
-    color: var(--color-ocean-light);
-    text-decoration: underline;
+    font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
   }
 
-  .dep-pick-icon {
-    width: 1rem;
-    height: 1rem;
-    color: var(--color-kelp);
-    flex-shrink: 0;
+  .dep-pick-start:hover {
+    background: var(--color-sand);
+    border-color: var(--color-ocean-light);
   }
 
   .dep-pick-start[hidden] {
     display: none;
   }
 
-  /* While picking, the bar stays in view at the foot of the screen, so the
+  .dep-pick-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--color-kelp);
+    flex-shrink: 0;
+  }
+
+  /* While picking, the sheet stays in view at the foot of the screen, so the
      reader can scroll the board and still see what they have chosen. */
   .is-picking .dep-pick {
     position: sticky;
-    bottom: 0.5rem;
+    bottom: 0.75rem;
     z-index: 10;
   }
 
   .dep-pick-bar {
-    padding: 0.6rem 0.75rem;
-    background: var(--color-foam);
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    max-width: 30rem;
+    margin: 0 auto;
+    padding: 0.85rem 1rem 1rem;
+    background: color-mix(in srgb, var(--color-foam) 94%, transparent);
+    backdrop-filter: blur(12px);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    border-radius: 18px;
+    box-shadow: 0 12px 32px rgba(14, 54, 80, 0.18), 0 2px 6px rgba(14, 54, 80, 0.08);
     color: var(--color-text);
+    text-align: left;
+    animation: dep-sheet-in 0.25s ease both;
+  }
+
+  @keyframes dep-sheet-in {
+    from { opacity: 0; transform: translateY(0.75rem); }
   }
 
   .dep-pick-bar[hidden] {
     display: none;
   }
 
-  /* Focus lands on the bar so a screen reader hears the hint, but the bar is
+  /* Focus lands on the sheet so a screen reader hears it, but the sheet is
      not a control, so it gets no ring. */
   .dep-pick-bar:focus {
     outline: none;
   }
 
-  .dep-pick-hint {
-    margin: 0 0 0.5rem;
+  .dep-pick-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .dep-pick-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-ocean-dark);
   }
 
   .dep-pick-count {
-    font-weight: 700;
-    color: var(--color-kelp);
-  }
-
-  .dep-pick-repeat {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .dep-pick-days {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-
-  .dep-pick-day {
-    min-width: 2.3rem;
-    padding: 0.25rem 0.4rem;
-    border: 1px solid var(--color-border);
+    min-width: 1.4rem;
+    padding: 0.05rem 0.45rem;
     border-radius: 999px;
-    background: var(--color-foam);
-    color: var(--color-text);
-    font: inherit;
+    background: var(--color-kelp);
+    color: var(--color-on-dark);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  .dep-pick-count[hidden] {
+    display: none;
+  }
+
+  .dep-pick-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-sand);
+    color: var(--color-text-light);
     cursor: pointer;
   }
 
-  .dep-pick-day[aria-pressed="true"] {
+  .dep-pick-close:hover {
+    background: var(--color-sand-dark);
+  }
+
+  .dep-pick-close svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .dep-pick-hint {
+    margin: 0.35rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+  }
+
+  .dep-pick-hint[hidden] {
+    display: none;
+  }
+
+  /* What is picked, from whatever day it was picked on: the board only shows
+     one day, so this is where a pick on another day stays visible. */
+  .dep-pick-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+    max-height: 6.5rem;
+    overflow-y: auto;
+  }
+
+  .dep-pick-list[hidden] {
+    display: none;
+  }
+
+  .dep-pick-list :global(li) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.2rem 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-kelp) 12%, var(--color-foam));
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+
+  .dep-pick-list :global(.dep-pick-when) {
+    color: var(--color-text-light);
+  }
+
+  .dep-pick-list :global(.dep-pick-time) {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .dep-pick-list :global(.dep-pick-to) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .dep-pick-list :global(.dep-pick-to svg) {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  .dep-pick-list :global(button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-light);
+    cursor: pointer;
+  }
+
+  .dep-pick-list :global(button:hover) {
+    background: color-mix(in srgb, var(--color-kelp) 20%, transparent);
+  }
+
+  .dep-pick-list :global(button svg) {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .dep-pick-weekly {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  /* The real checkbox stays for keyboard and screen readers; the track and
+     knob are drawn beside it. */
+  .dep-pick-weekly input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .dep-pick-switch {
+    position: relative;
+    flex: none;
+    width: 2.4rem;
+    height: 1.4rem;
+    border-radius: 999px;
+    background: var(--color-sand-dark);
+    transition: background 0.2s;
+  }
+
+  .dep-pick-switch::after {
+    content: "";
+    position: absolute;
+    top: 0.15rem;
+    left: 0.15rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    background: var(--color-foam);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s;
+  }
+
+  .dep-pick-weekly input:checked + .dep-pick-switch {
     background: var(--color-kelp);
-    border-color: var(--color-kelp);
-    color: var(--color-on-dark);
-    font-weight: 600;
+  }
+
+  .dep-pick-weekly input:checked + .dep-pick-switch::after {
+    transform: translateX(1rem);
+  }
+
+  .dep-pick-weekly input:focus-visible + .dep-pick-switch {
+    outline: 2px solid var(--color-ocean-light);
+    outline-offset: 2px;
+  }
+
+  .dep-pick-note {
+    margin: 0.3rem 0 0 3rem;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+  }
+
+  .dep-pick-note[hidden] {
+    display: none;
   }
 
   .dep-pick-actions {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.85rem;
   }
 
-  .dep-pick-btn {
-    padding: 0.4rem 0.8rem;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    background: var(--color-foam);
-    color: var(--color-ocean);
-    font: inherit;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .dep-pick-btn[hidden] {
-    display: none;
-  }
-
-  .dep-pick-primary {
+  .dep-pick-save {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border: none;
+    border-radius: 999px;
     background: var(--color-ocean);
-    border-color: var(--color-ocean);
     color: var(--color-on-dark);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
   }
 
-  .dep-pick-btn:disabled {
-    opacity: 0.4;
+  .dep-pick-save:hover:not(:disabled) {
+    background: var(--color-ocean-dark);
+  }
+
+  .dep-pick-save:disabled {
+    opacity: 0.35;
     cursor: default;
   }
 
-  /* A pickable row says so: a pointer, and a check ring in front of the time
-     that fills when the departure is picked. Rows that have sailed get none. */
+  .dep-pick-save svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .dep-pick-google {
+    flex: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ocean-light);
+    white-space: nowrap;
+  }
+
+  .dep-pick-google[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dep-pick-bar,
+    .dep-pick-switch,
+    .dep-pick-switch::after {
+      animation: none;
+      transition: none;
+    }
+  }
+
+  /* A pickable row says so: a pointer, and a circle in front of the time that
+     fills with a check when the departure is picked. Rows that have sailed
+     get none. */
   .is-picking .dep-direction :global(.dep-list li[role=checkbox]) {
     cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .is-picking .dep-direction :global(.dep-list li[role=checkbox] .dep-route) {
+    position: relative;
   }
 
   .is-picking .dep-direction :global(.dep-list li[role=checkbox] .dep-route)::before {
     content: "";
     flex: none;
     align-self: center;
-    width: 1rem;
-    height: 1rem;
-    margin-right: 0.35rem;
+    box-sizing: border-box;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.45rem;
     border: 2px solid var(--color-border);
     border-radius: 50%;
+    transition: background 0.15s, border-color 0.15s;
   }
 
   /* Only on entering pick mode, not on every refresh that redraws the rows. */
@@ -892,7 +1107,20 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   .is-picking .dep-direction :global(.dep-list li.is-picked .dep-route)::before {
     border-color: var(--color-kelp);
     background: var(--color-kelp);
-    box-shadow: inset 0 0 0 2px var(--color-foam);
+  }
+
+  /* The check, drawn as the two borders of a turned box, centred on the
+     circle: 0.6rem is half its 1.2rem. */
+  .is-picking .dep-direction :global(.dep-list li.is-picked .dep-route)::after {
+    content: "";
+    position: absolute;
+    left: 0.6rem;
+    top: 50%;
+    width: 0.3rem;
+    height: 0.55rem;
+    border: solid var(--color-on-dark);
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -65%) rotate(45deg);
   }
 
   .dep-credit {
@@ -919,10 +1147,6 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     }
     .dep-pick {
       text-align: center;
-    }
-    .dep-pick-actions,
-    .dep-pick-repeat {
-      justify-content: center;
     }
     .dep-credit {
       line-height: 1.5;

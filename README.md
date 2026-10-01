@@ -26,9 +26,9 @@ still work. Every other language uses English paths under its own prefix
 
 | Language | Prefix | Progress | Pages | UI strings |
 |---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 59/59 |
-| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [59/59](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [59/59](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 60/60 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [60/60](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [60/60](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
@@ -67,7 +67,10 @@ writes the finished site to `dist/`.
 The ferry page has no subscription link. Below the board, "Legg avganger i
 kalenderen" turns on pick mode: the reader taps the departures they mean to
 take, on as many days as they like, and downloads one `.ics` holding only
-those. A single pick also gets a Google Calendar link, which on Android opens
+those. "Gjenta hver uke" repeats each pick on its own weekday until the
+published timetable ends, matched by direction and Oslo clock time, so weekday
+and weekend times are each picked from a day that has them and a week where a
+boat does not run is left out. A single pick also gets a Google Calendar link, which on Android opens
 the calendar app where a download would only land in the downloads folder. A
 calendar holding every crossing of the month was the reason for the change.
 

@@ -30,7 +30,7 @@ import {
   icsCalendar,
   googleCalendarUrl,
   feedEvents,
-  repeatEvents,
+  weeklyEvents,
   FEED_WINDOW_DAYS,
   monthDays,
   monthNav,
@@ -89,13 +89,16 @@ let picking = false;
 const picks = new Map();
 // The event behind every departure row drawn so far, by UID.
 const rowEvents = new Map();
-// Weekdays to repeat the picks on, Monday 0. Repeating needs the whole
-// published timetable, which the board never loads, so it is fetched on the
-// first weekday chosen: about a megabyte per stop, worth it only when asked.
-const weekdays = new Set();
+// Repeating weekly needs the whole published timetable, which the board never
+// loads, so it is fetched when the switch is first turned on: about a megabyte
+// per stop, worth it only when asked for.
+let weekly = false;
 let timetable = null;
 let timetableEvents = null;
 let timetableFailed = false;
+
+const closeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>';
+const smallArrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 async function fetchTimetable(stopId) {
   const res = await fetch(ENTUR_API, {
@@ -129,13 +132,31 @@ function loadTimetable() {
   return timetable;
 }
 
+const sortedPicks = () => [...picks.values()].sort((a, b) => a.start - b.start);
+
 // What the download would hold right now, or null while the timetable a
-// repeat needs is still on its way.
+// weekly repeat needs is still on its way.
 function pickedEvents() {
-  const chosen = [...picks.values()];
-  if (!weekdays.size) return chosen.sort((a, b) => a.start - b.start);
+  if (!weekly) return sortedPicks();
   if (!timetableEvents) return null;
-  return repeatEvents(chosen, timetableEvents, [...weekdays], toOsloDate(new Date()));
+  return weeklyEvents(sortedPicks(), timetableEvents, toOsloDate(new Date()));
+}
+
+const fill = (template, tokens) =>
+  Object.entries(tokens).reduce((text, [k, v]) => text.replaceAll(`{{${k}}}`, v), template ?? '');
+
+// One pick as the sheet lists it: when, what time, where to.
+function pickItem(event) {
+  const when = weekly
+    ? fill(S.pickEvery, { day: event.start.toLocaleDateString(S.locale, { weekday: "long", timeZone: "Europe/Oslo" }) })
+    : event.start.toLocaleDateString(S.locale, { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/Oslo" });
+  const label = `${when} ${fmt(event.start)} ${event.from}-${event.to}`;
+  return `<li>
+    <span class="dep-pick-when">${esc(when)}</span>
+    <span class="dep-pick-time">${esc(fmt(event.start))}</span>
+    <span class="dep-pick-to">${smallArrow}${esc(event.to)}</span>
+    <button type="button" data-uid="${esc(event.uid)}" aria-label="${esc(`${S.pickRemove ?? ''} ${label}`.trim())}">${closeIcon}</button>
+  </li>`;
 }
 
 function syncPicks(root = document) {
@@ -152,30 +173,46 @@ function syncPicks(root = document) {
       li.removeAttribute('tabindex');
     }
   });
+  if (root !== document) return;
 
   depPage?.classList.toggle('is-picking', picking);
-  const start = document.getElementById('dep-pick-start');
-  const bar = document.getElementById('dep-pick-bar');
+  const byId = (id) => document.getElementById(id);
+  const start = byId('dep-pick-start');
+  const bar = byId('dep-pick-bar');
   if (start) start.hidden = picking;
   if (bar) bar.hidden = !picking;
 
-  document.querySelectorAll('.dep-pick-day').forEach(chip => {
-    chip.setAttribute('aria-pressed', String(weekdays.has(Number(chip.dataset.day))));
-  });
+  const count = byId('dep-pick-count');
+  if (count) {
+    count.hidden = !picks.size;
+    count.textContent = String(picks.size);
+  }
+  const hint = byId('dep-pick-hint');
+  if (hint) hint.hidden = picks.size > 0;
+  const list = byId('dep-pick-list');
+  if (list) {
+    list.hidden = !picks.size;
+    list.innerHTML = sortedPicks().map(pickItem).join('');
+  }
+  const toggle = byId('dep-pick-weekly');
+  if (toggle) toggle.checked = weekly;
 
   const events = picks.size ? pickedEvents() : [];
-  const count = document.getElementById('dep-pick-count');
-  if (count) {
-    const fill = (template, n) => (template ?? '{{count}}').replace('{{count}}', n);
-    count.textContent = !picks.size ? ''
-      : !weekdays.size ? fill(S.pickCount, picks.size)
-      : events ? fill(S.pickTotal, events.length)
+  const note = byId('dep-pick-note');
+  if (note) {
+    const last = events?.at(-1);
+    note.textContent = !weekly || !picks.size ? ''
       : timetableFailed ? S.error
-      : S.pickLoading;
+      : !events ? S.pickLoading
+      : fill(S.pickWeeklyNote, {
+          count: events.length,
+          date: last.start.toLocaleDateString(S.locale, { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Oslo" }),
+        });
+    note.hidden = !note.textContent;
   }
-  const save = document.getElementById('dep-pick-save');
+  const save = byId('dep-pick-save');
   if (save) save.disabled = !events?.length;
-  const google = document.getElementById('dep-pick-google');
+  const google = byId('dep-pick-google');
   if (google) {
     // A link carries one event, so a repeat goes by download only.
     const single = events?.length === 1 ? events[0] : null;
@@ -187,28 +224,26 @@ function syncPicks(root = document) {
 function setPicking(on) {
   picking = on;
   if (on) {
-    // The rings grow in once, on entering; a refresh redraws without them
+    // The circles grow in once, on entering; a refresh redraws without them
     // animating again.
     depPage?.classList.add('pick-enter');
     setTimeout(() => depPage?.classList.remove('pick-enter'), 400);
   } else {
     picks.clear();
-    weekdays.clear();
+    weekly = false;
   }
   syncPicks();
 }
 
-function togglePick(li) {
-  const uid = li.dataset.uid;
+function togglePick(uid) {
   if (picks.has(uid)) picks.delete(uid);
   else if (rowEvents.has(uid)) picks.set(uid, rowEvents.get(uid));
   syncPicks();
 }
 
-function toggleWeekday(day) {
-  if (weekdays.has(day)) weekdays.delete(day);
-  else weekdays.add(day);
-  if (weekdays.size && !timetableEvents) {
+function setWeekly(on) {
+  weekly = on;
+  if (weekly && !timetableEvents) {
     timetableFailed = false;
     loadTimetable();
   }
@@ -559,9 +594,10 @@ document.getElementById("dep-pick-start")?.addEventListener("click", () => {
   if (!pickable && dayOffset < MAX_DAY_OFFSET) { dayOffset++; loadAll(true); }
   document.getElementById("dep-pick-bar")?.focus();
 });
-document.getElementById("dep-pick-days")?.addEventListener("click", (e) => {
-  const chip = e.target.closest(".dep-pick-day");
-  if (chip) toggleWeekday(Number(chip.dataset.day));
+document.getElementById("dep-pick-weekly")?.addEventListener("change", (e) => setWeekly(e.target.checked));
+document.getElementById("dep-pick-list")?.addEventListener("click", (e) => {
+  const remove = e.target.closest("button[data-uid]");
+  if (remove) togglePick(remove.dataset.uid);
 });
 document.getElementById("dep-pick-cancel")?.addEventListener("click", () => {
   setPicking(false);
@@ -582,14 +618,14 @@ const columns = document.querySelector(".dep-columns");
 columns?.addEventListener("click", (e) => {
   if (!picking || e.target.closest(".dep-notice")) return;
   const li = e.target.closest("li[data-uid]");
-  if (li && !li.classList.contains("passed")) togglePick(li);
+  if (li && !li.classList.contains("passed")) togglePick(li.dataset.uid);
 });
 columns?.addEventListener("keydown", (e) => {
   if (!picking || (e.key !== " " && e.key !== "Enter")) return;
   const li = e.target.closest("li[data-uid][role=checkbox]");
   if (!li || e.target !== li) return;
   e.preventDefault();
-  togglePick(li);
+  togglePick(li.dataset.uid);
 });
 
 const REFRESH_MS = 60000;

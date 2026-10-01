@@ -42,7 +42,7 @@ import {
   icsCalendar,
   googleCalendarUrl,
   osloWeekday,
-  repeatEvents,
+  weeklyEvents,
   ICS_PRODID,
   FEED_TTL_MINUTES,
   groupByOsloDate,
@@ -736,7 +736,7 @@ test('a Google Calendar link for an unknown arrival starts and ends together', (
   assert.equal(dates, '20260715T060000Z/20260715T060000Z');
 });
 
-// A stand-in event: only the fields repeatEvents reads.
+// A stand-in event: only the fields weeklyEvents reads.
 const ev = (iso, direction = 'to-haugesund') => ({ uid: `${iso}-${direction}`, start: new Date(iso), direction });
 
 test('osloWeekday counts from Monday, like weekdayNames', () => {
@@ -744,42 +744,47 @@ test('osloWeekday counts from Monday, like weekdayNames', () => {
   assert.equal(osloWeekday('2026-10-11T12:00:00Z'), 6);
 });
 
-test('a repeat takes the same direction and clock time on the chosen weekdays only', () => {
+test('a weekly pick repeats on its own weekday, same direction and clock time', () => {
   const pick = ev('2026-10-02T05:50:00Z'); // Friday 07:50 in Oslo
   const timetable = [
     pick,
-    ev('2026-10-05T05:50:00Z'), // Monday 07:50: kept
-    ev('2026-10-05T06:05:00Z'), // Monday 08:05: another boat
-    ev('2026-10-05T05:50:00Z', 'to-rovar'), // Monday 07:50 the other way
-    ev('2026-10-06T05:50:00Z'), // Tuesday: not chosen
-    ev('2026-10-12T05:50:00Z'), // the next Monday: kept
+    ev('2026-10-09T05:50:00Z'), // next Friday 07:50: kept
+    ev('2026-10-09T06:05:00Z'), // next Friday 08:05: another boat
+    ev('2026-10-09T05:50:00Z', 'to-rovar'), // next Friday 07:50 the other way
+    ev('2026-10-05T05:50:00Z'), // Monday 07:50: another weekday
+    ev('2026-10-16T05:50:00Z'), // the Friday after: kept
   ];
-  const out = repeatEvents([pick], timetable, [0], '2026-10-01');
+  const out = weeklyEvents([pick], timetable, '2026-10-01');
   assert.deepEqual(out.map((e) => e.uid), [pick.uid, timetable[1].uid, timetable[5].uid]);
 });
 
-test('a repeat matches the Oslo clock across the DST change, not the UTC one', () => {
+test('weekday and weekend picks each keep their own times', () => {
+  const friday = ev('2026-10-02T05:50:00Z'); // Friday 07:50
+  const saturday = ev('2026-10-03T08:00:00Z'); // Saturday 10:00
+  const timetable = [
+    ev('2026-10-09T05:50:00Z'), // Friday 07:50: kept
+    ev('2026-10-10T05:50:00Z'), // Saturday 07:50: not what was picked on Saturday
+    ev('2026-10-10T08:00:00Z'), // Saturday 10:00: kept
+  ];
+  const out = weeklyEvents([friday, saturday], timetable, '2026-10-01');
+  assert.deepEqual(out.map((e) => e.uid), [friday.uid, saturday.uid, timetable[0].uid, timetable[2].uid]);
+});
+
+test('a weekly pick matches the Oslo clock across the DST change, not the UTC one', () => {
   const pick = ev('2026-10-19T05:50:00Z'); // Monday 07:50, summer time
   const winter = ev('2026-11-02T06:50:00Z'); // Monday 07:50, winter time
-  const out = repeatEvents([pick], [winter], [0], '2026-10-01');
-  assert.ok(out.includes(winter));
+  assert.ok(weeklyEvents([pick], [winter], '2026-10-01').includes(winter));
 });
 
-test('a weekday where the time does not run is skipped, and the pick stays', () => {
+test('a week where the boat does not run is skipped, and the pick stays', () => {
   const pick = ev('2026-10-02T05:50:00Z');
-  const out = repeatEvents([pick], [ev('2026-10-03T07:00:00Z')], [5], '2026-10-01');
-  assert.deepEqual(out, [pick]);
+  assert.deepEqual(weeklyEvents([pick], [ev('2026-10-09T07:00:00Z')], '2026-10-01'), [pick]);
 });
 
-test('no weekdays chosen is just the picks', () => {
-  const pick = ev('2026-10-02T05:50:00Z');
-  assert.deepEqual(repeatEvents([pick], [ev('2026-10-09T05:50:00Z')], [], '2026-10-01'), [pick]);
-});
-
-test('a repeat never reaches back before the start date', () => {
+test('a weekly pick never reaches back before the start date', () => {
   const pick = ev('2026-10-09T05:50:00Z');
   const past = ev('2026-10-02T05:50:00Z');
-  assert.deepEqual(repeatEvents([pick], [past, pick], [4], '2026-10-05'), [pick]);
+  assert.deepEqual(weeklyEvents([pick], [past, pick], '2026-10-05'), [pick]);
 });
 
 test('osloClock prints the Oslo wall clock, not the visitor local time', () => {

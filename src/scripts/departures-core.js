@@ -581,22 +581,22 @@ export function osloWeekday(date) {
   return (new Date(date).getUTCDay() + 6) % 7;
 }
 
-// A pick repeated on chosen weekdays. The timetable differs from day to day,
-// so a repeat is a match, not a copy: the same direction leaving at the same
-// Oslo clock time, on each chosen weekday from `from` on. A day where that
-// boat does not run is simply left out, and the picks themselves always stay.
-export function repeatEvents(picks, events, weekdays, from) {
-  const days = new Set(weekdays);
+// A pick repeated every week. The timetable differs between weekdays and
+// weekends, so each pick repeats only on its own weekday: a Saturday boat is
+// picked from a Saturday's board. The repeat is a match, not a copy - the same
+// direction leaving at the same Oslo clock time on that weekday, from `from`
+// on - so a week where that boat does not run is simply left out.
+export function weeklyEvents(picks, events, from) {
+  const key = (event) => {
+    const date = toOsloDate(event.start);
+    return `${event.direction} ${osloWeekday(`${date}T12:00:00Z`)} ${osloMinutes(event.start)}`;
+  };
+  const templates = new Set(picks.map(key));
   const byUid = new Map(picks.map((pick) => [pick.uid, pick]));
-  if (days.size) {
-    const templates = picks.map((pick) => `${pick.direction} ${osloMinutes(pick.start)}`);
-    for (const event of events) {
-      const date = toOsloDate(event.start);
-      if (date < from || !days.has(osloWeekday(`${date}T12:00:00Z`))) continue;
-      if (templates.includes(`${event.direction} ${osloMinutes(event.start)}`)) byUid.set(event.uid, event);
-    }
+  for (const event of events) {
+    if (toOsloDate(event.start) >= from && templates.has(key(event))) byUid.set(event.uid, event);
   }
-  return [...byUid.values()].sort((a, b) => a.start - b.start);
+  return [...byUid.values()].sort((x, y) => x.start - y.start);
 }
 
 // --- summary feed -----------------------------------------------------------
