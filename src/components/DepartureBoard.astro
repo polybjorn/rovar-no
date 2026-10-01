@@ -3,7 +3,6 @@ import { Image } from 'astro:assets';
 import { ui } from '../i18n/ui.js';
 import Sentence from './Sentence.astro';
 import { kolumbusUrl, ENTUR_SITE } from '../scripts/departures-core.js';
-import { pathFor } from '../i18n/routes.js';
 import { defaultLocale, localeInfo } from '../i18n/locales.js';
 import { facts } from '../data/facts.js';
 import boatImg from '../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
@@ -22,14 +21,6 @@ const { lang = defaultLocale, title } = Astro.props;
 const t = ui(lang).ferry;
 const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
 
-// The feed sits beside the page it belongs to, as webcal: so a calendar app
-// takes it as a subscription rather than a one-off import. Without a site set
-// there is no host to build an absolute URL from, so the plain path stands in.
-const feedPath = `${pathFor('ferry', lang).replace(/\/$/, '')}.ics`;
-const webcal = (path) =>
-  Astro.site ? new URL(path, Astro.site).href.replace(/^https?:/, 'webcal:') : path;
-const feedUrl = webcal(feedPath);
-const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
 
 ---
 
@@ -84,15 +75,22 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     />
   </p>
 
-  <p class="dep-feed">
-    <svg class="dep-feed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>
-    <Sentence text={t.feedLine} links={{ feedLink: { href: feedUrl, label: t.feedLabel } }} />
-    {' '}
-    <Sentence
-      text={t.feedSummaryLine}
-      links={{ feedSummaryLink: { href: feedSummaryUrl, label: t.feedSummaryLabel } }}
-    />
-  </p>
+  <!-- Pick mode: the reader chooses the departures that go in their calendar,
+       rather than taking every crossing. departures.js drives it. -->
+  <div class="dep-pick">
+    <button type="button" class="dep-pick-start" id="dep-pick-start">
+      <svg class="dep-pick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>
+      {t.board.pickStart}
+    </button>
+    <div class="dep-pick-bar" id="dep-pick-bar" role="group" aria-label={t.board.pickStart} tabindex="-1" hidden>
+      <p class="dep-pick-hint">{t.board.pickHint} <span class="dep-pick-count" id="dep-pick-count" aria-live="polite"></span></p>
+      <div class="dep-pick-actions">
+        <button type="button" class="dep-pick-btn dep-pick-primary" id="dep-pick-save" disabled>{t.board.pickSave}</button>
+        <a class="dep-pick-btn" id="dep-pick-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
+        <button type="button" class="dep-pick-btn" id="dep-pick-cancel">{t.board.pickCancel}</button>
+      </div>
+    </div>
+  </div>
 
   <p class="dep-credit">
     <Sentence
@@ -151,7 +149,7 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
 
   .dep-columns,
   .dep-booking,
-  .dep-feed,
+  .dep-pick,
   .dep-credit {
     grid-column: 1 / -1;
   }
@@ -170,7 +168,7 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
       height: 160px;
     }
     .dep-booking { order: 4; }
-    .dep-feed { order: 5; }
+    .dep-pick { order: 5; }
     .dep-credit { order: 6; }
     .dep-nav {
       justify-content: center;
@@ -715,22 +713,131 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     margin-top: 0.15rem;
   }
 
-  .dep-feed {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.3rem;
+  .dep-pick {
     font-size: 0.85rem;
     color: var(--color-text-light);
     margin-top: 0.25rem;
     margin-bottom: 0.25rem;
   }
 
-  .dep-feed-icon {
+  .dep-pick-start {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: var(--color-ocean-light);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .dep-pick-icon {
     width: 1rem;
     height: 1rem;
     color: var(--color-kelp);
     flex-shrink: 0;
-    margin-top: 0.15rem;
+  }
+
+  .dep-pick-start[hidden] {
+    display: none;
+  }
+
+  /* While picking, the bar stays in view at the foot of the screen, so the
+     reader can scroll the board and still see what they have chosen. */
+  .is-picking .dep-pick {
+    position: sticky;
+    bottom: 0.5rem;
+    z-index: 10;
+  }
+
+  .dep-pick-bar {
+    padding: 0.6rem 0.75rem;
+    background: var(--color-foam);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    color: var(--color-text);
+  }
+
+  .dep-pick-bar[hidden] {
+    display: none;
+  }
+
+  /* Focus lands on the bar so a screen reader hears the hint, but the bar is
+     not a control, so it gets no ring. */
+  .dep-pick-bar:focus {
+    outline: none;
+  }
+
+  .dep-pick-hint {
+    margin: 0 0 0.5rem;
+  }
+
+  .dep-pick-count {
+    font-weight: 700;
+    color: var(--color-kelp);
+  }
+
+  .dep-pick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .dep-pick-btn {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-foam);
+    color: var(--color-ocean);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .dep-pick-btn[hidden] {
+    display: none;
+  }
+
+  .dep-pick-primary {
+    background: var(--color-ocean);
+    border-color: var(--color-ocean);
+    color: var(--color-on-dark);
+  }
+
+  .dep-pick-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* A pickable row says so: a pointer, and a check ring in front of the time
+     that fills when the departure is picked. Rows that have sailed get none. */
+  .is-picking .dep-direction :global(.dep-list li[role=checkbox]) {
+    cursor: pointer;
+  }
+
+  .is-picking .dep-direction :global(.dep-list li[role=checkbox] .dep-route)::before {
+    content: "";
+    flex: none;
+    align-self: center;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.35rem;
+    border: 2px solid var(--color-border);
+    border-radius: 50%;
+  }
+
+  .is-picking .dep-direction :global(.dep-list li.is-picked) {
+    background: color-mix(in srgb, var(--color-kelp) 10%, transparent);
+  }
+
+  .is-picking .dep-direction :global(.dep-list li.is-picked .dep-route)::before {
+    border-color: var(--color-kelp);
+    background: var(--color-kelp);
+    box-shadow: inset 0 0 0 2px var(--color-foam);
   }
 
   .dep-credit {
@@ -755,14 +862,11 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
       display: inline-block;
       vertical-align: -0.15rem;
     }
-    .dep-feed {
-      display: block;
-      line-height: 1.5;
+    .dep-pick {
       text-align: center;
     }
-    .dep-feed-icon {
-      display: inline-block;
-      vertical-align: -0.15rem;
+    .dep-pick-actions {
+      justify-content: center;
     }
     .dep-credit {
       line-height: 1.5;

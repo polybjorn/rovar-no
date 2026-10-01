@@ -51,6 +51,12 @@
       "nextMonth": "Next month",
       "bookLabel": "Advance booking required",
       "infoLabel": "Info",
+      "pickStart": "Add departures to your calendar",
+      "pickHint": "Tap the departures you want. You can change day as you go.",
+      "pickCount": "{{count}} selected",
+      "pickSave": "Download for your calendar",
+      "pickGoogle": "Open in Google Calendar",
+      "pickCancel": "Cancel",
       "icsSummary": "Ferry {{from}}-{{to}}",
       "icsLocation": "{{from}} hurtigbåtkai",
       "icsVia": "Via {{stops}}.",
@@ -61,10 +67,6 @@
       "icsTimetableEndBody": "Kolumbus has published no departures after {{date}}. The calendar fills in again once new times are released - see rovar.no for current departures."
     },
     "feedName": "Røvær-Haugesund ferry",
-    "feedLine": "{{feedLink}} to keep the timetable in your own calendar, updated automatically.",
-    "feedLabel": "Subscribe to the timetable",
-    "feedSummaryName": "Røvær-Haugesund ferry (daily overview)",
-    "feedSummaryLine": "{{feedSummaryLink}} gives one line per day and direction instead.",
-    "feedSummaryLabel": "Subscribe to the daily overview"
+    "feedSummaryName": "Røvær-Haugesund ferry (daily overview)"
   }
 }

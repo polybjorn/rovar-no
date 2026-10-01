@@ -51,6 +51,12 @@
       "nextMonth": "Neste måned",
       "bookLabel": "Bestillingsrute",
       "infoLabel": "Info",
+      "pickStart": "Legg avganger i kalenderen",
+      "pickHint": "Trykk på avgangene du vil ha med. Du kan bytte dag underveis.",
+      "pickCount": "{{count}} valgt",
+      "pickSave": "Last ned til kalenderen",
+      "pickGoogle": "Åpne i Google Kalender",
+      "pickCancel": "Avbryt",
       "icsSummary": "Rutebåten {{from}}-{{to}}",
       "icsLocation": "{{from}} hurtigbåtkai",
       "icsVia": "Via {{stops}}.",
@@ -61,10 +67,6 @@
       "icsTimetableEndBody": "Kolumbus har ikke publisert avganger etter {{date}}. Kalenderen fylles på igjen når nye rutetider legges ut - se rovar.no for gjeldende tider."
     },
     "feedName": "Rutebåten Røvær-Haugesund",
-    "feedLine": "{{feedLink}} for å få rutetidene rett i kalenderen din, oppdatert automatisk.",
-    "feedLabel": "Abonner på rutetidene",
-    "feedSummaryName": "Rutebåten Røvær-Haugesund (dagsoversikt)",
-    "feedSummaryLine": "{{feedSummaryLink}} gir i stedet én linje per dag og retning.",
-    "feedSummaryLabel": "Abonner på dagsoversikt"
+    "feedSummaryName": "Rutebåten Røvær-Haugesund (dagsoversikt)"
   }
 }

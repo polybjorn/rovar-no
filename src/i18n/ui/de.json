@@ -52,6 +52,12 @@
       "nextMonth": "Nächster Monat",
       "bookLabel": "Vorausbuchung erforderlich",
       "infoLabel": "Info",
+      "pickStart": "Abfahrten in den Kalender eintragen",
+      "pickHint": "Tippen Sie die gewünschten Abfahrten an. Sie können dabei den Tag wechseln.",
+      "pickCount": "{{count}} ausgewählt",
+      "pickSave": "Für den Kalender herunterladen",
+      "pickGoogle": "In Google Kalender öffnen",
+      "pickCancel": "Abbrechen",
       "icsSummary": "Fähre {{from}}-{{to}}",
       "icsLocation": "{{from}} hurtigbåtkai",
       "icsVia": "Über {{stops}}.",
@@ -62,10 +68,6 @@
       "icsTimetableEndBody": "Kolumbus hat keine Abfahrten nach {{date}} veröffentlicht. Der Kalender füllt sich wieder, sobald neue Zeiten erscheinen - aktuelle Abfahrten auf rovar.no."
     },
     "feedName": "Fähre Røvær-Haugesund",
-    "feedLine": "{{feedLink}}, um den Fahrplan automatisch aktualisiert im eigenen Kalender zu haben.",
-    "feedLabel": "Fahrplan abonnieren",
-    "feedSummaryName": "Fähre Røvær-Haugesund (Tagesübersicht)",
-    "feedSummaryLine": "{{feedSummaryLink}} zeigt stattdessen eine Zeile pro Tag und Richtung.",
-    "feedSummaryLabel": "Tagesübersicht abonnieren"
+    "feedSummaryName": "Fähre Røvær-Haugesund (Tagesübersicht)"
   }
 }

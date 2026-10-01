@@ -40,6 +40,7 @@ import {
   departureEvent,
   icsEvent,
   icsCalendar,
+  googleCalendarUrl,
   ICS_PRODID,
   FEED_TTL_MINUTES,
   groupByOsloDate,
@@ -708,6 +709,29 @@ test('a subscription feed advertises how often to come back', () => {
 test('a download carries METHOD:PUBLISH and a feed does not', () => {
   assert.ok(icsCalendar([], { method: 'PUBLISH' }).includes('METHOD:PUBLISH'));
   assert.ok(!icsCalendar([]).includes('METHOD:'));
+});
+
+test('a Google Calendar link carries the crossing in UTC, start to arrival', () => {
+  const event = departureEvent(bookedCall(), {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+    strings: { icsSummary: 'Rutebåten {{from}}-{{to}}', icsLocation: '{{from}} kai' },
+    url: 'https://rovar.no/rutebaten/',
+  });
+  const url = new URL(googleCalendarUrl(event));
+  assert.equal(url.origin + url.pathname, 'https://calendar.google.com/calendar/render');
+  assert.equal(url.searchParams.get('action'), 'TEMPLATE');
+  assert.equal(url.searchParams.get('dates'), '20260715T190500Z/20260715T193000Z');
+  assert.equal(url.searchParams.get('text'), event.summary);
+  assert.equal(url.searchParams.get('location'), event.location);
+  assert.ok(url.searchParams.get('details').endsWith('https://rovar.no/rutebaten/'));
+});
+
+test('a Google Calendar link for an unknown arrival starts and ends together', () => {
+  const c = call({ time: '2026-07-15T08:00:00+02:00', stops: [] });
+  const event = departureEvent(c, { direction: 'to-haugesund', stamp: ICS_STAMP });
+  const dates = new URL(googleCalendarUrl(event)).searchParams.get('dates');
+  assert.equal(dates, '20260715T060000Z/20260715T060000Z');
 });
 
 test('osloClock prints the Oslo wall clock, not the visitor local time', () => {

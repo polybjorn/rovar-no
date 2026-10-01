@@ -12,7 +12,7 @@ from `main` by GitHub Pages and set to noindex until launch.
 |---|---|---|
 | Home | `/` | Hero image, intro text, card grid, OpenStreetMap link |
 | Explore the island | `/opplev-oya-var/` | Hiking, swimming, historical sites, food, places to stay, the aquaculture centre |
-| Ferry | `/rutebaten/` | Live departure board from the Entur API, with service notices, past and next departures marked, a link to Kolumbus as a fallback, and calendar export |
+| Ferry | `/rutebaten/` | Live departure board from the Entur API, with service notices, past and next departures marked, a link to Kolumbus as a fallback, and picked departures to your calendar |
 | Camp school | `/leirskolen/` | Program, practical information, contact |
 | Island history | `/rovaers-historie/` | Archaeological finds, the fishing community, the 1899 disaster |
 
@@ -26,9 +26,9 @@ still work. Every other language uses English paths under its own prefix
 
 | Language | Prefix | Progress | Pages | UI strings |
 |---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 54/54 |
-| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [54/54](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [54/54](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 56/56 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [56/56](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [56/56](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
@@ -64,11 +64,18 @@ writes the finished site to `dist/`.
 
 ## Calendar
 
-`/rutebaten.ics` is a subscribable feed of both directions, one per language
-(`/en/ferry.ics`, `/de/ferry.ics`). `/rutebaten-summary.ics` is the same timetable folded into one
-all-day line per day and direction, for a calendar that should carry the
-timetable without being buried by it. All of them come from the same event
-builder in `src/scripts/departures-core.js`.
+The ferry page has no subscription link. Below the board, "Legg avganger i
+kalenderen" turns on pick mode: the reader taps the departures they mean to
+take, on as many days as they like, and downloads one `.ics` holding only
+those. A single pick also gets a Google Calendar link, which on Android opens
+the calendar app where a download would only land in the downloads folder. A
+calendar holding every crossing of the month was the reason for the change.
+
+The subscription feeds are still built, unlinked, so an existing subscription
+keeps working: `/rutebaten.ics` with every departure in both directions, one
+per language (`/en/ferry.ics`, `/de/ferry.ics`), and `/rutebaten-summary.ics`
+with one all-day line per day and direction. Picks, links and feeds all come
+from the same event builder in `src/scripts/departures-core.js`.
 
 The feeds run to the end of Entur's published timetable rather than a fixed
 window, and close with an all-day entry naming the date they run out, so a feed

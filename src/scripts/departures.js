@@ -26,6 +26,9 @@ import {
   formatCountdown,
   urgencyClass,
   kolumbusUrl,
+  departureEvent,
+  icsCalendar,
+  googleCalendarUrl,
   monthDays,
   monthNav,
   offsetOf,
@@ -74,7 +77,82 @@ function selectedDate() {
 // the board is wiped (empty day, error), so the next list counts as new.
 const prevRows = new Map();
 
-function render(containerId, calls, fresh) {
+// --- pick mode ---------------------------------------------------------------
+// No control on the rows and no feed of every crossing: the reader turns pick
+// mode on, taps the departures they mean to take, across as many days as they
+// like, and takes only those to their calendar. Picks are keyed by event UID,
+// so they survive the day changing and the 60s refresh redrawing the rows.
+let picking = false;
+const picks = new Map();
+// The event behind every departure row drawn so far, by UID.
+const rowEvents = new Map();
+
+function syncPicks(root = document) {
+  root.querySelectorAll('.dep-list li[data-uid]').forEach(li => {
+    const pickable = picking && !li.classList.contains('passed');
+    li.classList.toggle('is-picked', pickable && picks.has(li.dataset.uid));
+    if (pickable) {
+      li.setAttribute('role', 'checkbox');
+      li.setAttribute('aria-checked', String(picks.has(li.dataset.uid)));
+      li.tabIndex = 0;
+    } else {
+      li.removeAttribute('role');
+      li.removeAttribute('aria-checked');
+      li.removeAttribute('tabindex');
+    }
+  });
+
+  depPage?.classList.toggle('is-picking', picking);
+  const start = document.getElementById('dep-pick-start');
+  const bar = document.getElementById('dep-pick-bar');
+  if (start) start.hidden = picking;
+  if (bar) bar.hidden = !picking;
+
+  const count = document.getElementById('dep-pick-count');
+  if (count) count.textContent = picks.size ? (S.pickCount ?? '{{count}}').replace('{{count}}', picks.size) : '';
+  const save = document.getElementById('dep-pick-save');
+  if (save) save.disabled = !picks.size;
+  const google = document.getElementById('dep-pick-google');
+  if (google) {
+    google.hidden = picks.size !== 1;
+    if (picks.size === 1) google.href = googleCalendarUrl([...picks.values()][0]);
+  }
+}
+
+function setPicking(on) {
+  picking = on;
+  if (!on) picks.clear();
+  syncPicks();
+}
+
+function togglePick(li) {
+  const uid = li.dataset.uid;
+  if (picks.has(uid)) picks.delete(uid);
+  else if (rowEvents.has(uid)) picks.set(uid, rowEvents.get(uid));
+  syncPicks();
+}
+
+// Everything the file says is built in departures-core.js; this end only
+// orders the picks, names the file and hands it to the browser.
+function downloadPicks() {
+  const events = [...picks.values()].sort((a, b) => a.start - b.start);
+  if (!events.length) return;
+  const ics = icsCalendar(events, { method: 'PUBLISH' });
+  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = events.length === 1
+    ? `rutebaten-${toOsloDate(events[0].start)}-${fmt(events[0].start).replace(':', '')}.ics`
+    : 'rutebaten.ics';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Revoked later rather than at once: Safari reads the blob after the click
+  // returns.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function render(containerId, calls, fresh, direction) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -104,6 +182,18 @@ function render(containerId, calls, fresh) {
       isLast: i === calls.length - 1,
       bookingRe: BOOKING_RE,
     });
+    const event = departureEvent(c, {
+      direction,
+      strings: S,
+      locale: S.locale,
+      isLast: i === calls.length - 1,
+      bookingRe: BOOKING_RE,
+      url: `${location.origin}${location.pathname}`,
+    });
+    rowEvents.set(event.uid, event);
+    // A refresh that moved a picked departure moves the pick with it.
+    if (picks.has(event.uid)) picks.set(event.uid, event);
+
     const depMinutes = osloMinutes(dt);
     const passed = dayOffset === 0 && depMinutes < nowMinutes;
     let cls = passed ? "passed" : "";
@@ -143,7 +233,9 @@ function render(containerId, calls, fresh) {
     // html and base are the same row with and without the countdown, so a
     // refresh can tell a countdown tick (base equal, html not) from a change
     // to the rest of the row and fade only what moved.
-    const rowHtml = (countdown) => `<li class="${cls}">
+    // The pick state is not in the markup, so picking a row never reads as a
+    // change to it; syncPicks lays it on after every render.
+    const rowHtml = (countdown) => `<li class="${cls}" data-uid="${esc(event.uid)}">
       <div class="dep-row">
         <div class="dep-route">
           <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
@@ -224,6 +316,7 @@ function render(containerId, calls, fresh) {
       setOpen(detail, !detail.classList.contains('open'));
     });
   });
+  syncPicks(container);
 }
 
 function setDate() {
@@ -265,8 +358,8 @@ async function loadAll(fresh = false) {
       fetchDepartures(ROVAR_STOP, startTime),
       fetchDepartures(HAUGESUND_STOP, startTime)
     ]);
-    render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh);
-    render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh);
+    render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh, "to-haugesund");
+    render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh, "to-rovar");
     lastLoad = Date.now();
   } catch (err) {
     ["from-rovar", "from-haugesund"].forEach(id => {
@@ -373,6 +466,39 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("click", (e) => {
   if (!e.target.closest(".dep-cal-wrap")) closeCal(false);
+});
+
+document.getElementById("dep-pick-start")?.addEventListener("click", () => {
+  setPicking(true);
+  document.getElementById("dep-pick-bar")?.focus();
+});
+document.getElementById("dep-pick-cancel")?.addEventListener("click", () => {
+  setPicking(false);
+  document.getElementById("dep-pick-start")?.focus();
+});
+document.getElementById("dep-pick-save")?.addEventListener("click", () => {
+  downloadPicks();
+  setPicking(false);
+});
+document.getElementById("dep-pick-google")?.addEventListener("click", () => {
+  // The link has already been followed by the time this runs; the pick is done.
+  setTimeout(() => setPicking(false));
+});
+
+// One listener for both columns, since the rows are redrawn every minute. The
+// info button keeps its own job, opening the notice, even while picking.
+const columns = document.querySelector(".dep-columns");
+columns?.addEventListener("click", (e) => {
+  if (!picking || e.target.closest(".dep-notice")) return;
+  const li = e.target.closest("li[data-uid]");
+  if (li && !li.classList.contains("passed")) togglePick(li);
+});
+columns?.addEventListener("keydown", (e) => {
+  if (!picking || (e.key !== " " && e.key !== "Enter")) return;
+  const li = e.target.closest("li[data-uid][role=checkbox]");
+  if (!li || e.target !== li) return;
+  e.preventDefault();
+  togglePick(li);
 });
 
 const REFRESH_MS = 60000;

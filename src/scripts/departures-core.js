@@ -500,6 +500,23 @@ export function icsEvent(event) {
   return lines;
 }
 
+// The same event as a Google Calendar link. On Android that opens the
+// calendar app with the event filled in, where a downloaded .ics only lands in
+// the downloads folder. A link carries one event, so it is only offered for a
+// single pick. With no known arrival the event starts and ends together, the
+// link's nearest thing to an event with no end.
+export function googleCalendarUrl(event) {
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: event.summary,
+    dates: `${icsTime(event.start)}/${icsTime(event.end ?? event.start)}`,
+  });
+  if (event.location) params.set('location', event.location);
+  const details = [event.description, event.url].filter(Boolean).join('\n\n');
+  if (details) params.set('details', details);
+  return `https://calendar.google.com/calendar/render?${params}`;
+}
+
 // CRLF throughout and a trailing one, per RFC 5545 - some clients reject a
 // file that ends without it.
 export function icsCalendar(events, { prodid = ICS_PRODID, name, ttlMinutes, method } = {}) {
