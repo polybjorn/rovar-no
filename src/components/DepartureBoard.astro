@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import { ui } from '../i18n/ui.js';
 import Sentence from './Sentence.astro';
-import { kolumbusUrl, ENTUR_SITE } from '../scripts/departures-core.js';
+import { kolumbusUrl, ENTUR_SITE, weekdayNames } from '../scripts/departures-core.js';
 import { defaultLocale, localeInfo } from '../i18n/locales.js';
 import { facts } from '../data/facts.js';
 import boatImg from '../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
@@ -103,6 +103,14 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     </button>
     <div class="dep-pick-bar" id="dep-pick-bar" role="group" aria-label={t.board.pickStart} tabindex="-1" hidden>
       <p class="dep-pick-hint">{t.board.pickHint} <span class="dep-pick-count" id="dep-pick-count" aria-live="polite"></span></p>
+      <div class="dep-pick-repeat">
+        <span class="dep-pick-repeat-label" id="dep-pick-repeat-label">{t.board.pickRepeat}</span>
+        <div class="dep-pick-days" id="dep-pick-days" role="group" aria-labelledby="dep-pick-repeat-label">
+          {weekdayNames(localeInfo(lang).intl).map((name, i) => (
+            <button type="button" class="dep-pick-day" data-day={i} aria-pressed="false">{name}</button>
+          ))}
+        </div>
+      </div>
       <div class="dep-pick-actions">
         <button type="button" class="dep-pick-btn dep-pick-primary" id="dep-pick-save" disabled>{t.board.pickSave}</button>
         <a class="dep-pick-btn" id="dep-pick-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
@@ -780,6 +788,38 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     color: var(--color-kelp);
   }
 
+  .dep-pick-repeat {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .dep-pick-days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .dep-pick-day {
+    min-width: 2.3rem;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-foam);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .dep-pick-day[aria-pressed="true"] {
+    background: var(--color-kelp);
+    border-color: var(--color-kelp);
+    color: var(--color-on-dark);
+    font-weight: 600;
+  }
+
   .dep-pick-actions {
     display: flex;
     flex-wrap: wrap;
@@ -830,6 +870,21 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     border-radius: 50%;
   }
 
+  /* Only on entering pick mode, not on every refresh that redraws the rows. */
+  .pick-enter .dep-direction :global(.dep-list li[role=checkbox] .dep-route)::before {
+    animation: dep-ring-in 0.25s ease both;
+  }
+
+  @keyframes dep-ring-in {
+    from { width: 0; margin-right: 0; opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pick-enter .dep-direction :global(.dep-list li[role=checkbox] .dep-route)::before {
+      animation: none;
+    }
+  }
+
   .is-picking .dep-direction :global(.dep-list li.is-picked) {
     background: color-mix(in srgb, var(--color-kelp) 10%, transparent);
   }
@@ -865,7 +920,8 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     .dep-pick {
       text-align: center;
     }
-    .dep-pick-actions {
+    .dep-pick-actions,
+    .dep-pick-repeat {
       justify-content: center;
     }
     .dep-credit {

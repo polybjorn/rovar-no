@@ -41,6 +41,8 @@ import {
   icsEvent,
   icsCalendar,
   googleCalendarUrl,
+  osloWeekday,
+  repeatEvents,
   ICS_PRODID,
   FEED_TTL_MINUTES,
   groupByOsloDate,
@@ -732,6 +734,52 @@ test('a Google Calendar link for an unknown arrival starts and ends together', (
   const event = departureEvent(c, { direction: 'to-haugesund', stamp: ICS_STAMP });
   const dates = new URL(googleCalendarUrl(event)).searchParams.get('dates');
   assert.equal(dates, '20260715T060000Z/20260715T060000Z');
+});
+
+// A stand-in event: only the fields repeatEvents reads.
+const ev = (iso, direction = 'to-haugesund') => ({ uid: `${iso}-${direction}`, start: new Date(iso), direction });
+
+test('osloWeekday counts from Monday, like weekdayNames', () => {
+  assert.equal(osloWeekday('2026-10-05T12:00:00Z'), 0);
+  assert.equal(osloWeekday('2026-10-11T12:00:00Z'), 6);
+});
+
+test('a repeat takes the same direction and clock time on the chosen weekdays only', () => {
+  const pick = ev('2026-10-02T05:50:00Z'); // Friday 07:50 in Oslo
+  const timetable = [
+    pick,
+    ev('2026-10-05T05:50:00Z'), // Monday 07:50: kept
+    ev('2026-10-05T06:05:00Z'), // Monday 08:05: another boat
+    ev('2026-10-05T05:50:00Z', 'to-rovar'), // Monday 07:50 the other way
+    ev('2026-10-06T05:50:00Z'), // Tuesday: not chosen
+    ev('2026-10-12T05:50:00Z'), // the next Monday: kept
+  ];
+  const out = repeatEvents([pick], timetable, [0], '2026-10-01');
+  assert.deepEqual(out.map((e) => e.uid), [pick.uid, timetable[1].uid, timetable[5].uid]);
+});
+
+test('a repeat matches the Oslo clock across the DST change, not the UTC one', () => {
+  const pick = ev('2026-10-19T05:50:00Z'); // Monday 07:50, summer time
+  const winter = ev('2026-11-02T06:50:00Z'); // Monday 07:50, winter time
+  const out = repeatEvents([pick], [winter], [0], '2026-10-01');
+  assert.ok(out.includes(winter));
+});
+
+test('a weekday where the time does not run is skipped, and the pick stays', () => {
+  const pick = ev('2026-10-02T05:50:00Z');
+  const out = repeatEvents([pick], [ev('2026-10-03T07:00:00Z')], [5], '2026-10-01');
+  assert.deepEqual(out, [pick]);
+});
+
+test('no weekdays chosen is just the picks', () => {
+  const pick = ev('2026-10-02T05:50:00Z');
+  assert.deepEqual(repeatEvents([pick], [ev('2026-10-09T05:50:00Z')], [], '2026-10-01'), [pick]);
+});
+
+test('a repeat never reaches back before the start date', () => {
+  const pick = ev('2026-10-09T05:50:00Z');
+  const past = ev('2026-10-02T05:50:00Z');
+  assert.deepEqual(repeatEvents([pick], [past, pick], [4], '2026-10-05'), [pick]);
 });
 
 test('osloClock prints the Oslo wall clock, not the visitor local time', () => {

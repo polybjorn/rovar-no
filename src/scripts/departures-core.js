@@ -576,6 +576,29 @@ export function feedEvents(batches, opts = {}) {
   return [...byUid.values()].sort((a, b) => a.start - b.start);
 }
 
+// Monday-first, matching weekdayNames: 0 is Monday, 6 is Sunday.
+export function osloWeekday(date) {
+  return (new Date(date).getUTCDay() + 6) % 7;
+}
+
+// A pick repeated on chosen weekdays. The timetable differs from day to day,
+// so a repeat is a match, not a copy: the same direction leaving at the same
+// Oslo clock time, on each chosen weekday from `from` on. A day where that
+// boat does not run is simply left out, and the picks themselves always stay.
+export function repeatEvents(picks, events, weekdays, from) {
+  const days = new Set(weekdays);
+  const byUid = new Map(picks.map((pick) => [pick.uid, pick]));
+  if (days.size) {
+    const templates = picks.map((pick) => `${pick.direction} ${osloMinutes(pick.start)}`);
+    for (const event of events) {
+      const date = toOsloDate(event.start);
+      if (date < from || !days.has(osloWeekday(`${date}T12:00:00Z`))) continue;
+      if (templates.includes(`${event.direction} ${osloMinutes(event.start)}`)) byUid.set(event.uid, event);
+    }
+  }
+  return [...byUid.values()].sort((a, b) => a.start - b.start);
+}
+
 // --- summary feed -----------------------------------------------------------
 
 export const compactDate = (dateStr) => dateStr.replace(/-/g, '');

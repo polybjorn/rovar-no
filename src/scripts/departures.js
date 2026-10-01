@@ -29,6 +29,9 @@ import {
   departureEvent,
   icsCalendar,
   googleCalendarUrl,
+  feedEvents,
+  repeatEvents,
+  FEED_WINDOW_DAYS,
   monthDays,
   monthNav,
   offsetOf,
@@ -86,6 +89,54 @@ let picking = false;
 const picks = new Map();
 // The event behind every departure row drawn so far, by UID.
 const rowEvents = new Map();
+// Weekdays to repeat the picks on, Monday 0. Repeating needs the whole
+// published timetable, which the board never loads, so it is fetched on the
+// first weekday chosen: about a megabyte per stop, worth it only when asked.
+const weekdays = new Set();
+let timetable = null;
+let timetableEvents = null;
+let timetableFailed = false;
+
+async function fetchTimetable(stopId) {
+  const res = await fetch(ENTUR_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "ET-Client-Name": ENTUR_CLIENT },
+    body: JSON.stringify({
+      query,
+      variables: { stopId, n: FEED_WINDOW_DAYS * 20, startTime: osloMidnight(0), timeRange: FEED_WINDOW_DAYS * 86400 },
+    }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()).data.stopPlace.estimatedCalls;
+}
+
+function loadTimetable() {
+  timetable ??= Promise.all([fetchTimetable(ROVAR_STOP), fetchTimetable(HAUGESUND_STOP)])
+    .then(([rovar, haugesund]) => {
+      timetableEvents = feedEvents(
+        [
+          { calls: rovar, direction: "to-haugesund" },
+          { calls: haugesund, direction: "to-rovar" },
+        ],
+        { strings: S, locale: S.locale, bookingRe: BOOKING_RE, url: `${location.origin}${location.pathname}` }
+      );
+    })
+    .catch(() => {
+      timetableFailed = true;
+      timetable = null;
+    })
+    .finally(() => syncPicks());
+  return timetable;
+}
+
+// What the download would hold right now, or null while the timetable a
+// repeat needs is still on its way.
+function pickedEvents() {
+  const chosen = [...picks.values()];
+  if (!weekdays.size) return chosen.sort((a, b) => a.start - b.start);
+  if (!timetableEvents) return null;
+  return repeatEvents(chosen, timetableEvents, [...weekdays], toOsloDate(new Date()));
+}
 
 function syncPicks(root = document) {
   root.querySelectorAll('.dep-list li[data-uid]').forEach(li => {
@@ -108,20 +159,42 @@ function syncPicks(root = document) {
   if (start) start.hidden = picking;
   if (bar) bar.hidden = !picking;
 
+  document.querySelectorAll('.dep-pick-day').forEach(chip => {
+    chip.setAttribute('aria-pressed', String(weekdays.has(Number(chip.dataset.day))));
+  });
+
+  const events = picks.size ? pickedEvents() : [];
   const count = document.getElementById('dep-pick-count');
-  if (count) count.textContent = picks.size ? (S.pickCount ?? '{{count}}').replace('{{count}}', picks.size) : '';
+  if (count) {
+    const fill = (template, n) => (template ?? '{{count}}').replace('{{count}}', n);
+    count.textContent = !picks.size ? ''
+      : !weekdays.size ? fill(S.pickCount, picks.size)
+      : events ? fill(S.pickTotal, events.length)
+      : timetableFailed ? S.error
+      : S.pickLoading;
+  }
   const save = document.getElementById('dep-pick-save');
-  if (save) save.disabled = !picks.size;
+  if (save) save.disabled = !events?.length;
   const google = document.getElementById('dep-pick-google');
   if (google) {
-    google.hidden = picks.size !== 1;
-    if (picks.size === 1) google.href = googleCalendarUrl([...picks.values()][0]);
+    // A link carries one event, so a repeat goes by download only.
+    const single = events?.length === 1 ? events[0] : null;
+    google.hidden = !single;
+    if (single) google.href = googleCalendarUrl(single);
   }
 }
 
 function setPicking(on) {
   picking = on;
-  if (!on) picks.clear();
+  if (on) {
+    // The rings grow in once, on entering; a refresh redraws without them
+    // animating again.
+    depPage?.classList.add('pick-enter');
+    setTimeout(() => depPage?.classList.remove('pick-enter'), 400);
+  } else {
+    picks.clear();
+    weekdays.clear();
+  }
   syncPicks();
 }
 
@@ -132,11 +205,21 @@ function togglePick(li) {
   syncPicks();
 }
 
+function toggleWeekday(day) {
+  if (weekdays.has(day)) weekdays.delete(day);
+  else weekdays.add(day);
+  if (weekdays.size && !timetableEvents) {
+    timetableFailed = false;
+    loadTimetable();
+  }
+  syncPicks();
+}
+
 // Everything the file says is built in departures-core.js; this end only
-// orders the picks, names the file and hands it to the browser.
+// names the file and hands it to the browser.
 function downloadPicks() {
-  const events = [...picks.values()].sort((a, b) => a.start - b.start);
-  if (!events.length) return;
+  const events = pickedEvents();
+  if (!events?.length) return;
   const ics = icsCalendar(events, { method: 'PUBLISH' });
   const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
   const link = document.createElement('a');
@@ -475,6 +558,10 @@ document.getElementById("dep-pick-start")?.addEventListener("click", () => {
   const pickable = document.querySelector(".dep-list li[data-uid]:not(.passed)");
   if (!pickable && dayOffset < MAX_DAY_OFFSET) { dayOffset++; loadAll(true); }
   document.getElementById("dep-pick-bar")?.focus();
+});
+document.getElementById("dep-pick-days")?.addEventListener("click", (e) => {
+  const chip = e.target.closest(".dep-pick-day");
+  if (chip) toggleWeekday(Number(chip.dataset.day));
 });
 document.getElementById("dep-pick-cancel")?.addEventListener("click", () => {
   setPicking(false);
