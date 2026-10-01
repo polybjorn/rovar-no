@@ -1,7 +1,7 @@
 // The calendar picker: a dialog of its own beside the departure board, so the
-// board stays a timetable with no controls on its rows. The reader chooses how
-// often (one date, or every week), which day, a direction, and ticks the
-// departures; the file holds only those. Everything a file says is built in
+// board stays a timetable with no controls on its rows. The reader chooses
+// specific dates or every week, which day, and ticks departures in either
+// direction; the file holds only those. Everything a file says is built in
 // departures-core.js; this end is the dialog and the download.
 import {
   ENTUR_API,
@@ -39,7 +39,6 @@ const state = {
   freq: 'once',
   date: toOsloDate(new Date()),
   kind: 'weekday',
-  direction: 'to-rovar',
   weekdays: new Set(WEEKDAYS),
 };
 
@@ -128,7 +127,7 @@ function shownDate() {
 function shownRows() {
   const date = shownDate();
   if (!timetable || !date) return [];
-  return timetable.filter((e) => dateOf(e) === date && e.direction === state.direction);
+  return timetable.filter((e) => dateOf(e) === date);
 }
 
 function result() {
@@ -160,13 +159,15 @@ function reveal(el, open) {
 function renderDates() {
   const strip = byId('cal-dates');
   if (!strip) return;
+  const picked = new Set([...picks.values()].filter((p) => p.freq === 'once').map((p) => dateOf(p.event)));
   const days = Array.from({ length: DATE_STRIP_DAYS }, (_, i) => toOsloDate(dateAtOffset(i)));
   strip.innerHTML = days
     .map((date) => {
       const d = new Date(`${date}T12:00:00Z`);
       const wd = d.toLocaleDateString(S.locale, { weekday: 'short', timeZone: 'UTC' });
       const weekend = dayKind(weekdayOf(date)) !== 'weekday';
-      return `<button type="button" data-date="${date}" class="${weekend ? 'is-weekend' : ''}" aria-pressed="${date === state.date}">
+      const cls = [weekend && 'is-weekend', picked.has(date) && 'has-pick'].filter(Boolean).join(' ');
+      return `<button type="button" data-date="${date}" class="${cls}" aria-pressed="${date === state.date}">
         <span class="cal-date-wd">${esc(wd)}</span><span class="cal-date-d">${d.getUTCDate()}</span>
       </button>`;
     })
@@ -175,9 +176,9 @@ function renderDates() {
 }
 
 function renderTimes() {
-  const list = byId('cal-times');
+  const lists = [...(byId('cal-times')?.querySelectorAll('[data-list]') ?? [])];
   const label = byId('cal-day-label');
-  if (!list) return;
+  if (!lists.length) return;
   const date = shownDate();
   if (label) {
     label.textContent = date
@@ -186,32 +187,32 @@ function renderTimes() {
         })
       : '';
   }
-  if (!timetable) {
-    list.innerHTML = `<li class="cal-times-note">${esc(failed ? S.error : S.pickLoading)}</li>`;
-    return;
-  }
+  const note = (text) => `<li class="cal-times-note">${esc(text)}</li>`;
   const rows = shownRows();
-  if (!rows.length) {
-    list.innerHTML = `<li class="cal-times-note">${esc(S.empty)}</li>`;
-    return;
-  }
   const now = new Date();
-  list.innerHTML = rows
-    .map((e) => {
-      // A boat that has sailed cannot be taken once, but a weekly pick only
-      // borrows the row for its clock time, so there it stays pickable.
-      const gone = state.freq === 'once' && e.start <= now;
-      const on = picks.has(keyOf(e));
-      const via = e.via?.length ? `<span class="cal-via">via ${esc(e.via.join(', '))}</span>` : '';
-      return `<li><button type="button" class="cal-time" data-uid="${esc(e.uid)}" aria-pressed="${on}"${gone ? ' disabled' : ''}>
-        <span class="cal-check" aria-hidden="true"></span>
-        <span class="cal-dep">${esc(fmt(e.start))}</span>
-        ${e.end ? `${icon.arrow}<span class="cal-arr">${esc(fmt(e.end))}</span>` : ''}
-        ${via}
-        ${e.isBooking ? `<span class="cal-booking" role="img" aria-label="${esc(S.bookLabel)}">${icon.phone}</span>` : ''}
-      </button></li>`;
-    })
-    .join('');
+  for (const list of lists) {
+    if (!timetable) {
+      list.innerHTML = note(failed ? S.error : S.pickLoading);
+      continue;
+    }
+    const mine = rows.filter((e) => e.direction === list.dataset.list);
+    list.innerHTML = mine.length ? mine.map((e) => row(e, now)).join('') : note(S.empty);
+  }
+}
+
+function row(e, now) {
+  // A boat that has sailed cannot be taken once, but a weekly pick only
+  // borrows the row for its clock time, so there it stays pickable.
+  const gone = state.freq === 'once' && e.start <= now;
+  const on = picks.has(keyOf(e));
+  const via = e.via?.length ? `<span class="cal-via">via ${esc(e.via.join(', '))}</span>` : '';
+  return `<li><button type="button" class="cal-time" data-uid="${esc(e.uid)}" aria-pressed="${on}"${gone ? ' disabled' : ''}>
+    <span class="cal-check" aria-hidden="true"></span>
+    <span class="cal-dep">${esc(fmt(e.start))}</span>
+    ${e.end ? `${icon.arrow}<span class="cal-arr">${esc(fmt(e.end))}</span>` : ''}
+    ${via}
+    ${e.isBooking ? `<span class="cal-booking" role="img" aria-label="${esc(S.bookLabel)}">${icon.phone}</span>` : ''}
+  </button></li>`;
 }
 
 function chipWhen(pick) {
@@ -281,12 +282,10 @@ function render() {
   setPressed(byId('cal-freq'), 'freq', (v) => v === state.freq);
   setPressed(byId('cal-kind'), 'kind', (v) => v === state.kind);
   setPressed(byId('cal-weekdays'), 'day', (v) => state.weekdays.has(Number(v)));
-  setPressed(byId('cal-dir'), 'dir', (v) => v === state.direction);
   // The sliding white pill under a segmented control follows its choice.
   for (const [id, attr, value] of [
     ['cal-freq', 'freq', state.freq],
     ['cal-kind', 'kind', state.kind],
-    ['cal-dir', 'dir', state.direction],
   ]) {
     const seg = byId(id);
     const buttons = [...(seg?.querySelectorAll(`[data-${attr}]`) ?? [])];
@@ -328,8 +327,24 @@ function open() {
   load();
 }
 
+// The dialog is held open until its closing animation ends; see the CSS.
 function close() {
-  dialog?.close();
+  if (!dialog?.open || dialog.classList.contains('is-closing')) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    dialog.close();
+    return;
+  }
+  dialog.classList.add('is-closing');
+  const done = () => {
+    clearTimeout(fallback);
+    dialog.removeEventListener('animationend', onEnd);
+    dialog.classList.remove('is-closing');
+    dialog.close();
+  };
+  const onEnd = (e) => { if (e.target === dialog) done(); };
+  // In case no animation runs at all, such as in a background tab.
+  const fallback = setTimeout(done, 400);
+  dialog.addEventListener('animationend', onEnd);
 }
 
 function finish() {
@@ -338,6 +353,11 @@ function finish() {
 }
 
 dialog?.addEventListener('close', () => document.documentElement.classList.remove('cal-open'));
+// Escape goes through the same animation as the close button.
+dialog?.addEventListener('cancel', (e) => {
+  e.preventDefault();
+  close();
+});
 // A tap on the backdrop closes, as it does on every phone sheet; the dialog
 // box itself fills the element, so only the backdrop reports the dialog.
 dialog?.addEventListener('click', (e) => {
@@ -357,7 +377,6 @@ const onPick = (id, attr, apply) =>
 
 onPick('cal-freq', 'freq', (v) => { state.freq = v; });
 onPick('cal-kind', 'kind', (v) => { state.kind = v; });
-onPick('cal-dir', 'dir', (v) => { state.direction = v; });
 onPick('cal-dates', 'date', (v) => { state.date = v; });
 onPick('cal-weekdays', 'day', (v) => {
   const day = Number(v);
