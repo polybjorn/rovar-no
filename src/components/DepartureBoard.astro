@@ -618,7 +618,6 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
   .dep-direction :global(.dep-route) {
     display: flex;
     align-items: baseline;
-    flex-wrap: wrap;
     gap: 0.15rem 0.3rem;
     min-width: 0;
     flex: 1 1 0;
@@ -659,9 +658,48 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     color: var(--color-text-light);
   }
 
-  .dep-direction :global(.dep-via) {
+  .dep-direction :global(.dep-route > *) {
+    flex: none;
+  }
+
+  /* One line per departure, always, as in the picker: a via list too long
+     for the row is cut with a fade and pans to its end while the row is
+     hovered or has focus. --pan and --pan-time are measured in departures.js. */
+  .dep-direction :global(.dep-route > .dep-via) {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
     font-size: 0.85rem;
     color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  .dep-direction :global(.dep-via-text) {
+    display: inline-block;
+  }
+
+  .dep-direction :global(.dep-via.is-long) {
+    mask-image: linear-gradient(to right, #000 80%, transparent);
+  }
+
+  .dep-direction :global(li:hover .dep-via.is-long),
+  .dep-direction :global(li:focus-within .dep-via.is-long) {
+    mask-image: none;
+  }
+
+  .dep-direction :global(li:hover .dep-via.is-long .dep-via-text),
+  .dep-direction :global(li:focus-within .dep-via.is-long .dep-via-text) {
+    animation: cal-via-pan var(--pan-time, 3s) ease-in-out infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dep-direction :global(li:hover .dep-via.is-long .dep-via-text),
+    .dep-direction :global(li:focus-within .dep-via.is-long .dep-via-text) {
+      animation: none;
+    }
+    .dep-direction :global(.dep-route > .dep-via) {
+      white-space: normal;
+    }
   }
 
   .dep-direction :global(.dep-info) {

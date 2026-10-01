@@ -124,7 +124,7 @@ function render(containerId, calls, fresh) {
     }
 
     const arrHtml = arrivalTime ? `${arrowIcon}<span class="dep-arr">${esc(fmt(arrivalTime))}</span>` : '';
-    const viaHtml = via.length ? `<span class="dep-via">via ${esc(via.join(', '))}</span>` : '';
+    const viaHtml = via.length ? `<span class="dep-via"><span class="dep-via-text">via ${esc(via.join(', '))}</span></span>` : '';
     const durationHtml = duration ? `<span class="dep-duration">${duration} min</span>` : '';
 
     // The phone is a marker, not a control: the legend under the board explains
@@ -241,7 +241,23 @@ function render(containerId, calls, fresh) {
     });
     lis.slice(items.length).forEach(li => li.remove());
   }
+  requestAnimationFrame(() => measureVia(container));
 }
+
+// One line per departure, as in the picker: a via list wider than its row
+// gets the distance and time to pan to its end, at an even reading pace.
+function measureVia(root) {
+  root.querySelectorAll(".dep-via").forEach((box) => {
+    const over = box.firstElementChild.scrollWidth - box.clientWidth;
+    box.classList.toggle("is-long", over > 0);
+    box.style.setProperty("--pan", `${-over}px`);
+    box.style.setProperty("--pan-time", `${(1.5 + over / 30).toFixed(1)}s`);
+  });
+}
+
+addEventListener("resize", () => {
+  document.querySelectorAll(".dep-direction").forEach(measureVia);
+});
 
 function setDate() {
   const el = document.getElementById("dep-date");
