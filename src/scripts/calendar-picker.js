@@ -70,7 +70,13 @@ function esc(str) {
 const fmt = (dt) => osloClock(dt, S.locale);
 const fill = (template, tokens) =>
   Object.entries(tokens).reduce((text, [k, v]) => text.replaceAll(`{{${k}}}`, v), template ?? '');
-const dateOf = (event) => toOsloDate(event.start);
+// Each event's Oslo date, worked out once: every render filters the whole
+// timetable by it.
+const dates = new WeakMap();
+const dateOf = (event) => {
+  if (!dates.has(event)) dates.set(event, toOsloDate(event.start));
+  return dates.get(event);
+};
 const weekdayOf = (date) => osloWeekday(`${date}T12:00:00Z`);
 const today = () => toOsloDate(new Date());
 const weeklyKey = (event) =>
@@ -183,8 +189,40 @@ function updateDateNav() {
   const strip = byId('cal-dates');
   if (!strip) return;
   const end = strip.scrollWidth - strip.clientWidth;
-  dialog.querySelector('.cal-dates-prev').hidden = strip.scrollLeft <= 1;
-  dialog.querySelector('.cal-dates-next').hidden = strip.scrollLeft >= end - 1;
+  dialog.querySelector('.cal-dates-prev').classList.toggle('is-shown', strip.scrollLeft > 1);
+  dialog.querySelector('.cal-dates-next').classList.toggle('is-shown', strip.scrollLeft < end - 1);
+}
+
+// While the timetable loads, each list holds as many blank rows as it had
+// for the same kind of day last time, so the dialog opens at about the
+// length it will have and barely moves when the times arrive. Browser storage
+// is a convenience: without it, a typical day's count.
+const ROWS_KEY = 'rovar-cal-rows';
+const TYPICAL_ROWS = 9;
+const shownKind = () => (state.freq === 'weekly' ? state.kind : dayKind(weekdayOf(state.date)));
+
+function storedRows() {
+  try {
+    return JSON.parse(localStorage.getItem(ROWS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function rememberRows(direction, count) {
+  const all = storedRows();
+  all[`${direction} ${shownKind()}`] = count;
+  try {
+    localStorage.setItem(ROWS_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+function waitingRows(direction) {
+  const count = storedRows()[`${direction} ${shownKind()}`] || TYPICAL_ROWS;
+  // Built from the row's own parts, so a blank row is exactly as tall as a real one.
+  const blank = (text, hidden) =>
+    `<li${hidden ? ' aria-hidden="true"' : ''}><div class="cal-time is-wait"><span class="cal-check" aria-hidden="true"></span><span class="cal-dep">${text}</span></div></li>`;
+  return blank(`<span class="cal-wait-text">${esc(S.pickLoading)}</span>`, false) + blank('&nbsp;', true).repeat(count - 1);
 }
 
 function renderTimes() {
@@ -195,10 +233,11 @@ function renderTimes() {
   const now = new Date();
   for (const list of lists) {
     if (!timetable) {
-      list.innerHTML = note(failed ? S.error : S.pickLoading);
+      list.innerHTML = failed ? note(S.error) : waitingRows(list.dataset.list);
       continue;
     }
     const mine = rows.filter((e) => e.direction === list.dataset.list);
+    if (mine.length) rememberRows(list.dataset.list, mine.length);
     list.innerHTML = mine.length ? mine.map((e) => row(e, now)).join('') : note(S.empty);
   }
   requestAnimationFrame(measureVia);
@@ -327,20 +366,21 @@ function render() {
 }
 
 // The dialog takes the height its content needs, up to its full length; the
-// top edge is fixed in the CSS, so only the bottom moves. Until the timetable
-// is in it stays at full length. Without animate, as on opening, it jumps.
+// top edge is fixed in the CSS, so only the bottom moves. Without animate, as
+// on opening, it jumps.
 function sizeDialog(animate = true) {
   if (!dialog?.open) return;
   const full = parseFloat(getComputedStyle(dialog).maxHeight);
-  let height = full;
-  if (timetable) {
-    const body = dialog.querySelector('.cal-body');
-    const last = body.lastElementChild;
-    const content = last.getBoundingClientRect().bottom - body.getBoundingClientRect().top + body.scrollTop +
-      parseFloat(getComputedStyle(last).marginBottom) + parseFloat(getComputedStyle(body).paddingBottom);
-    height = Math.min(full, dialog.querySelector('.cal-head').offsetHeight + content +
-      dialog.querySelector('.cal-foot').offsetHeight);
-  }
+  const body = dialog.querySelector('.cal-body');
+  const last = body.lastElementChild;
+  // Layout offsets, not getBoundingClientRect: on opening the box is still
+  // scaled by its entrance animation, and a scaled measure comes out short.
+  const content = last.offsetTop - body.offsetTop + last.offsetHeight +
+    parseFloat(getComputedStyle(last).marginBottom) + parseFloat(getComputedStyle(body).paddingBottom);
+  // offsetHeight rounds to whole pixels; one spare keeps the body from
+  // scrolling by a fraction.
+  const height = Math.min(full, dialog.querySelector('.cal-head').offsetHeight + content +
+    dialog.querySelector('.cal-foot').offsetHeight + 1);
   if (!animate) dialog.style.transition = 'none';
   dialog.style.height = `${Math.ceil(height)}px`;
   if (!animate) {
@@ -441,6 +481,11 @@ dialog?.querySelectorAll('.cal-dates-nav').forEach((nav) =>
 );
 
 byId('cal-open')?.addEventListener('click', open);
+// The timetable starts loading as the pointer or focus reaches the button,
+// which often has it in before the dialog opens.
+for (const type of ['pointerenter', 'focus', 'touchstart']) {
+  byId('cal-open')?.addEventListener(type, () => { if (!timetable) load(); }, { passive: true });
+}
 byId('cal-close')?.addEventListener('click', close);
 
 const onPick = (id, attr, apply) =>

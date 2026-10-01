@@ -141,8 +141,8 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
                  that way. -->
             <div class="cal-dates-wrap">
               <div class="cal-dates cal-scroll" id="cal-dates" role="group" aria-label={t.board.pickDate}></div>
-              <button type="button" class="cal-dates-nav cal-dates-prev" data-step="-1" aria-label={t.board.pickEarlier} hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-              <button type="button" class="cal-dates-nav cal-dates-next" data-step="1" aria-label={t.board.pickLater} hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button type="button" class="cal-dates-nav cal-dates-prev" data-step="-1" aria-label={t.board.pickEarlier}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button type="button" class="cal-dates-nav cal-dates-next" data-step="1" aria-label={t.board.pickLater}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             </div>
           </section>
         </div>
@@ -1165,10 +1165,25 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     border: none;
     color: var(--color-ocean);
     cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
   }
 
-  .cal-dates-nav[hidden] {
-    display: none;
+  /* They fade and slide in from their own edge, and back out the same way.
+     The script sets .is-shown; visibility keeps a hidden one out of reach. */
+  .cal-dates-prev:not(.is-shown) {
+    transform: translateX(-0.5rem);
+  }
+
+  .cal-dates-next:not(.is-shown) {
+    transform: translateX(0.5rem);
+  }
+
+  .cal-dates-nav.is-shown {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s;
   }
 
   .cal-dates-prev {
@@ -1346,6 +1361,18 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
 
   .cal-times :global(li + li) {
     border-top: 1px solid var(--color-sand-dark);
+  }
+
+  /* Blank rows while the timetable loads: a departure row's own box with
+     an empty check and no time. */
+  .cal-times :global(.cal-time.is-wait) {
+    cursor: default;
+  }
+
+  .cal-times :global(.cal-wait-text) {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--color-text-light);
   }
 
   .cal-times :global(.cal-times-note) {
@@ -1625,6 +1652,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     .cal-dialog.is-closing,
     .cal-dialog.is-closing::backdrop,
     .cal-reveal,
+    .cal-dates-nav,
     .cal-seg-pill {
       animation: none;
       transition: none;

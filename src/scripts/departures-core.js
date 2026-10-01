@@ -50,8 +50,18 @@ export const query = `query departures($stopId: String!, $n: Int!, $startTime: D
 
 // --- time -------------------------------------------------------------------
 
+// Formatters built once: toLocaleDateString builds a new one on every call,
+// and the calendar picker runs these over the whole published timetable on
+// every tick, which made a tick take a tenth of a second. Same options, so
+// the same output.
+const OSLO_DATE = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' });
+const OSLO_PART = {
+  hour: new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Oslo' }),
+  minute: new Intl.DateTimeFormat('en-US', { minute: 'numeric', hour12: false, timeZone: 'Europe/Oslo' }),
+};
+
 export function toOsloDate(dt) {
-  return dt.toLocaleDateString('en-CA', { timeZone: 'Europe/Oslo' });
+  return OSLO_DATE.format(dt);
 }
 
 // "+01:00" or "+02:00", whichever Oslo was on that date.
@@ -82,8 +92,7 @@ export function osloMidnight(offset, now = new Date()) {
 
 // Minutes since Oslo midnight, for comparing a departure against "now".
 export function osloMinutes(dt) {
-  const part = (unit) =>
-    parseInt(dt.toLocaleTimeString('en-US', { [unit]: 'numeric', hour12: false, timeZone: 'Europe/Oslo' }));
+  const part = (unit) => parseInt(OSLO_PART[unit].format(dt));
   return part('hour') * 60 + part('minute');
 }
 
