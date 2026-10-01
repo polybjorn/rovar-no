@@ -990,12 +990,17 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
      under them moves: the date strip and the weekly controls share one cell,
      as tall as the taller of the two, and the weekday row holds its height
      under Lørdag and Søndag. The script sets .is-open and inert together. */
+  /* minmax(0, 1fr), not the auto column a bare grid gets: an auto column
+     grows to the date strip's full length and the whole dialog scrolls
+     sideways, where only the strip should. */
   .cal-when {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .cal-when > * {
     grid-area: 1 / 1;
+    min-width: 0;
   }
 
   .cal-reveal {
@@ -1213,6 +1218,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   .cal-dir-head {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.3rem;
     margin: 0 0 0.35rem;
     font-size: 0.9rem;
