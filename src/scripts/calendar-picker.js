@@ -394,16 +394,19 @@ function sizeDialog(animate = true) {
 
 // --- download ----------------------------------------------------------------
 
-// A boat that has to be booked rings at its booking deadline, not at
-// departure, when there is still time to call. The file only: a Google link
-// cannot carry an alarm.
+// A boat that has to be booked rings an hour ahead of its booking deadline,
+// while there is still time to call: at the deadline itself it is too late.
+// One alarm rather than two, so it is not snoozed as noise. The file only: a
+// Google link cannot carry an alarm.
+const ALARM_LEAD_MINUTES = 60;
+
 function withAlarm(event) {
   if (!event.bookingDeadline) return event;
   return {
     ...event,
     alarm: {
-      minutesBefore: Math.round((event.start - event.bookingDeadline) / 60000),
-      text: fill(S.icsBookingAlarm, { time: fmt(event.start) }),
+      minutesBefore: Math.round((event.start - event.bookingDeadline) / 60000) + ALARM_LEAD_MINUTES,
+      text: fill(S.icsBookingAlarm, { time: fmt(event.start), deadline: fmt(event.bookingDeadline) }),
     },
   };
 }

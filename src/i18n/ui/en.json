@@ -69,7 +69,7 @@
       "pickEveryWeekday": "weekdays",
       "pickNoDays": "no days chosen",
       "pickChooseDays": "Choose which weekdays above.",
-      "pickBooking": "Book in advance on {{kolumbusPhone}}: {{list}}. The calendar file reminds you at the deadline.",
+      "pickBooking": "Book in advance on {{kolumbusPhone}}: {{list}}. The calendar file reminds you an hour before the deadline.",
       "pickBookingBy": "{{time}} by {{deadline}}",
       "pickRemove": "Remove",
       "pickLoading": "Loading the timetable...",
@@ -80,7 +80,7 @@
       "icsVia": "Via {{stops}}.",
       "icsBooking": "Advance booking required: book by {{deadline}} on {{kolumbusPhone}}.",
       "icsBookingNoDeadline": "Advance booking required: call {{kolumbusPhone}}.",
-      "icsBookingAlarm": "Booking deadline for the {{time}} boat: call {{kolumbusPhone}}.",
+      "icsBookingAlarm": "Book the {{time}} boat by {{deadline}}: call {{kolumbusPhone}}.",
       "icsDay": "Ferry {{from}}-{{to}}: {{times}}",
       "icsTimetableEnd": "The timetable ends here",
       "icsTimetableEndBody": "Kolumbus has published no departures after {{date}}. The calendar fills in again once new times are released - see rovar.no for current departures."

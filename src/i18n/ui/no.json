@@ -69,7 +69,7 @@
       "pickEveryWeekday": "hverdager",
       "pickNoDays": "ingen dager valgt",
       "pickChooseDays": "Velg hvilke hverdager over.",
-      "pickBooking": "Må forhåndsbestilles på {{kolumbusPhone}}: {{list}}. Kalenderfilen varsler deg ved fristen.",
+      "pickBooking": "Må forhåndsbestilles på {{kolumbusPhone}}: {{list}}. Kalenderfilen minner deg på det en time før fristen.",
       "pickBookingBy": "{{time}} innen {{deadline}}",
       "pickRemove": "Fjern",
       "pickLoading": "Henter rutetidene...",
@@ -80,7 +80,7 @@
       "icsVia": "Via {{stops}}.",
       "icsBooking": "Bestillingsrute: bestill innen {{deadline}} på {{kolumbusPhone}}.",
       "icsBookingNoDeadline": "Bestillingsrute: må bestilles på forhånd på {{kolumbusPhone}}.",
-      "icsBookingAlarm": "Bestillingsfrist for rutebåten {{time}}: ring {{kolumbusPhone}}.",
+      "icsBookingAlarm": "Bestill rutebåten {{time}} innen {{deadline}}: ring {{kolumbusPhone}}.",
       "icsDay": "Rutebåten {{from}}-{{to}}: {{times}}",
       "icsTimetableEnd": "Rutetabellen slutter her",
       "icsTimetableEndBody": "Kolumbus har ikke publisert avganger etter {{date}}. Kalenderen fylles på igjen når nye rutetider legges ut - se rovar.no for gjeldende tider."
