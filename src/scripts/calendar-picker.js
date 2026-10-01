@@ -180,12 +180,14 @@ function renderTimes() {
   const label = byId('cal-day-label');
   if (!lists.length) return;
   const date = shownDate();
+  // A one-off pick shows its date in the strip already; the label is for a
+  // weekly pick, to say which real day the listed times come from.
   if (label) {
-    label.textContent = date
+    label.textContent = date && state.freq === 'weekly'
       ? new Date(`${date}T12:00:00Z`).toLocaleDateString(S.locale, {
           weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC',
         })
-      : '';
+      : '\u00a0'; // keeps its line, so Avganger stays put
   }
   const note = (text) => `<li class="cal-times-note">${esc(text)}</li>`;
   const rows = shownRows();
@@ -259,8 +261,10 @@ function renderFooter() {
   if (summary) {
     const weekly = values.some(([, p]) => p.freq === 'weekly');
     const last = events.at(-1);
+    // Nothing picked needs no sentence: the greyed button already says it.
+    summary.hidden = !values.length;
     summary.textContent = !values.length
-      ? S.pickNone
+      ? ''
       : fill(weekly ? S.pickSummaryUntil : events.length === 1 ? S.pickSummaryOne : S.pickSummary, {
           count: events.length,
           date: last
@@ -362,6 +366,16 @@ dialog?.addEventListener('cancel', (e) => {
 // box itself fills the element, so only the backdrop reports the dialog.
 dialog?.addEventListener('click', (e) => {
   if (e.target === dialog) close();
+});
+
+// A scrollbar shows while its part moves and fades a moment after; see .cal-scroll.
+dialog?.querySelectorAll('.cal-scroll').forEach((el) => {
+  let timer;
+  el.addEventListener('scroll', () => {
+    el.classList.add('is-scrolling');
+    clearTimeout(timer);
+    timer = setTimeout(() => el.classList.remove('is-scrolling'), 800);
+  }, { passive: true });
 });
 
 byId('cal-open')?.addEventListener('click', open);

@@ -116,7 +116,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
         </button>
       </header>
 
-      <div class="cal-body">
+      <div class="cal-body cal-scroll">
         <section class="cal-field">
           <div class="cal-seg" id="cal-freq" role="group" aria-label={t.board.pickFreq}>
             <button type="button" data-freq="once" aria-pressed="true">{t.board.pickOnce}</button>
@@ -124,10 +124,11 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
           </div>
         </section>
 
+        <div class="cal-when">
         <div class="cal-reveal is-open" id="cal-when-once">
           <section class="cal-field">
             <p class="cal-label" id="cal-date-label">{t.board.pickDate}</p>
-            <div class="cal-dates" id="cal-dates" role="group" aria-labelledby="cal-date-label"></div>
+            <div class="cal-dates cal-scroll" id="cal-dates" role="group" aria-labelledby="cal-date-label"></div>
           </section>
         </div>
 
@@ -147,6 +148,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
               </div>
             </div>
           </section>
+        </div>
         </div>
 
         <section class="cal-field">
@@ -170,7 +172,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
       </div>
 
       <footer class="cal-foot">
-        <ul class="cal-chosen" id="cal-chosen" hidden></ul>
+        <ul class="cal-chosen cal-scroll" id="cal-chosen" hidden></ul>
         <p class="cal-summary" id="cal-summary" aria-live="polite"></p>
         <div class="cal-actions">
           <a class="cal-google" id="cal-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
@@ -932,6 +934,36 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     height: 1.1rem;
   }
 
+  /* Scrollbars in the dialog show only while that part is being scrolled or
+     pointed at; calendar-picker.js sets .is-scrolling and drops it when the
+     scrolling stops. scrollbar-color for Firefox and Chromium, the webkit
+     pseudo-elements for Safari. */
+  .cal-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s;
+  }
+
+  .cal-scroll.is-scrolling,
+  .cal-scroll:hover {
+    scrollbar-color: color-mix(in srgb, var(--color-text-light) 55%, transparent) transparent;
+  }
+
+  .cal-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .cal-scroll::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: transparent;
+  }
+
+  .cal-scroll.is-scrolling::-webkit-scrollbar-thumb,
+  .cal-scroll:hover::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-text-light) 55%, transparent);
+  }
+
   /* The only part that scrolls: head and foot stay in view on a phone. */
   .cal-body {
     flex: 1;
@@ -954,23 +986,28 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     color: var(--color-text-light);
   }
 
-  /* Parts that come and go open by height rather than by [hidden], so they
-     slide. The script sets .is-open and inert together. */
-  .cal-reveal {
+  /* Parts that come and go fade in place and keep their space, so nothing
+     under them moves: the date strip and the weekly controls share one cell,
+     as tall as the taller of the two, and the weekday row holds its height
+     under Lørdag and Søndag. The script sets .is-open and inert together. */
+  .cal-when {
     display: grid;
-    grid-template-rows: 0fr;
+  }
+
+  .cal-when > * {
+    grid-area: 1 / 1;
+  }
+
+  .cal-reveal {
     opacity: 0;
-    transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
   }
 
   .cal-reveal.is-open {
-    grid-template-rows: 1fr;
     opacity: 1;
-  }
-
-  .cal-reveal > * {
-    min-height: 0;
-    overflow: hidden;
+    visibility: visible;
+    transition: opacity 0.2s ease, visibility 0s;
   }
 
   /* Segmented controls. What is chosen is a solid fill with white text, so
@@ -1038,7 +1075,6 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     gap: 0.35rem;
     overflow-x: auto;
     padding-bottom: 0.25rem;
-    scrollbar-width: thin;
   }
 
   .cal-dates :global(button) {

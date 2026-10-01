@@ -68,7 +68,6 @@
       "pickEveryWeekday": "werktags",
       "pickRemove": "Entfernen",
       "pickLoading": "Fahrplan wird geladen...",
-      "pickNone": "Noch keine Abfahrten gewählt.",
       "pickSummary": "{{count}} Abfahrten in den Kalender.",
       "pickSummaryOne": "1 Abfahrt in den Kalender.",
       "pickSummaryUntil": "{{count}} Abfahrten in den Kalender, bis {{date}}.",

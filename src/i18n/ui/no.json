@@ -67,7 +67,6 @@
       "pickEveryWeekday": "hverdager",
       "pickRemove": "Fjern",
       "pickLoading": "Henter rutetidene...",
-      "pickNone": "Ingen avganger valgt ennå.",
       "pickSummary": "{{count}} avganger i kalenderen.",
       "pickSummaryOne": "1 avgang i kalenderen.",
       "pickSummaryUntil": "{{count}} avganger i kalenderen, fram til {{date}}.",

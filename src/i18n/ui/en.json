@@ -67,7 +67,6 @@
       "pickEveryWeekday": "weekdays",
       "pickRemove": "Remove",
       "pickLoading": "Loading the timetable...",
-      "pickNone": "No departures picked yet.",
       "pickSummary": "{{count}} departures to your calendar.",
       "pickSummaryOne": "1 departure to your calendar.",
       "pickSummaryUntil": "{{count}} departures to your calendar, until {{date}}.",
