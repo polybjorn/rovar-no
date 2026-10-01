@@ -534,24 +534,6 @@ function setDate() {
   if (kolumbus) kolumbus.href = kolumbusUrl(toOsloDate(d));
 }
 
-// A weekday has more boats than a weekend day, so a day change can grow or
-// shrink a column by several rows. Measured before the change and animated
-// to the new height after it, the column and everything under it glide
-// instead of jumping.
-const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-
-function measure(ids) {
-  const before = ids.map(id => document.getElementById(id)?.offsetHeight ?? 0);
-  return () => ids.forEach((id, i) => {
-    const el = document.getElementById(id);
-    const after = el?.offsetHeight ?? 0;
-    if (!el || !before[i] || before[i] === after || reduceMotion?.matches || !el.animate) return;
-    el.style.overflow = "hidden";
-    el.animate([{ height: `${before[i]}px` }, { height: `${after}px` }], { duration: 250, easing: "ease" })
-      .finished.finally(() => { el.style.overflow = ""; });
-  });
-}
-
 let lastLoad = 0;
 
 // fresh: a new board (first load, day change) animates in. A background
@@ -572,10 +554,8 @@ async function loadAll(fresh = false) {
       fetchDepartures(ROVAR_STOP, startTime),
       fetchDepartures(HAUGESUND_STOP, startTime)
     ]);
-    const glide = measure(["from-rovar", "from-haugesund"]);
     render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh, "to-haugesund");
     render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh, "to-rovar");
-    glide();
     // The sheet follows the board: the kind of day shown, and with it the
     // weekday row, change with the day.
     if (picking) syncPicks();
