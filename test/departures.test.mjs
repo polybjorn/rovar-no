@@ -689,6 +689,27 @@ test('a departure carries no alarm: a timetable is read, not attended', () => {
   assert.ok(!lines.some((l) => l.startsWith('TRIGGER')));
 });
 
+test('a booking departure carries its deadline, a plain one none', () => {
+  const booked = departureEvent(bookedCall(), { stamp: ICS_STAMP });
+  assert.equal(booked.start - booked.bookingDeadline, 40 * 60000);
+  const plain = departureEvent(call({ time: '2026-07-15T08:00:00+02:00', stops: [] }), { stamp: ICS_STAMP });
+  assert.equal(plain.bookingDeadline, null);
+});
+
+test('an alarm the caller attaches rings that many minutes before departure', () => {
+  const event = departureEvent(bookedCall(), { stamp: ICS_STAMP });
+  const lines = icsEvent({ ...event, alarm: { minutesBefore: 40, text: 'Ring, nå' } });
+  const at = lines.indexOf('BEGIN:VALARM');
+  assert.deepEqual(lines.slice(at, at + 5), [
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Ring\\, nå',
+    'TRIGGER:-PT40M',
+    'END:VALARM',
+  ]);
+  assert.equal(lines.at(-1), 'END:VEVENT');
+});
+
 test('the calendar wraps its events and ends with a CRLF', () => {
   const event = departureEvent(bookedCall(), {
     direction: 'to-haugesund',

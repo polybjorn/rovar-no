@@ -321,6 +321,20 @@ function renderFooter() {
     summary.hidden = !needDays;
     summary.textContent = needDays ? S.pickChooseDays : '';
   }
+  const booking = byId('cal-booking-note');
+  if (booking) {
+    // Said once for every pick that has to be booked, each with its own
+    // deadline, so the phone mark on a row is not the only warning.
+    const booked = values.filter(([, p]) => p.event.isBooking).map(([, p]) => p.event);
+    booking.hidden = !booked.length;
+    booking.lastElementChild.textContent = booked.length
+      ? fill(S.pickBooking, {
+          list: booked
+            .map((e) => (e.bookingDeadline ? fill(S.pickBookingBy, { time: fmt(e.start), deadline: fmt(e.bookingDeadline) }) : fmt(e.start)))
+            .join(', '),
+        })
+      : '';
+  }
   const save = byId('cal-save');
   if (save) save.disabled = !events.length;
   const google = byId('cal-google');
@@ -379,6 +393,20 @@ function sizeDialog(animate = true) {
 }
 
 // --- download ----------------------------------------------------------------
+
+// A boat that has to be booked rings at its booking deadline, not at
+// departure, when there is still time to call. The file only: a Google link
+// cannot carry an alarm.
+function withAlarm(event) {
+  if (!event.bookingDeadline) return event;
+  return {
+    ...event,
+    alarm: {
+      minutesBefore: Math.round((event.start - event.bookingDeadline) / 60000),
+      text: fill(S.icsBookingAlarm, { time: fmt(event.start) }),
+    },
+  };
+}
 
 function download(events) {
   const ics = icsCalendar(events, { method: 'PUBLISH' });
@@ -505,7 +533,7 @@ onPick('cal-chosen', 'key', (key) => { picks.delete(key); });
 byId('cal-save')?.addEventListener('click', () => {
   const events = result();
   if (!events.length) return;
-  download(events);
+  download(events.map(withAlarm));
   finish();
 });
 byId('cal-google')?.addEventListener('click', () => {

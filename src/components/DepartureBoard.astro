@@ -188,6 +188,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
       <footer class="cal-foot">
         <ul class="cal-chosen cal-scroll" id="cal-chosen" hidden></ul>
         <p class="cal-summary" id="cal-summary" aria-live="polite"></p>
+        <p class="cal-booking-note" id="cal-booking-note" aria-live="polite" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg><span></span></p>
         <div class="cal-actions">
           <a class="cal-google" id="cal-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
           <button type="button" class="cal-save" id="cal-save" disabled>
@@ -1630,6 +1631,32 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     margin: 0 0 0.6rem;
     font-size: 0.85rem;
     color: var(--color-text-light);
+  }
+
+  /* The same warm tint as the board's deadline rows: the same warning. */
+  .cal-booking-note {
+    display: flex;
+    gap: 0.45rem;
+    align-items: baseline;
+    margin: 0 0 0.6rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--color-warn) 10%, transparent);
+    color: var(--color-text);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .cal-booking-note[hidden] {
+    display: none;
+  }
+
+  .cal-booking-note svg {
+    flex: none;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: var(--color-kelp);
+    transform: translateY(0.15em);
   }
 
   .cal-actions {

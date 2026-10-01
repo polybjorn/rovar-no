@@ -473,6 +473,7 @@ export function departureEvent(call, opts = {}) {
     from,
     to,
     isBooking,
+    bookingDeadline: isBooking ? bookingDeadline : null,
     via,
     summary: fill(strings.icsSummary ?? '{{from}}-{{to}}', { from, to }),
     location: fill(strings.icsLocation ?? '{{from}}', { from, to }),
@@ -506,6 +507,18 @@ export function icsEvent(event) {
   // transparent it shows in the calendar without claiming the day as busy,
   // which an all-day event would otherwise do to every free/busy lookup.
   if (event.transparent) lines.push('TRANSP:TRANSPARENT');
+  // Only on an event the caller asked for one: the published feed carries
+  // every booking departure, and an alarm there would ring every evening.
+  // Counted back from the start, which more clients honour than a fixed time.
+  if (event.alarm) {
+    lines.push(
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${icsEscape(event.alarm.text)}`,
+      `TRIGGER:-PT${event.alarm.minutesBefore}M`,
+      'END:VALARM'
+    );
+  }
   lines.push('END:VEVENT');
   return lines;
 }
