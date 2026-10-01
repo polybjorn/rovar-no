@@ -464,6 +464,7 @@ export function departureEvent(call, opts = {}) {
     from,
     to,
     isBooking,
+    via,
     summary: fill(strings.icsSummary ?? '{{from}}-{{to}}', { from, to }),
     location: fill(strings.icsLocation ?? '{{from}}', { from, to }),
     description: description.join('\n'),
@@ -613,6 +614,22 @@ export function weeklyEvents(picks, events, from, weekdays = WEEKDAYS) {
       );
     })
     .sort((x, y) => x.start - y.start);
+}
+
+// The first date on or after `from` that is of a kind and has boats in the
+// timetable, so the picker can show a real Saturday rather than an empty one.
+export function nextDateOfKind(events, kind, from) {
+  const dates = [...new Set(events.map((event) => toOsloDate(event.start)))].sort();
+  return dates.find((date) => date >= from && dayKind(osloWeekday(`${date}T12:00:00Z`)) === kind) ?? null;
+}
+
+// Everything a reader picked, as the events that go in the file: one-off
+// picks as they are, weekly picks matched across the timetable. One event per
+// boat however it was reached, in time order.
+export function collectEvents(once, weekly, events, from, weekdays = WEEKDAYS) {
+  const repeated = weekly.length ? weeklyEvents(weekly, events, from, weekdays) : [];
+  const byUid = new Map([...once, ...repeated].map((event) => [event.uid, event]));
+  return [...byUid.values()].sort((a, b) => a.start - b.start);
 }
 
 // --- summary feed -----------------------------------------------------------

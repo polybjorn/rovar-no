@@ -94,56 +94,89 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     />
   </p>
 
-  <!-- Pick mode: the reader chooses the departures that go in their calendar,
-       rather than taking every crossing. departures.js drives it. -->
+  <!-- The calendar picker opens in a dialog of its own, so the board stays a
+       timetable with no controls on its rows. calendar-picker.js drives it. -->
   <div class="dep-pick">
-    <button type="button" class="dep-pick-start" id="dep-pick-start">
+    <button type="button" class="dep-pick-start" id="cal-open" aria-haspopup="dialog">
       <svg class="dep-pick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>
       {t.board.pickStart}
     </button>
-    <div class="dep-pick-bar" id="dep-pick-bar" role="region" aria-labelledby="dep-pick-title" tabindex="-1" hidden>
-      <div class="dep-pick-head">
-        <p class="dep-pick-title" id="dep-pick-title">{t.board.pickTitle}<span class="dep-pick-count" id="dep-pick-count" aria-live="polite" hidden></span></p>
-        <button type="button" class="dep-pick-close" id="dep-pick-cancel" aria-label={t.board.pickCancel}>
+  </div>
+
+  <dialog class="cal-dialog" id="cal-dialog" aria-labelledby="cal-title">
+    <div class="cal-box">
+      <header class="cal-head">
+        <h2 class="cal-title" id="cal-title" tabindex="-1" autofocus>{t.board.pickTitle}</h2>
+        <button type="button" class="cal-close" id="cal-close" aria-label={t.board.pickCancel}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
         </button>
-      </div>
-      <p class="dep-pick-hint" id="dep-pick-hint">{t.board.pickHint}</p>
-      <ul class="dep-pick-list" id="dep-pick-list" hidden></ul>
-      <label class="dep-pick-weekly">
-        <input type="checkbox" role="switch" id="dep-pick-weekly" />
-        <span class="dep-pick-switch" aria-hidden="true"></span>
-        <span>{t.board.pickWeekly}</span>
-      </label>
-      <div class="dep-pick-reveal" id="dep-pick-kinds">
-       <div class="dep-pick-kinds">
-        <div class="dep-pick-seg" id="dep-pick-seg" role="group" aria-label={t.board.pickKinds}>
-          <button type="button" data-kind="weekday" aria-pressed="false">{t.board.pickWeekdays}</button>
-          <button type="button" data-kind="saturday" aria-pressed="false">{t.board.pickSaturday}</button>
-          <button type="button" data-kind="sunday" aria-pressed="false">{t.board.pickSunday}</button>
-        </div>
-        <div class="dep-pick-reveal" id="dep-pick-days-wrap">
-          <div class="dep-pick-days" id="dep-pick-days" role="group" aria-label={t.board.pickWhichDays}>
-            {weekdayNames(localeInfo(lang).intl).filter((_, i) => WEEKDAYS.includes(i)).map((name, i) => (
-              <button type="button" data-day={i} aria-pressed="true">{name}</button>
-            ))}
+      </header>
+
+      <div class="cal-body">
+        <section class="cal-field">
+          <p class="cal-label" id="cal-freq-label">{t.board.pickFreq}</p>
+          <div class="cal-seg" id="cal-freq" role="group" aria-labelledby="cal-freq-label">
+            <button type="button" data-freq="once" aria-pressed="true">{t.board.pickOnce}</button>
+            <button type="button" data-freq="weekly" aria-pressed="false">{t.board.pickWeekly}</button>
           </div>
+        </section>
+
+        <div class="cal-reveal is-open" id="cal-when-once">
+          <section class="cal-field">
+            <p class="cal-label" id="cal-date-label">{t.board.pickDate}</p>
+            <div class="cal-dates" id="cal-dates" role="group" aria-labelledby="cal-date-label"></div>
+          </section>
         </div>
-       </div>
+
+        <div class="cal-reveal" id="cal-when-weekly" inert>
+          <section class="cal-field">
+            <p class="cal-label" id="cal-kind-label">{t.board.pickDays}</p>
+            <div class="cal-seg cal-seg-3" id="cal-kind" role="group" aria-labelledby="cal-kind-label">
+              <button type="button" data-kind="weekday" aria-pressed="true">{t.board.pickWeekdays}</button>
+              <button type="button" data-kind="saturday" aria-pressed="false">{t.board.pickSaturday}</button>
+              <button type="button" data-kind="sunday" aria-pressed="false">{t.board.pickSunday}</button>
+            </div>
+            <div class="cal-reveal" id="cal-weekdays-wrap" inert>
+              <div class="cal-weekdays" id="cal-weekdays" role="group" aria-label={t.board.pickWhichDays}>
+                {weekdayNames(localeInfo(lang).intl).filter((_, i) => WEEKDAYS.includes(i)).map((name, i) => (
+                  <button type="button" data-day={i} aria-pressed="true"><span class="cal-tick" aria-hidden="true"></span>{name}</button>
+                ))}
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="cal-field">
+          <div class="cal-times-head">
+            <p class="cal-label">{t.board.pickDepartures}</p>
+            <span class="cal-day-label" id="cal-day-label"></span>
+          </div>
+          <div class="cal-seg" id="cal-dir" role="group" aria-label={t.board.pickDirection}>
+            <button type="button" data-dir="to-rovar" aria-pressed="true">Haugesund<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Røvær</button>
+            <button type="button" data-dir="to-haugesund" aria-pressed="false">Røvær<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Haugesund</button>
+          </div>
+          <ul class="cal-times" id="cal-times"></ul>
+        </section>
       </div>
-      <p class="dep-pick-note" id="dep-pick-note" aria-live="polite" hidden></p>
-      <div class="dep-pick-actions">
-        <button type="button" class="dep-pick-save" id="dep-pick-save" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          {t.board.pickSave}
-        </button>
-        <a class="dep-pick-google" id="dep-pick-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
-      </div>
+
+      <footer class="cal-foot">
+        <ul class="cal-chosen" id="cal-chosen" hidden></ul>
+        <p class="cal-summary" id="cal-summary" aria-live="polite"></p>
+        <div class="cal-actions">
+          <a class="cal-google" id="cal-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
+          <button type="button" class="cal-save" id="cal-save" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            {t.board.pickSave}
+          </button>
+        </div>
+      </footer>
     </div>
-  </div>
+  </dialog>
 </div>
 
 <script src="../scripts/departures.js"></script>
+<script src="../scripts/calendar-picker.js"></script>
+
 
 <style>
   .dep-page {
@@ -753,10 +786,6 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     border-color: var(--color-ocean-light);
   }
 
-  .dep-pick-start[hidden] {
-    display: none;
-  }
-
   .dep-pick-icon {
     width: 1.1rem;
     height: 1.1rem;
@@ -764,79 +793,75 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     flex-shrink: 0;
   }
 
-  /* While picking, the sheet stays in view at the foot of the screen, so the
-     reader can scroll the board and still see what they have chosen. */
-  .is-picking .dep-pick {
-    position: sticky;
-    bottom: 0.75rem;
-    z-index: 10;
+  /* --- calendar picker dialog ------------------------------------------- */
+
+  /* While the dialog is open the page under it stays put. */
+  :global(html.cal-open) {
+    overflow: hidden;
   }
 
-  .dep-pick-bar {
-    max-width: 30rem;
-    margin: 0 auto;
-    padding: 0.85rem 1rem 1rem;
-    background: color-mix(in srgb, var(--color-foam) 94%, transparent);
-    backdrop-filter: blur(12px);
-    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
-    border-radius: 18px;
-    box-shadow: 0 12px 32px rgba(14, 54, 80, 0.18), 0 2px 6px rgba(14, 54, 80, 0.08);
+  /* margin: auto is what centres a modal dialog; the site's reset takes it
+     away, so it goes back here. */
+  .cal-dialog {
+    inset: 0;
+    margin: auto;
+    width: min(34rem, calc(100vw - 1.5rem));
+    max-height: min(46rem, calc(100dvh - 1.5rem));
+    padding: 0;
+    border: none;
+    border-radius: 20px;
+    background: var(--color-foam);
     color: var(--color-text);
-    text-align: left;
-    animation: dep-sheet-in 0.25s ease both;
+    box-shadow: 0 24px 60px rgba(14, 54, 80, 0.3);
+    overflow: hidden;
   }
 
-  @keyframes dep-sheet-in {
-    from { opacity: 0; transform: translateY(0.75rem); }
+  .cal-dialog[open] {
+    display: flex;
+    animation: cal-in 0.2s ease both;
   }
 
-  .dep-pick-bar[hidden] {
-    display: none;
+  .cal-dialog::backdrop {
+    background: rgba(14, 54, 80, 0.45);
+    backdrop-filter: blur(3px);
   }
 
-  /* Focus lands on the sheet so a screen reader hears it, but the sheet is
-     not a control, so it gets no ring. */
-  .dep-pick-bar:focus {
-    outline: none;
+  @keyframes cal-in {
+    from { opacity: 0; transform: translateY(0.75rem) scale(0.98); }
   }
 
-  .dep-pick-head {
+  .cal-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .cal-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem 0.75rem;
+    border-bottom: 1px solid var(--color-sand-dark);
   }
 
-  .dep-pick-title {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
+  /* Focus starts on the title, so a screen reader hears what opened and no
+     control lights up a ring before anything is touched. */
+  .cal-title {
+    outline: none;
     margin: 0;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--color-ocean-dark);
   }
 
-  .dep-pick-count {
-    min-width: 1.4rem;
-    padding: 0.05rem 0.45rem;
-    border-radius: 999px;
-    background: var(--color-kelp);
-    color: var(--color-on-dark);
-    font-size: 0.8rem;
-    text-align: center;
-  }
-
-  .dep-pick-count[hidden] {
-    display: none;
-  }
-
-  .dep-pick-close {
+  .cal-close {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    width: 2.25rem;
+    height: 2.25rem;
     padding: 0;
     border: none;
     border-radius: 50%;
@@ -845,304 +870,451 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     cursor: pointer;
   }
 
-  .dep-pick-close:hover {
+  .cal-close:hover {
     background: var(--color-sand-dark);
   }
 
-  .dep-pick-close svg {
-    width: 1rem;
-    height: 1rem;
-  }
-
-  .dep-pick-hint {
-    margin: 0.35rem 0 0;
-    font-size: 0.85rem;
-    color: var(--color-text-light);
-  }
-
-  .dep-pick-hint[hidden] {
-    display: none;
-  }
-
-  /* What is picked, from whatever day it was picked on: the board only shows
-     one day, so this is where a pick on another day stays visible. */
-  .dep-pick-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin: 0.6rem 0 0;
-    padding: 0;
-    list-style: none;
-    max-height: 6.5rem;
-    overflow-y: auto;
-  }
-
-  .dep-pick-list[hidden] {
-    display: none;
-  }
-
-  .dep-pick-list :global(li) {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.2rem 0.2rem 0.2rem 0.65rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--color-kelp) 12%, var(--color-foam));
-    font-size: 0.82rem;
-    line-height: 1.2;
-  }
-
-  .dep-pick-list :global(.dep-pick-when) {
-    color: var(--color-text-light);
-  }
-
-  .dep-pick-list :global(.dep-pick-time) {
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .dep-pick-list :global(.dep-pick-to) {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.15rem;
-  }
-
-  .dep-pick-list :global(.dep-pick-to svg) {
-    width: 0.8rem;
-    height: 0.8rem;
-  }
-
-  .dep-pick-list :global(button) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.35rem;
-    height: 1.35rem;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--color-text-light);
-    cursor: pointer;
-  }
-
-  .dep-pick-list :global(button:hover) {
-    background: color-mix(in srgb, var(--color-kelp) 20%, transparent);
-  }
-
-  .dep-pick-list :global(button svg) {
-    width: 0.75rem;
-    height: 0.75rem;
-  }
-
-  .dep-pick-weekly {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-top: 0.75rem;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
-
-  /* The real checkbox stays for keyboard and screen readers; the track and
-     knob are drawn beside it. */
-  .dep-pick-weekly input {
-    position: absolute;
-    opacity: 0;
-    width: 1px;
-    height: 1px;
-  }
-
-  .dep-pick-switch {
-    position: relative;
-    flex: none;
-    width: 2.4rem;
-    height: 1.4rem;
-    border-radius: 999px;
-    background: var(--color-sand-dark);
-    transition: background 0.2s;
-  }
-
-  .dep-pick-switch::after {
-    content: "";
-    position: absolute;
-    top: 0.15rem;
-    left: 0.15rem;
+  .cal-close svg {
     width: 1.1rem;
     height: 1.1rem;
-    border-radius: 50%;
-    background: var(--color-foam);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-    transition: transform 0.2s;
   }
 
-  .dep-pick-weekly input:checked + .dep-pick-switch {
-    background: var(--color-kelp);
+  /* The only part that scrolls: head and foot stay in view on a phone. */
+  .cal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.25rem 1.1rem 1rem;
   }
 
-  .dep-pick-weekly input:checked + .dep-pick-switch::after {
-    transform: translateX(1rem);
+  .cal-field {
+    margin-top: 0.9rem;
   }
 
-  .dep-pick-weekly input:focus-visible + .dep-pick-switch {
-    outline: 2px solid var(--color-ocean-light);
-    outline-offset: 2px;
+  .cal-label {
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-light);
   }
 
-  /* Opens and closes by height rather than by [hidden], so the parts of the
-     sheet that come and go slide instead of jumping. The script sets
-     .is-open and inert together. */
-  .dep-pick-reveal {
+  /* Parts that come and go open by height rather than by [hidden], so they
+     slide. The script sets .is-open and inert together. */
+  .cal-reveal {
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
     transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
   }
 
-  .dep-pick-reveal.is-open {
+  .cal-reveal.is-open {
     grid-template-rows: 1fr;
     opacity: 1;
   }
 
-  .dep-pick-reveal > * {
+  .cal-reveal > * {
     min-height: 0;
     overflow: hidden;
   }
 
-  /* One track for both rows: which kind of day, and under Hverdager, which
-     weekdays. Same pills, same sliding white for what is chosen. */
-  .dep-pick-kinds {
-    margin-top: 0.7rem;
+  /* Segmented controls. What is chosen is a solid fill with white text, so
+     it reads as on at a glance; the fill slides between options. */
+  .cal-seg {
+    position: relative;
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
     padding: 0.2rem;
-    border-radius: 1.1rem;
+    border-radius: 999px;
     background: var(--color-sand);
   }
 
-  .dep-pick-seg {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  /* The white pill under the chosen kind, moved by --seg (0, 1, 2) so a
-     change of kind slides rather than blinks. */
-  .dep-pick-seg::before {
+  .cal-seg::before {
     content: "";
     position: absolute;
-    inset: 0 auto 0 0;
-    width: calc(100% / 3);
+    top: 0.2rem;
+    bottom: 0.2rem;
+    left: 0.2rem;
+    width: calc((100% - 0.4rem) / var(--n, 2));
     border-radius: 999px;
-    background: var(--color-foam);
-    box-shadow: 0 1px 4px rgba(14, 54, 80, 0.15);
+    background: var(--color-ocean);
+    box-shadow: 0 2px 6px rgba(14, 54, 80, 0.25);
     transform: translateX(calc(var(--seg, 0) * 100%));
     transition: transform 0.25s ease;
   }
 
-  .dep-pick-seg button,
-  .dep-pick-days button {
+  .cal-seg-3 {
+    --n: 3;
+  }
+
+  .cal-seg button {
     position: relative;
-    padding: 0.4rem 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2.4rem;
+    padding: 0.35rem 0.5rem;
     border: none;
     border-radius: 999px;
     background: transparent;
-    color: var(--color-text-light);
+    color: var(--color-text);
     font: inherit;
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    transition: color 0.2s;
   }
 
-  .dep-pick-seg button[aria-pressed="true"] {
-    color: var(--color-ocean-dark);
+  .cal-seg button[aria-pressed="true"] {
+    color: var(--color-on-dark);
   }
 
-  .dep-pick-days {
+  .cal-seg button svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    flex: none;
+  }
+
+  /* One-off: a strip of dates, scrolled sideways on a phone. */
+  .cal-dates {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+  }
+
+  .cal-dates :global(button) {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 3rem;
+    padding: 0.35rem 0.4rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-foam);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .cal-dates :global(button.is-weekend) {
+    background: var(--color-sand);
+  }
+
+  .cal-dates :global(.cal-date-wd) {
+    font-size: 0.72rem;
+    color: var(--color-text-light);
+  }
+
+  .cal-dates :global(.cal-date-d) {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .cal-dates :global(button[aria-pressed="true"]) {
+    border-color: var(--color-ocean);
+    background: var(--color-ocean);
+    color: var(--color-on-dark);
+  }
+
+  .cal-dates :global(button[aria-pressed="true"] .cal-date-wd) {
+    color: var(--color-on-dark);
+  }
+
+  /* Weekly, under Hverdager: which weekdays. On is a solid kelp chip with a
+     check; off is an outline with nothing in it. */
+  .cal-weekdays {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 0.2rem;
-    padding-bottom: 0.15rem;
+    gap: 0.35rem;
+    padding-top: 0.5rem;
   }
 
-  /* The weekday row sits under the kinds, divided by a hairline; the gap
-     lives inside the clipped box so a closed row takes no room. */
-  .dep-pick-days::before {
-    content: "";
-    grid-column: 1 / -1;
-    height: 1px;
-    margin: 0.2rem 0.6rem 0;
-    background: var(--color-sand-dark);
-  }
-
-  .dep-pick-days button {
-    padding: 0.3rem 0.25rem;
-    font-size: 0.8rem;
-  }
-
-  .dep-pick-days button[aria-pressed="true"] {
+  .cal-weekdays button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2.2rem;
+    padding: 0.25rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 999px;
     background: var(--color-foam);
-    color: var(--color-ocean-dark);
-    box-shadow: 0 1px 4px rgba(14, 54, 80, 0.15);
+    color: var(--color-text-light);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .dep-pick-reveal,
-    .dep-pick-seg::before {
-      transition: none;
-    }
+  .cal-weekdays button[aria-pressed="true"] {
+    border-color: var(--color-kelp);
+    background: var(--color-kelp);
+    color: var(--color-on-dark);
   }
 
-  .dep-pick-note {
-    margin: 0.5rem 0 0;
+  .cal-tick {
+    display: none;
+    width: 0.3rem;
+    height: 0.55rem;
+    margin: 0 0.1rem 0.15rem 0;
+    border: solid currentColor;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .cal-weekdays button[aria-pressed="true"] .cal-tick {
+    display: inline-block;
+  }
+
+  /* The departures of the shown day, in the chosen direction. */
+  .cal-times-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .cal-day-label {
     font-size: 0.8rem;
     color: var(--color-text-light);
   }
 
-  .dep-pick-note[hidden] {
+  .cal-times {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--color-sand-dark);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .cal-times :global(li + li) {
+    border-top: 1px solid var(--color-sand-dark);
+  }
+
+  .cal-times :global(.cal-times-note) {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+  }
+
+  .cal-times :global(.cal-time) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2rem 0.4rem;
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: none;
+    background: var(--color-foam);
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .cal-times :global(.cal-time:hover:not(:disabled)) {
+    background: var(--color-sand);
+  }
+
+  .cal-times :global(.cal-time[aria-pressed="true"]) {
+    background: color-mix(in srgb, var(--color-kelp) 14%, var(--color-foam));
+  }
+
+  .cal-times :global(.cal-time:disabled) {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  .cal-times :global(.cal-check) {
+    position: relative;
+    flex: none;
+    box-sizing: border-box;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-right: 0.2rem;
+    border: 2px solid var(--color-border);
+    border-radius: 6px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .cal-times :global(.cal-time[aria-pressed="true"] .cal-check) {
+    border-color: var(--color-kelp);
+    background: var(--color-kelp);
+  }
+
+  .cal-times :global(.cal-time[aria-pressed="true"] .cal-check)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 0.3rem;
+    height: 0.6rem;
+    border: solid var(--color-on-dark);
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .cal-times :global(.cal-dep) {
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cal-times :global(.cal-time > svg) {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: var(--color-text-light);
+  }
+
+  .cal-times :global(.cal-arr) {
+    color: var(--color-text-light);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cal-times :global(.cal-via) {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+  }
+
+  .cal-times :global(.cal-booking) {
+    display: inline-flex;
+    margin-left: auto;
+    color: var(--color-kelp);
+  }
+
+  .cal-times :global(.cal-booking svg) {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  /* The foot: what is chosen, from any day or kind, and the one action. */
+  .cal-foot {
+    padding: 0.75rem 1.1rem 1rem;
+    border-top: 1px solid var(--color-sand-dark);
+    background: var(--color-foam);
+  }
+
+  .cal-chosen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    max-height: 5.5rem;
+    margin: 0 0 0.6rem;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  .cal-chosen[hidden] {
     display: none;
   }
 
-  .dep-pick-actions {
-    display: flex;
+  .cal-chosen :global(li) {
+    display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.85rem;
+    gap: 0.3rem;
+    padding: 0.2rem 0.2rem 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-kelp) 14%, var(--color-foam));
+    font-size: 0.8rem;
+    line-height: 1.2;
   }
 
-  .dep-pick-save {
+  .cal-chosen :global(.cal-chip-when) {
+    color: var(--color-text-light);
+  }
+
+  .cal-chosen :global(.cal-chip-time) {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cal-chosen :global(.cal-chip-to) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .cal-chosen :global(svg) {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .cal-chosen :global(button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-light);
+    cursor: pointer;
+  }
+
+  .cal-chosen :global(button:hover) {
+    background: color-mix(in srgb, var(--color-kelp) 25%, transparent);
+  }
+
+  .cal-summary {
+    margin: 0 0 0.6rem;
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+  }
+
+  .cal-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .cal-save {
     flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
-    min-height: 2.75rem;
+    min-height: 2.9rem;
     padding: 0 1.1rem;
     border: none;
     border-radius: 999px;
     background: var(--color-ocean);
     color: var(--color-on-dark);
     font: inherit;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s, opacity 0.15s;
   }
 
-  .dep-pick-save:hover:not(:disabled) {
+  .cal-save:hover:not(:disabled) {
     background: var(--color-ocean-dark);
   }
 
-  .dep-pick-save:disabled {
+  .cal-save:disabled {
     opacity: 0.35;
     cursor: default;
   }
 
-  .dep-pick-save svg {
+  .cal-save svg {
     width: 1.1rem;
     height: 1.1rem;
   }
 
-  .dep-pick-google {
+  .cal-google {
     flex: none;
     font-size: 0.85rem;
     font-weight: 600;
@@ -1150,80 +1322,17 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     white-space: nowrap;
   }
 
-  .dep-pick-google[hidden] {
+  .cal-google[hidden] {
     display: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .dep-pick-bar,
-    .dep-pick-switch,
-    .dep-pick-switch::after {
+    .cal-dialog[open],
+    .cal-reveal,
+    .cal-seg::before {
       animation: none;
       transition: none;
     }
-  }
-
-  /* A pickable row says so: a pointer, and a circle in front of the time that
-     fills with a check when the departure is picked. Rows that have sailed
-     get none. */
-  .is-picking .dep-direction :global(.dep-list li[role=checkbox]) {
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .is-picking .dep-direction :global(.dep-list li[role=checkbox] .dep-route) {
-    position: relative;
-  }
-
-  .is-picking .dep-direction :global(.dep-list li[role=checkbox] .dep-route)::before {
-    content: "";
-    flex: none;
-    align-self: center;
-    box-sizing: border-box;
-    width: 1.2rem;
-    height: 1.2rem;
-    margin-right: 0.45rem;
-    border: 2px solid var(--color-border);
-    border-radius: 50%;
-    transition: background 0.15s, border-color 0.15s;
-  }
-
-  /* Only on entering pick mode, not on every refresh that redraws the rows. */
-  .pick-enter .dep-direction :global(.dep-list li[role=checkbox] .dep-route)::before {
-    animation: dep-ring-in 0.25s ease both;
-  }
-
-  @keyframes dep-ring-in {
-    from { width: 0; margin-right: 0; opacity: 0; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .pick-enter .dep-direction :global(.dep-list li[role=checkbox] .dep-route)::before {
-      animation: none;
-    }
-  }
-
-  .is-picking .dep-direction :global(.dep-list li.is-picked) {
-    background: color-mix(in srgb, var(--color-kelp) 10%, transparent);
-  }
-
-  .is-picking .dep-direction :global(.dep-list li.is-picked .dep-route)::before {
-    border-color: var(--color-kelp);
-    background: var(--color-kelp);
-  }
-
-  /* The check, drawn as the two borders of a turned box, centred on the
-     circle: 0.6rem is half its 1.2rem. */
-  .is-picking .dep-direction :global(.dep-list li.is-picked .dep-route)::after {
-    content: "";
-    position: absolute;
-    left: 0.6rem;
-    top: 50%;
-    width: 0.3rem;
-    height: 0.55rem;
-    border: solid var(--color-on-dark);
-    border-width: 0 2px 2px 0;
-    transform: translate(-50%, -65%) rotate(45deg);
   }
 
   .dep-credit {

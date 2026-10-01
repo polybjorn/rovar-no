@@ -26,15 +26,6 @@ import {
   formatCountdown,
   urgencyClass,
   kolumbusUrl,
-  departureEvent,
-  icsCalendar,
-  googleCalendarUrl,
-  feedEvents,
-  weeklyEvents,
-  dayKind,
-  osloWeekday,
-  WEEKDAYS,
-  FEED_WINDOW_DAYS,
   monthDays,
   monthNav,
   offsetOf,
@@ -83,247 +74,6 @@ function selectedDate() {
 // the board is wiped (empty day, error), so the next list counts as new.
 const prevRows = new Map();
 
-// --- pick mode ---------------------------------------------------------------
-// No control on the rows and no feed of every crossing: the reader turns pick
-// mode on, taps the departures they mean to take, across as many days as they
-// like, and takes only those to their calendar. Picks are keyed by event UID,
-// so they survive the day changing and the 60s refresh redrawing the rows.
-let picking = false;
-const picks = new Map();
-// The event behind every departure row drawn so far, by UID.
-const rowEvents = new Map();
-// Repeating weekly needs the whole published timetable, which the board never
-// loads, so it is fetched when the switch is first turned on: about a megabyte
-// per stop, worth it only when asked for.
-let weekly = false;
-// Which weekdays a weekday pick repeats on. All five unless narrowed.
-const weekdayChoice = new Set(WEEKDAYS);
-let timetable = null;
-let timetableEvents = null;
-let timetableFailed = false;
-
-const closeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>';
-const smallArrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-async function fetchTimetable(stopId) {
-  const res = await fetch(ENTUR_API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "ET-Client-Name": ENTUR_CLIENT },
-    body: JSON.stringify({
-      query,
-      variables: { stopId, n: FEED_WINDOW_DAYS * 20, startTime: osloMidnight(0), timeRange: FEED_WINDOW_DAYS * 86400 },
-    }),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return (await res.json()).data.stopPlace.estimatedCalls;
-}
-
-function loadTimetable() {
-  timetable ??= Promise.all([fetchTimetable(ROVAR_STOP), fetchTimetable(HAUGESUND_STOP)])
-    .then(([rovar, haugesund]) => {
-      timetableEvents = feedEvents(
-        [
-          { calls: rovar, direction: "to-haugesund" },
-          { calls: haugesund, direction: "to-rovar" },
-        ],
-        { strings: S, locale: S.locale, bookingRe: BOOKING_RE, url: `${location.origin}${location.pathname}` }
-      );
-    })
-    .catch(() => {
-      timetableFailed = true;
-      timetable = null;
-    })
-    .finally(() => syncPicks());
-  return timetable;
-}
-
-const sortedPicks = () => [...picks.values()].sort((a, b) => a.start - b.start);
-
-// What the download would hold right now, or null while the timetable a
-// weekly repeat needs is still on its way.
-function pickedEvents() {
-  if (!weekly) return sortedPicks();
-  if (!timetableEvents) return null;
-  return weeklyEvents(sortedPicks(), timetableEvents, toOsloDate(new Date()), [...weekdayChoice]);
-}
-
-const fill = (template, tokens) =>
-  Object.entries(tokens).reduce((text, [k, v]) => text.replaceAll(`{{${k}}}`, v), template ?? '');
-
-// One pick as the sheet lists it: when, what time, where to.
-const weekdayOf = (date) => osloWeekday(`${date}T12:00:00Z`);
-const shownKind = () => dayKind(weekdayOf(selectedDate()));
-const shortDay = (i) => new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(S.locale, { weekday: "short", timeZone: "UTC" });
-
-function weeklyWhen(event) {
-  if (dayKind(weekdayOf(toOsloDate(event.start))) !== 'weekday') {
-    return fill(S.pickEvery, { day: event.start.toLocaleDateString(S.locale, { weekday: "long", timeZone: "Europe/Oslo" }) });
-  }
-  return weekdayChoice.size === WEEKDAYS.length
-    ? S.pickEveryWeekday
-    : [...weekdayChoice].sort().map(shortDay).join(", ");
-}
-
-function pickItem(event) {
-  const when = weekly
-    ? weeklyWhen(event)
-    : event.start.toLocaleDateString(S.locale, { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/Oslo" });
-  const label = `${when} ${fmt(event.start)} ${event.from}-${event.to}`;
-  return `<li>
-    <span class="dep-pick-when">${esc(when)}</span>
-    <span class="dep-pick-time">${esc(fmt(event.start))}</span>
-    <span class="dep-pick-to">${smallArrow}${esc(event.to)}</span>
-    <button type="button" data-uid="${esc(event.uid)}" aria-label="${esc(`${S.pickRemove ?? ''} ${label}`.trim())}">${closeIcon}</button>
-  </li>`;
-}
-
-// A part of the sheet that slides open and shut. Inert while shut, so its
-// buttons are out of the tab order and the accessibility tree.
-function reveal(el, open) {
-  if (!el) return;
-  el.classList.toggle('is-open', open);
-  el.inert = !open;
-}
-
-function syncPicks(root = document) {
-  root.querySelectorAll('.dep-list li[data-uid]').forEach(li => {
-    const pickable = picking && !li.classList.contains('passed');
-    li.classList.toggle('is-picked', pickable && picks.has(li.dataset.uid));
-    if (pickable) {
-      li.setAttribute('role', 'checkbox');
-      li.setAttribute('aria-checked', String(picks.has(li.dataset.uid)));
-      li.tabIndex = 0;
-    } else {
-      li.removeAttribute('role');
-      li.removeAttribute('aria-checked');
-      li.removeAttribute('tabindex');
-    }
-  });
-  if (root !== document) return;
-
-  depPage?.classList.toggle('is-picking', picking);
-  const byId = (id) => document.getElementById(id);
-  const start = byId('dep-pick-start');
-  const bar = byId('dep-pick-bar');
-  if (start) start.hidden = picking;
-  if (bar) bar.hidden = !picking;
-
-  const count = byId('dep-pick-count');
-  if (count) {
-    count.hidden = !picks.size;
-    count.textContent = String(picks.size);
-  }
-  const hint = byId('dep-pick-hint');
-  if (hint) hint.hidden = picks.size > 0;
-  const list = byId('dep-pick-list');
-  if (list) {
-    list.hidden = !picks.size;
-    list.innerHTML = sortedPicks().map(pickItem).join('');
-  }
-  const toggle = byId('dep-pick-weekly');
-  if (toggle) toggle.checked = weekly;
-  if (hint) hint.textContent = weekly ? S.pickHintWeekly : S.pickHint;
-  reveal(byId('dep-pick-kinds'), weekly);
-  const kind = shownKind();
-  const segs = [...document.querySelectorAll('#dep-pick-seg button')];
-  segs.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.kind === kind)));
-  byId('dep-pick-seg')?.style.setProperty('--seg', String(segs.findIndex(b => b.dataset.kind === kind)));
-  reveal(byId('dep-pick-days-wrap'), kind === 'weekday');
-  document.querySelectorAll('#dep-pick-days button').forEach(b =>
-    b.setAttribute('aria-pressed', String(weekdayChoice.has(Number(b.dataset.day))))
-  );
-
-  const events = picks.size ? pickedEvents() : [];
-  const note = byId('dep-pick-note');
-  if (note) {
-    const last = events?.at(-1);
-    note.textContent = !weekly || !picks.size ? ''
-      : timetableFailed ? S.error
-      : !events ? S.pickLoading
-      : fill(S.pickWeeklyNote, {
-          count: events.length,
-          date: last.start.toLocaleDateString(S.locale, { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Oslo" }),
-        });
-    note.hidden = !note.textContent;
-  }
-  const save = byId('dep-pick-save');
-  if (save) save.disabled = !events?.length;
-  const google = byId('dep-pick-google');
-  if (google) {
-    // A link carries one event, so a repeat goes by download only.
-    const single = events?.length === 1 ? events[0] : null;
-    google.hidden = !single;
-    if (single) google.href = googleCalendarUrl(single);
-  }
-}
-
-function setPicking(on) {
-  picking = on;
-  if (on) {
-    // The circles grow in once, on entering; a refresh redraws without them
-    // animating again.
-    depPage?.classList.add('pick-enter');
-    setTimeout(() => depPage?.classList.remove('pick-enter'), 400);
-  } else {
-    picks.clear();
-    weekly = false;
-    WEEKDAYS.forEach(d => weekdayChoice.add(d));
-  }
-  syncPicks();
-}
-
-function togglePick(uid) {
-  if (picks.has(uid)) picks.delete(uid);
-  else if (rowEvents.has(uid)) picks.set(uid, rowEvents.get(uid));
-  syncPicks();
-}
-
-function setWeekly(on) {
-  weekly = on;
-  if (weekly && !timetableEvents) {
-    timetableFailed = false;
-    loadTimetable();
-  }
-  syncPicks();
-}
-
-// Move the board to the next day of a kind. Today counts only while it still
-// has a boat to pick; otherwise the same weekday a week on, which the board
-// reaches (MAX_DAY_OFFSET is 7).
-async function showKind(kind) {
-  if (shownKind() === kind) return;
-  for (let offset = 0; offset <= MAX_DAY_OFFSET; offset++) {
-    if (dayKind(weekdayOf(toOsloDate(dateAtOffset(offset)))) !== kind) continue;
-    dayOffset = offset;
-    await loadAll(true);
-    if (offset === 0 && !document.querySelector(".dep-list li[data-uid]:not(.passed)")) {
-      dayOffset = 7;
-      await loadAll(true);
-    }
-    return;
-  }
-}
-
-// Everything the file says is built in departures-core.js; this end only
-// names the file and hands it to the browser.
-function downloadPicks() {
-  const events = pickedEvents();
-  if (!events?.length) return;
-  const ics = icsCalendar(events, { method: 'PUBLISH' });
-  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = events.length === 1
-    ? `rutebaten-${toOsloDate(events[0].start)}-${fmt(events[0].start).replace(':', '')}.ics`
-    : 'rutebaten.ics';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  // Revoked later rather than at once: Safari reads the blob after the click
-  // returns.
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 function setNoticeOpen(detail, isOpen) {
   detail.classList.toggle('open', isOpen);
   detail.closest('li').querySelectorAll('.dep-notice').forEach(b =>
@@ -331,7 +81,7 @@ function setNoticeOpen(detail, isOpen) {
   );
 }
 
-function render(containerId, calls, fresh, direction) {
+function render(containerId, calls, fresh) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -361,18 +111,6 @@ function render(containerId, calls, fresh, direction) {
       isLast: i === calls.length - 1,
       bookingRe: BOOKING_RE,
     });
-    const event = departureEvent(c, {
-      direction,
-      strings: S,
-      locale: S.locale,
-      isLast: i === calls.length - 1,
-      bookingRe: BOOKING_RE,
-      url: `${location.origin}${location.pathname}`,
-    });
-    rowEvents.set(event.uid, event);
-    // A refresh that moved a picked departure moves the pick with it.
-    if (picks.has(event.uid)) picks.set(event.uid, event);
-
     const depMinutes = osloMinutes(dt);
     const passed = dayOffset === 0 && depMinutes < nowMinutes;
     let cls = passed ? "passed" : "";
@@ -412,9 +150,7 @@ function render(containerId, calls, fresh, direction) {
     // html and base are the same row with and without the countdown, so a
     // refresh can tell a countdown tick (base equal, html not) from a change
     // to the rest of the row and fade only what moved.
-    // The pick state is not in the markup, so picking a row never reads as a
-    // change to it; syncPicks lays it on after every render.
-    const rowHtml = (countdown) => `<li class="${cls}" data-uid="${esc(event.uid)}">
+    const rowHtml = (countdown) => `<li class="${cls}">
       <div class="dep-row">
         <div class="dep-route">
           <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
@@ -455,10 +191,6 @@ function render(containerId, calls, fresh, direction) {
     return { key: `dl-${dep.time}`, html, base: html };
   });
 
-  // What a row looks like, without the UID: the same boat time on another day
-  // has another UID but the same look, and should not be redrawn.
-  const look = (html) => html.replace(/ data-uid="[^"]*"/, '');
-  const uidOf = (html) => html.match(/ data-uid="([^"]*)"/)?.[1];
   const previous = prevRows.get(containerId);
   const list = container.querySelector('.dep-list');
   prevRows.set(containerId, items.map(i => ({ html: i.html, base: i.base })));
@@ -489,18 +221,12 @@ function render(containerId, calls, fresh, direction) {
         return;
       }
       if (prev.html === item.html) return;
-      const uid = uidOf(item.html);
-      if (look(prev.html) === look(item.html)) {
-        if (uid) li.dataset.uid = uid;
-        return;
-      }
-      if (look(prev.base) === look(item.base)) {
+      if (prev.base === item.base) {
         const now = build(item.html).querySelector('.dep-countdown');
         const tick = li.querySelector('.dep-countdown');
         if (tick && now) tick.replaceWith(now);
         else if (now) li.querySelector('.dep-info')?.appendChild(now);
         else tick?.remove();
-        if (uid) li.dataset.uid = uid;
         return;
       }
       // An open notice stays open across the swap.
@@ -512,7 +238,6 @@ function render(containerId, calls, fresh, direction) {
     });
     lis.slice(items.length).forEach(li => li.remove());
   }
-  syncPicks(container);
 }
 
 function setDate() {
@@ -554,11 +279,8 @@ async function loadAll(fresh = false) {
       fetchDepartures(ROVAR_STOP, startTime),
       fetchDepartures(HAUGESUND_STOP, startTime)
     ]);
-    render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh, "to-haugesund");
-    render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh, "to-rovar");
-    // The sheet follows the board: the kind of day shown, and with it the
-    // weekday row, change with the day.
-    if (picking) syncPicks();
+    render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh);
+    render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh);
     lastLoad = Date.now();
   } catch (err) {
     ["from-rovar", "from-haugesund"].forEach(id => {
@@ -667,65 +389,14 @@ document.addEventListener("click", (e) => {
   if (!e.target.closest(".dep-cal-wrap")) closeCal(false);
 });
 
-document.getElementById("dep-pick-start")?.addEventListener("click", () => {
-  setPicking(true);
-  // Late in the day every boat has sailed and nothing on the board can be
-  // picked, which reads as a broken button. Start on the next day instead.
-  const pickable = document.querySelector(".dep-list li[data-uid]:not(.passed)");
-  if (!pickable && dayOffset < MAX_DAY_OFFSET) { dayOffset++; loadAll(true); }
-  document.getElementById("dep-pick-bar")?.focus();
-});
-document.getElementById("dep-pick-weekly")?.addEventListener("change", (e) => setWeekly(e.target.checked));
-document.getElementById("dep-pick-seg")?.addEventListener("click", (e) => {
-  const seg = e.target.closest("button[data-kind]");
-  if (seg) showKind(seg.dataset.kind);
-});
-document.getElementById("dep-pick-days")?.addEventListener("click", (e) => {
-  const chip = e.target.closest("button[data-day]");
-  if (!chip) return;
-  const day = Number(chip.dataset.day);
-  if (weekdayChoice.has(day)) weekdayChoice.delete(day);
-  else weekdayChoice.add(day);
-  syncPicks();
-});
-document.getElementById("dep-pick-list")?.addEventListener("click", (e) => {
-  const remove = e.target.closest("button[data-uid]");
-  if (remove) togglePick(remove.dataset.uid);
-});
-document.getElementById("dep-pick-cancel")?.addEventListener("click", () => {
-  setPicking(false);
-  document.getElementById("dep-pick-start")?.focus();
-});
-document.getElementById("dep-pick-save")?.addEventListener("click", () => {
-  downloadPicks();
-  setPicking(false);
-});
-document.getElementById("dep-pick-google")?.addEventListener("click", () => {
-  // The link has already been followed by the time this runs; the pick is done.
-  setTimeout(() => setPicking(false));
-});
-
-// One listener for both columns, since the rows are redrawn every minute. The
-// info button keeps its own job, opening the notice, even while picking.
-const columns = document.querySelector(".dep-columns");
-columns?.addEventListener("click", (e) => {
-  // The info button keeps its own job, opening the notice, even while picking.
+// One listener for both columns, since rows are swapped in and out.
+document.querySelector(".dep-columns")?.addEventListener("click", (e) => {
   const notice = e.target.closest(".dep-info-notice");
   if (notice) {
     const detail = notice.closest("li").querySelector(".dep-detail");
     if (detail) setNoticeOpen(detail, !detail.classList.contains("open"));
     return;
   }
-  if (!picking || e.target.closest(".dep-notice")) return;
-  const li = e.target.closest("li[data-uid]");
-  if (li && !li.classList.contains("passed")) togglePick(li.dataset.uid);
-});
-columns?.addEventListener("keydown", (e) => {
-  if (!picking || (e.key !== " " && e.key !== "Enter")) return;
-  const li = e.target.closest("li[data-uid][role=checkbox]");
-  if (!li || e.target !== li) return;
-  e.preventDefault();
-  togglePick(li.dataset.uid);
 });
 
 const REFRESH_MS = 60000;

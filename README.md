@@ -26,9 +26,9 @@ still work. Every other language uses English paths under its own prefix
 
 | Language | Prefix | Progress | Pages | UI strings |
 |---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 67/67 |
-| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [67/67](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [67/67](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 73/73 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [73/73](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [73/73](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
@@ -64,17 +64,17 @@ writes the finished site to `dist/`.
 
 ## Calendar
 
-The ferry page has no subscription link. Below the board, "Legg avganger i
-kalenderen" turns on pick mode: the reader taps the departures they mean to
-take, on as many days as they like, and downloads one `.ics` holding only
-those. "Gjenta hver uke" repeats picks until the published timetable ends: a
-switch for Hverdager, Lørdag and Søndag (the three timetables the route
-actually has) moves the board to that kind of day, a weekday pick repeats on
-the chosen weekdays and a weekend pick on its own day. Repeats are matched by
-direction and Oslo clock time, so a day where that boat does not run, such as
-a holiday, is left out. A single pick also gets a Google Calendar link, which on Android opens
-the calendar app where a download would only land in the downloads folder. A
-calendar holding every crossing of the month was the reason for the change.
+The ferry page has no subscription link, and the board has no controls on its
+rows. "Legg avganger i kalenderen" opens a dialog (`src/scripts/calendar-picker.js`)
+with its own timetable: once on a date from a two-week strip, or every week on
+Hverdager, Lørdag or Søndag (the three timetables the route actually has, with
+the weekdays narrowable). The reader ticks departures and downloads one `.ics`
+holding only those; weekly picks run to the end of the published timetable,
+matched by direction and Oslo clock time, so a day where a boat does not run
+is left out. A single departure also gets a Google Calendar link, which on
+Android opens the calendar app where a download would only land in the
+downloads folder. A calendar holding every crossing of the month was the
+reason for all of this.
 
 The subscription feeds are still built, unlinked, so an existing subscription
 keeps working: `/rutebaten.ics` with every departure in both directions, one

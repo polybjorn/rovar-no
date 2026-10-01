@@ -44,6 +44,8 @@ import {
   osloWeekday,
   weeklyEvents,
   dayKind,
+  nextDateOfKind,
+  collectEvents,
   ICS_PRODID,
   FEED_TTL_MINUTES,
   groupByOsloDate,
@@ -806,6 +808,38 @@ test('a weekly pick never reaches back before the start date', () => {
   const pick = ev('2026-10-09T05:50:00Z');
   const past = ev('2026-10-02T05:50:00Z');
   assert.deepEqual(weeklyEvents([pick], [past, pick], '2026-10-05'), [pick]);
+});
+
+test('the next date of a kind skips days that are not of it', () => {
+  const timetable = [
+    ev('2026-10-02T05:50:00Z'), // Friday
+    ev('2026-10-03T05:50:00Z'), // Saturday
+    ev('2026-10-04T05:50:00Z'), // Sunday
+    ev('2026-10-10T05:50:00Z'), // next Saturday
+  ];
+  assert.equal(nextDateOfKind(timetable, 'saturday', '2026-10-01'), '2026-10-03');
+  assert.equal(nextDateOfKind(timetable, 'saturday', '2026-10-04'), '2026-10-10');
+  assert.equal(nextDateOfKind(timetable, 'weekday', '2026-10-03'), null);
+});
+
+test('collected picks hold each boat once, in time order', () => {
+  const friday = ev('2026-10-02T05:50:00Z');
+  const nextFriday = ev('2026-10-09T05:50:00Z');
+  const sunday = ev('2026-10-04T12:00:00Z');
+  const timetable = [friday, sunday, nextFriday];
+  // Picked once and also covered by the weekly pick: still one event.
+  const out = collectEvents([nextFriday, sunday], [friday], timetable, '2026-10-01');
+  assert.deepEqual(out.map((e) => e.uid), [friday.uid, sunday.uid, nextFriday.uid]);
+});
+
+test('with no weekly picks, collecting is just the one-off picks', () => {
+  const sunday = ev('2026-10-04T12:00:00Z');
+  assert.deepEqual(collectEvents([sunday], [], [], '2026-10-01'), [sunday]);
+});
+
+test('an event carries its via stops, for the picker to show', () => {
+  const event = departureEvent(bookedCall(), { direction: 'to-haugesund', stamp: ICS_STAMP });
+  assert.ok(Array.isArray(event.via));
 });
 
 test('osloClock prints the Oslo wall clock, not the visitor local time', () => {
