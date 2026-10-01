@@ -323,17 +323,18 @@ function renderFooter() {
   }
   const booking = byId('cal-booking-note');
   if (booking) {
-    // Said once for every pick that has to be booked, each with its own
-    // deadline, so the phone mark on a row is not the only warning.
+    // Said once however many picks have to be booked, as a rule rather than
+    // a list: the chips already name the boats, and the rule is what to act
+    // on. Entur gives every booking boat the same period, but should two
+    // differ, the longer one is the one that holds for both.
     const booked = values.filter(([, p]) => p.event.isBooking).map(([, p]) => p.event);
+    const minutes = Math.max(0, ...booked.filter((e) => e.bookingDeadline).map((e) => Math.round((e.start - e.bookingDeadline) / 60000)));
     booking.hidden = !booked.length;
-    booking.lastElementChild.textContent = booked.length
-      ? fill(S.pickBooking, {
-          list: booked
-            .map((e) => (e.bookingDeadline ? fill(S.pickBookingBy, { time: fmt(e.start), deadline: fmt(e.bookingDeadline) }) : fmt(e.start)))
-            .join(', '),
-        })
-      : '';
+    booking.lastElementChild.textContent = !booked.length
+      ? ''
+      : minutes
+        ? fill(S.pickBooking, { minutes })
+        : S.icsBookingNoDeadline;
   }
   const save = byId('cal-save');
   if (save) save.disabled = !events.length;
