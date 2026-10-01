@@ -837,14 +837,19 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
 
   /* margin: auto is what centres a modal dialog; the site's reset takes it
      away, so it goes back here. */
+  /* The top edge stays where a full-length dialog would have it, and only
+     the bottom moves: calendar-picker.js sets the height to what the content
+     needs, up to the full length, and the change is animated. While the
+     timetable loads the dialog stands at full length, so it never grows on
+     arrival. */
   .cal-dialog {
+    --cal-full: min(54rem, calc(100dvh - 1.5rem));
     inset: 0;
-    margin: auto;
+    margin: calc((100dvh - var(--cal-full)) / 2) auto auto;
     width: min(40rem, calc(100vw - 1.5rem));
-    /* A fixed height, not a max: the dialog opens at its full length and
-       stays there while the timetable loads, rather than growing when the
-       lists arrive. */
-    height: min(54rem, calc(100dvh - 1.5rem));
+    height: var(--cal-full);
+    max-height: var(--cal-full);
+    transition: height 0.3s ease;
     padding: 0;
     border: none;
     border-radius: 20px;
@@ -1583,6 +1588,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .cal-dialog,
     .cal-dialog[open],
     .cal-dialog[open]::backdrop,
     .cal-dialog.is-closing,

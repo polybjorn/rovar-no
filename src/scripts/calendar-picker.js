@@ -323,6 +323,30 @@ function render() {
   renderDates();
   renderTimes();
   renderFooter();
+  requestAnimationFrame(() => sizeDialog());
+}
+
+// The dialog takes the height its content needs, up to its full length; the
+// top edge is fixed in the CSS, so only the bottom moves. Until the timetable
+// is in it stays at full length. Without animate, as on opening, it jumps.
+function sizeDialog(animate = true) {
+  if (!dialog?.open) return;
+  const full = parseFloat(getComputedStyle(dialog).maxHeight);
+  let height = full;
+  if (timetable) {
+    const body = dialog.querySelector('.cal-body');
+    const last = body.lastElementChild;
+    const content = last.getBoundingClientRect().bottom - body.getBoundingClientRect().top + body.scrollTop +
+      parseFloat(getComputedStyle(last).marginBottom) + parseFloat(getComputedStyle(body).paddingBottom);
+    height = Math.min(full, dialog.querySelector('.cal-head').offsetHeight + content +
+      dialog.querySelector('.cal-foot').offsetHeight);
+  }
+  if (!animate) dialog.style.transition = 'none';
+  dialog.style.height = `${Math.ceil(height)}px`;
+  if (!animate) {
+    dialog.offsetHeight; // commit the height before the transition comes back
+    dialog.style.transition = '';
+  }
 }
 
 // --- download ----------------------------------------------------------------
@@ -349,6 +373,7 @@ function open() {
   if (!dialog) return;
   render();
   dialog.showModal();
+  sizeDialog(false);
   document.documentElement.classList.add('cal-open');
   load();
 }
@@ -404,6 +429,7 @@ addEventListener('resize', () => {
   if (!dialog?.open) return;
   measureVia();
   updateDateNav();
+  sizeDialog(false);
 });
 
 byId('cal-dates')?.addEventListener('scroll', updateDateNav, { passive: true });
