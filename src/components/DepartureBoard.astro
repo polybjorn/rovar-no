@@ -115,17 +115,21 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
         <span class="dep-pick-switch" aria-hidden="true"></span>
         <span>{t.board.pickWeekly}</span>
       </label>
-      <div class="dep-pick-kinds" id="dep-pick-kinds" hidden>
+      <div class="dep-pick-reveal" id="dep-pick-kinds">
+       <div class="dep-pick-kinds">
         <div class="dep-pick-seg" id="dep-pick-seg" role="group" aria-label={t.board.pickKinds}>
           <button type="button" data-kind="weekday" aria-pressed="false">{t.board.pickWeekdays}</button>
           <button type="button" data-kind="saturday" aria-pressed="false">{t.board.pickSaturday}</button>
           <button type="button" data-kind="sunday" aria-pressed="false">{t.board.pickSunday}</button>
         </div>
-        <div class="dep-pick-days" id="dep-pick-days" role="group" aria-label={t.board.pickWhichDays}>
-          {weekdayNames(localeInfo(lang).intl).filter((_, i) => WEEKDAYS.includes(i)).map((name, i) => (
-            <button type="button" data-day={i} aria-pressed="true">{name}</button>
-          ))}
+        <div class="dep-pick-reveal" id="dep-pick-days-wrap">
+          <div class="dep-pick-days" id="dep-pick-days" role="group" aria-label={t.board.pickWhichDays}>
+            {weekdayNames(localeInfo(lang).intl).filter((_, i) => WEEKDAYS.includes(i)).map((name, i) => (
+              <button type="button" data-day={i} aria-pressed="true">{name}</button>
+            ))}
+          </div>
         </div>
+       </div>
       </div>
       <p class="dep-pick-note" id="dep-pick-note" aria-live="polite" hidden></p>
       <div class="dep-pick-actions">
@@ -985,25 +989,58 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     outline-offset: 2px;
   }
 
+  /* Opens and closes by height rather than by [hidden], so the parts of the
+     sheet that come and go slide instead of jumping. The script sets
+     .is-open and inert together. */
+  .dep-pick-reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+  }
+
+  .dep-pick-reveal.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  .dep-pick-reveal > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* One track for both rows: which kind of day, and under Hverdager, which
+     weekdays. Same pills, same sliding white for what is chosen. */
   .dep-pick-kinds {
     margin-top: 0.7rem;
-  }
-
-  .dep-pick-kinds[hidden] {
-    display: none;
-  }
-
-  /* A segmented control: which kind of day the board is showing, and the
-     way to get to one. */
-  .dep-pick-seg {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
     padding: 0.2rem;
-    border-radius: 999px;
+    border-radius: 1.1rem;
     background: var(--color-sand);
   }
 
-  .dep-pick-seg button {
+  .dep-pick-seg {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* The white pill under the chosen kind, moved by --seg (0, 1, 2) so a
+     change of kind slides rather than blinks. */
+  .dep-pick-seg::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(100% / 3);
+    border-radius: 999px;
+    background: var(--color-foam);
+    box-shadow: 0 1px 4px rgba(14, 54, 80, 0.15);
+    transform: translateX(calc(var(--seg, 0) * 100%));
+    transition: transform 0.25s ease;
+  }
+
+  .dep-pick-seg button,
+  .dep-pick-days button {
+    position: relative;
     padding: 0.4rem 0.5rem;
     border: none;
     border-radius: 999px;
@@ -1017,39 +1054,42 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
   }
 
   .dep-pick-seg button[aria-pressed="true"] {
+    color: var(--color-ocean-dark);
+  }
+
+  .dep-pick-days {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.2rem;
+    padding-bottom: 0.15rem;
+  }
+
+  /* The weekday row sits under the kinds, divided by a hairline; the gap
+     lives inside the clipped box so a closed row takes no room. */
+  .dep-pick-days::before {
+    content: "";
+    grid-column: 1 / -1;
+    height: 1px;
+    margin: 0.2rem 0.6rem 0;
+    background: var(--color-sand-dark);
+  }
+
+  .dep-pick-days button {
+    padding: 0.3rem 0.25rem;
+    font-size: 0.8rem;
+  }
+
+  .dep-pick-days button[aria-pressed="true"] {
     background: var(--color-foam);
     color: var(--color-ocean-dark);
     box-shadow: 0 1px 4px rgba(14, 54, 80, 0.15);
   }
 
-  .dep-pick-days {
-    display: flex;
-    justify-content: center;
-    gap: 0.35rem;
-    margin-top: 0.5rem;
-  }
-
-  .dep-pick-days[hidden] {
-    display: none;
-  }
-
-  .dep-pick-days button {
-    min-width: 2.6rem;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    background: var(--color-foam);
-    color: var(--color-text-light);
-    font: inherit;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
-
-  .dep-pick-days button[aria-pressed="true"] {
-    border-color: var(--color-kelp);
-    background: color-mix(in srgb, var(--color-kelp) 14%, var(--color-foam));
-    color: var(--color-kelp);
-    font-weight: 600;
+  @media (prefers-reduced-motion: reduce) {
+    .dep-pick-reveal,
+    .dep-pick-seg::before {
+      transition: none;
+    }
   }
 
   .dep-pick-note {

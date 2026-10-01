@@ -177,6 +177,14 @@ function pickItem(event) {
   </li>`;
 }
 
+// A part of the sheet that slides open and shut. Inert while shut, so its
+// buttons are out of the tab order and the accessibility tree.
+function reveal(el, open) {
+  if (!el) return;
+  el.classList.toggle('is-open', open);
+  el.inert = !open;
+}
+
 function syncPicks(root = document) {
   root.querySelectorAll('.dep-list li[data-uid]').forEach(li => {
     const pickable = picking && !li.classList.contains('passed');
@@ -215,14 +223,12 @@ function syncPicks(root = document) {
   const toggle = byId('dep-pick-weekly');
   if (toggle) toggle.checked = weekly;
   if (hint) hint.textContent = weekly ? S.pickHintWeekly : S.pickHint;
-  const kinds = byId('dep-pick-kinds');
-  if (kinds) kinds.hidden = !weekly;
+  reveal(byId('dep-pick-kinds'), weekly);
   const kind = shownKind();
-  document.querySelectorAll('#dep-pick-seg button').forEach(b =>
-    b.setAttribute('aria-pressed', String(b.dataset.kind === kind))
-  );
-  const days = byId('dep-pick-days');
-  if (days) days.hidden = kind !== 'weekday';
+  const segs = [...document.querySelectorAll('#dep-pick-seg button')];
+  segs.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.kind === kind)));
+  byId('dep-pick-seg')?.style.setProperty('--seg', String(segs.findIndex(b => b.dataset.kind === kind)));
+  reveal(byId('dep-pick-days-wrap'), kind === 'weekday');
   document.querySelectorAll('#dep-pick-days button').forEach(b =>
     b.setAttribute('aria-pressed', String(weekdayChoice.has(Number(b.dataset.day))))
   );
@@ -528,6 +534,24 @@ function setDate() {
   if (kolumbus) kolumbus.href = kolumbusUrl(toOsloDate(d));
 }
 
+// A weekday has more boats than a weekend day, so a day change can grow or
+// shrink a column by several rows. Measured before the change and animated
+// to the new height after it, the column and everything under it glide
+// instead of jumping.
+const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+
+function measure(ids) {
+  const before = ids.map(id => document.getElementById(id)?.offsetHeight ?? 0);
+  return () => ids.forEach((id, i) => {
+    const el = document.getElementById(id);
+    const after = el?.offsetHeight ?? 0;
+    if (!el || !before[i] || before[i] === after || reduceMotion?.matches || !el.animate) return;
+    el.style.overflow = "hidden";
+    el.animate([{ height: `${before[i]}px` }, { height: `${after}px` }], { duration: 250, easing: "ease" })
+      .finished.finally(() => { el.style.overflow = ""; });
+  });
+}
+
 let lastLoad = 0;
 
 // fresh: a new board (first load, day change) animates in. A background
@@ -548,8 +572,13 @@ async function loadAll(fresh = false) {
       fetchDepartures(ROVAR_STOP, startTime),
       fetchDepartures(HAUGESUND_STOP, startTime)
     ]);
+    const glide = measure(["from-rovar", "from-haugesund"]);
     render("from-rovar", filterRoute(rovar, "to-haugesund", targetDate), fresh, "to-haugesund");
     render("from-haugesund", filterRoute(haugesund, "to-rovar", targetDate), fresh, "to-rovar");
+    glide();
+    // The sheet follows the board: the kind of day shown, and with it the
+    // weekday row, change with the day.
+    if (picking) syncPicks();
     lastLoad = Date.now();
   } catch (err) {
     ["from-rovar", "from-haugesund"].forEach(id => {
