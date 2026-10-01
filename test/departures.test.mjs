@@ -43,6 +43,7 @@ import {
   googleCalendarUrl,
   osloWeekday,
   weeklyEvents,
+  dayKind,
   ICS_PRODID,
   FEED_TTL_MINUTES,
   groupByOsloDate,
@@ -744,30 +745,49 @@ test('osloWeekday counts from Monday, like weekdayNames', () => {
   assert.equal(osloWeekday('2026-10-11T12:00:00Z'), 6);
 });
 
-test('a weekly pick repeats on its own weekday, same direction and clock time', () => {
+test('the week has three kinds of day', () => {
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map(dayKind), [
+    'weekday', 'weekday', 'weekday', 'weekday', 'weekday', 'saturday', 'sunday',
+  ]);
+});
+
+test('a weekday pick repeats on every weekday, same direction and clock time', () => {
   const pick = ev('2026-10-02T05:50:00Z'); // Friday 07:50 in Oslo
   const timetable = [
     pick,
-    ev('2026-10-09T05:50:00Z'), // next Friday 07:50: kept
-    ev('2026-10-09T06:05:00Z'), // next Friday 08:05: another boat
-    ev('2026-10-09T05:50:00Z', 'to-rovar'), // next Friday 07:50 the other way
-    ev('2026-10-05T05:50:00Z'), // Monday 07:50: another weekday
-    ev('2026-10-16T05:50:00Z'), // the Friday after: kept
+    ev('2026-10-05T05:50:00Z'), // Monday 07:50: kept
+    ev('2026-10-06T05:50:00Z'), // Tuesday 07:50: kept
+    ev('2026-10-05T06:05:00Z'), // Monday 08:05: another boat
+    ev('2026-10-05T05:50:00Z', 'to-rovar'), // Monday 07:50 the other way
+    ev('2026-10-03T05:50:00Z'), // Saturday 07:50: a weekend day
   ];
   const out = weeklyEvents([pick], timetable, '2026-10-01');
-  assert.deepEqual(out.map((e) => e.uid), [pick.uid, timetable[1].uid, timetable[5].uid]);
+  assert.deepEqual(out.map((e) => e.uid), [pick.uid, timetable[1].uid, timetable[2].uid]);
 });
 
-test('weekday and weekend picks each keep their own times', () => {
+test('the chosen weekdays narrow a weekday pick, and leave a weekend pick alone', () => {
   const friday = ev('2026-10-02T05:50:00Z'); // Friday 07:50
   const saturday = ev('2026-10-03T08:00:00Z'); // Saturday 10:00
   const timetable = [
-    ev('2026-10-09T05:50:00Z'), // Friday 07:50: kept
-    ev('2026-10-10T05:50:00Z'), // Saturday 07:50: not what was picked on Saturday
-    ev('2026-10-10T08:00:00Z'), // Saturday 10:00: kept
+    friday,
+    saturday,
+    ev('2026-10-05T05:50:00Z'), // Monday 07:50: not chosen
+    ev('2026-10-06T05:50:00Z'), // Tuesday 07:50: chosen
+    ev('2026-10-10T08:00:00Z'), // next Saturday 10:00: kept
   ];
-  const out = weeklyEvents([friday, saturday], timetable, '2026-10-01');
-  assert.deepEqual(out.map((e) => e.uid), [friday.uid, saturday.uid, timetable[0].uid, timetable[2].uid]);
+  const out = weeklyEvents([friday, saturday], timetable, '2026-10-01', [1, 3]);
+  assert.deepEqual(out.map((e) => e.uid), [saturday.uid, timetable[3].uid, timetable[4].uid]);
+});
+
+test('Saturday and Sunday picks each keep their own day', () => {
+  const saturday = ev('2026-10-03T20:45:00Z'); // Saturday 22:45
+  const timetable = [
+    saturday,
+    ev('2026-10-04T20:45:00Z'), // Sunday 22:45: Sunday was not picked
+    ev('2026-10-10T20:45:00Z'), // next Saturday: kept
+  ];
+  const out = weeklyEvents([saturday], timetable, '2026-10-01');
+  assert.deepEqual(out.map((e) => e.uid), [saturday.uid, timetable[2].uid]);
 });
 
 test('a weekly pick matches the Oslo clock across the DST change, not the UTC one', () => {
@@ -776,9 +796,10 @@ test('a weekly pick matches the Oslo clock across the DST change, not the UTC on
   assert.ok(weeklyEvents([pick], [winter], '2026-10-01').includes(winter));
 });
 
-test('a week where the boat does not run is skipped, and the pick stays', () => {
+test('a day where the boat does not run is left out', () => {
   const pick = ev('2026-10-02T05:50:00Z');
-  assert.deepEqual(weeklyEvents([pick], [ev('2026-10-09T07:00:00Z')], '2026-10-01'), [pick]);
+  const holiday = ev('2026-10-05T07:00:00Z'); // Monday, only a later boat
+  assert.deepEqual(weeklyEvents([pick], [pick, holiday], '2026-10-01'), [pick]);
 });
 
 test('a weekly pick never reaches back before the start date', () => {

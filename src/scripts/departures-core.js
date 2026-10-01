@@ -581,22 +581,38 @@ export function osloWeekday(date) {
   return (new Date(date).getUTCDay() + 6) % 7;
 }
 
-// A pick repeated every week. The timetable differs between weekdays and
-// weekends, so each pick repeats only on its own weekday: a Saturday boat is
-// picked from a Saturday's board. The repeat is a match, not a copy - the same
-// direction leaving at the same Oslo clock time on that weekday, from `from`
-// on - so a week where that boat does not run is simply left out.
-export function weeklyEvents(picks, events, from) {
-  const key = (event) => {
-    const date = toOsloDate(event.start);
-    return `${event.direction} ${osloWeekday(`${date}T12:00:00Z`)} ${osloMinutes(event.start)}`;
-  };
-  const templates = new Set(picks.map(key));
-  const byUid = new Map(picks.map((pick) => [pick.uid, pick]));
-  for (const event of events) {
-    if (toOsloDate(event.start) >= from && templates.has(key(event))) byUid.set(event.uid, event);
-  }
-  return [...byUid.values()].sort((x, y) => x.start - y.start);
+// The timetable comes in three kinds of day: Monday to Friday share one,
+// Saturday and Sunday each have their own (measured on Entur's published
+// timetable, October 2026; the other variants are public holidays).
+export const WEEKDAYS = [0, 1, 2, 3, 4];
+
+export function dayKind(weekday) {
+  return weekday < 5 ? 'weekday' : weekday === 5 ? 'saturday' : 'sunday';
+}
+
+// A pick repeated every week, on the days of its own kind: a pick from a
+// weekday's board repeats on the chosen weekdays, a Saturday pick on
+// Saturdays. The repeat is a match, not a copy - the same direction leaving at
+// the same Oslo clock time - so a day where that boat does not run, a holiday
+// say, is simply left out. Everything is counted from `from` on.
+export function weeklyEvents(picks, events, from, weekdays = WEEKDAYS) {
+  const chosen = new Set(weekdays);
+  const weekdayOf = (event) => osloWeekday(`${toOsloDate(event.start)}T12:00:00Z`);
+  const templates = picks.map((pick) => ({
+    direction: pick.direction,
+    minutes: osloMinutes(pick.start),
+    days: dayKind(weekdayOf(pick)) === 'weekday' ? chosen : new Set([weekdayOf(pick)]),
+  }));
+  return events
+    .filter((event) => {
+      if (toOsloDate(event.start) < from) return false;
+      const weekday = weekdayOf(event);
+      const minutes = osloMinutes(event.start);
+      return templates.some(
+        (t) => t.direction === event.direction && t.minutes === minutes && t.days.has(weekday)
+      );
+    })
+    .sort((x, y) => x.start - y.start);
 }
 
 // --- summary feed -----------------------------------------------------------

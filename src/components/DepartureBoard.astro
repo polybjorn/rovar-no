@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import { ui } from '../i18n/ui.js';
 import Sentence from './Sentence.astro';
-import { kolumbusUrl, ENTUR_SITE } from '../scripts/departures-core.js';
+import { kolumbusUrl, ENTUR_SITE, weekdayNames, WEEKDAYS } from '../scripts/departures-core.js';
 import { defaultLocale, localeInfo } from '../i18n/locales.js';
 import { facts } from '../data/facts.js';
 import boatImg from '../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
@@ -115,6 +115,18 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
         <span class="dep-pick-switch" aria-hidden="true"></span>
         <span>{t.board.pickWeekly}</span>
       </label>
+      <div class="dep-pick-kinds" id="dep-pick-kinds" hidden>
+        <div class="dep-pick-seg" id="dep-pick-seg" role="group" aria-label={t.board.pickKinds}>
+          <button type="button" data-kind="weekday" aria-pressed="false">{t.board.pickWeekdays}</button>
+          <button type="button" data-kind="saturday" aria-pressed="false">{t.board.pickSaturday}</button>
+          <button type="button" data-kind="sunday" aria-pressed="false">{t.board.pickSunday}</button>
+        </div>
+        <div class="dep-pick-days" id="dep-pick-days" role="group" aria-label={t.board.pickWhichDays}>
+          {weekdayNames(localeInfo(lang).intl).filter((_, i) => WEEKDAYS.includes(i)).map((name, i) => (
+            <button type="button" data-day={i} aria-pressed="true">{name}</button>
+          ))}
+        </div>
+      </div>
       <p class="dep-pick-note" id="dep-pick-note" aria-live="polite" hidden></p>
       <div class="dep-pick-actions">
         <button type="button" class="dep-pick-save" id="dep-pick-save" disabled>
@@ -406,22 +418,13 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     transform: translateY(0.15em);
   }
 
-  /* The list is rebuilt on first load, on a day change and on every 60s
-     refresh, but only the first two are a new board: those get the staggered
-     fade up (.is-fresh). A refresh that lands on the same rows must not move
-     anything, so it animates nothing; a row whose content actually changed
-     (a new time, a departure that has just passed) gets a plain fade of its
-     own (.is-changed), no stagger, no travel. A countdown tick fades only
-     the countdown text (.is-tick), the rest of the row stays still. */
-  @keyframes dep-row-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.35rem);
-    }
-  }
-
-  @keyframes dep-row-change {
-    from { opacity: 0.15; }
+  /* departures.js compares every row with the one on screen, on a refresh
+     and on a day change: a row that looks the same is left alone, so a time
+     that runs every day never blinks. Only a first load fades the whole list,
+     and only a row that changed on a day change fades in on its own; no
+     stagger, no travel. */
+  @keyframes dep-list-in {
+    from { opacity: 0; }
   }
 
   .dep-direction :global(.dep-list) {
@@ -434,24 +437,17 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     border-bottom: 1px solid var(--color-sand-dark);
   }
 
-  .dep-direction :global(.dep-list.is-fresh li) {
-    animation: dep-row-in 0.35s ease both;
+  .dep-direction :global(.dep-list.is-fresh),
+  .dep-direction :global(.dep-list li.is-new) {
+    animation: dep-list-in 0.15s ease both;
   }
 
-  .dep-direction :global(.dep-list li.is-changed) {
-    animation: dep-row-change 0.3s ease both;
+  @media (prefers-reduced-motion: reduce) {
+    .dep-direction :global(.dep-list.is-fresh),
+    .dep-direction :global(.dep-list li.is-new) {
+      animation: none;
+    }
   }
-
-  .dep-direction :global(.dep-countdown.is-tick) {
-    animation: dep-row-change 0.3s ease both;
-  }
-
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(2)) { animation-delay: 0.04s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(3)) { animation-delay: 0.08s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(4)) { animation-delay: 0.12s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(5)) { animation-delay: 0.16s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(6)) { animation-delay: 0.2s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(n + 7)) { animation-delay: 0.24s; }
 
   .dep-direction :global(.dep-row) {
     display: flex;
@@ -989,8 +985,75 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     outline-offset: 2px;
   }
 
+  .dep-pick-kinds {
+    margin-top: 0.7rem;
+  }
+
+  .dep-pick-kinds[hidden] {
+    display: none;
+  }
+
+  /* A segmented control: which kind of day the board is showing, and the
+     way to get to one. */
+  .dep-pick-seg {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0.2rem;
+    border-radius: 999px;
+    background: var(--color-sand);
+  }
+
+  .dep-pick-seg button {
+    padding: 0.4rem 0.5rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text-light);
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+
+  .dep-pick-seg button[aria-pressed="true"] {
+    background: var(--color-foam);
+    color: var(--color-ocean-dark);
+    box-shadow: 0 1px 4px rgba(14, 54, 80, 0.15);
+  }
+
+  .dep-pick-days {
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+  }
+
+  .dep-pick-days[hidden] {
+    display: none;
+  }
+
+  .dep-pick-days button {
+    min-width: 2.6rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-foam);
+    color: var(--color-text-light);
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .dep-pick-days button[aria-pressed="true"] {
+    border-color: var(--color-kelp);
+    background: color-mix(in srgb, var(--color-kelp) 14%, var(--color-foam));
+    color: var(--color-kelp);
+    font-weight: 600;
+  }
+
   .dep-pick-note {
-    margin: 0.3rem 0 0 3rem;
+    margin: 0.5rem 0 0;
     font-size: 0.8rem;
     color: var(--color-text-light);
   }

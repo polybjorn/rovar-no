@@ -31,6 +31,9 @@ import {
   googleCalendarUrl,
   feedEvents,
   weeklyEvents,
+  dayKind,
+  osloWeekday,
+  WEEKDAYS,
   FEED_WINDOW_DAYS,
   monthDays,
   monthNav,
@@ -93,6 +96,8 @@ const rowEvents = new Map();
 // loads, so it is fetched when the switch is first turned on: about a megabyte
 // per stop, worth it only when asked for.
 let weekly = false;
+// Which weekdays a weekday pick repeats on. All five unless narrowed.
+const weekdayChoice = new Set(WEEKDAYS);
 let timetable = null;
 let timetableEvents = null;
 let timetableFailed = false;
@@ -139,16 +144,29 @@ const sortedPicks = () => [...picks.values()].sort((a, b) => a.start - b.start);
 function pickedEvents() {
   if (!weekly) return sortedPicks();
   if (!timetableEvents) return null;
-  return weeklyEvents(sortedPicks(), timetableEvents, toOsloDate(new Date()));
+  return weeklyEvents(sortedPicks(), timetableEvents, toOsloDate(new Date()), [...weekdayChoice]);
 }
 
 const fill = (template, tokens) =>
   Object.entries(tokens).reduce((text, [k, v]) => text.replaceAll(`{{${k}}}`, v), template ?? '');
 
 // One pick as the sheet lists it: when, what time, where to.
+const weekdayOf = (date) => osloWeekday(`${date}T12:00:00Z`);
+const shownKind = () => dayKind(weekdayOf(selectedDate()));
+const shortDay = (i) => new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(S.locale, { weekday: "short", timeZone: "UTC" });
+
+function weeklyWhen(event) {
+  if (dayKind(weekdayOf(toOsloDate(event.start))) !== 'weekday') {
+    return fill(S.pickEvery, { day: event.start.toLocaleDateString(S.locale, { weekday: "long", timeZone: "Europe/Oslo" }) });
+  }
+  return weekdayChoice.size === WEEKDAYS.length
+    ? S.pickEveryWeekday
+    : [...weekdayChoice].sort().map(shortDay).join(", ");
+}
+
 function pickItem(event) {
   const when = weekly
-    ? fill(S.pickEvery, { day: event.start.toLocaleDateString(S.locale, { weekday: "long", timeZone: "Europe/Oslo" }) })
+    ? weeklyWhen(event)
     : event.start.toLocaleDateString(S.locale, { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/Oslo" });
   const label = `${when} ${fmt(event.start)} ${event.from}-${event.to}`;
   return `<li>
@@ -196,6 +214,18 @@ function syncPicks(root = document) {
   }
   const toggle = byId('dep-pick-weekly');
   if (toggle) toggle.checked = weekly;
+  if (hint) hint.textContent = weekly ? S.pickHintWeekly : S.pickHint;
+  const kinds = byId('dep-pick-kinds');
+  if (kinds) kinds.hidden = !weekly;
+  const kind = shownKind();
+  document.querySelectorAll('#dep-pick-seg button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.kind === kind))
+  );
+  const days = byId('dep-pick-days');
+  if (days) days.hidden = kind !== 'weekday';
+  document.querySelectorAll('#dep-pick-days button').forEach(b =>
+    b.setAttribute('aria-pressed', String(weekdayChoice.has(Number(b.dataset.day))))
+  );
 
   const events = picks.size ? pickedEvents() : [];
   const note = byId('dep-pick-note');
@@ -231,6 +261,7 @@ function setPicking(on) {
   } else {
     picks.clear();
     weekly = false;
+    WEEKDAYS.forEach(d => weekdayChoice.add(d));
   }
   syncPicks();
 }
@@ -248,6 +279,23 @@ function setWeekly(on) {
     loadTimetable();
   }
   syncPicks();
+}
+
+// Move the board to the next day of a kind. Today counts only while it still
+// has a boat to pick; otherwise the same weekday a week on, which the board
+// reaches (MAX_DAY_OFFSET is 7).
+async function showKind(kind) {
+  if (shownKind() === kind) return;
+  for (let offset = 0; offset <= MAX_DAY_OFFSET; offset++) {
+    if (dayKind(weekdayOf(toOsloDate(dateAtOffset(offset)))) !== kind) continue;
+    dayOffset = offset;
+    await loadAll(true);
+    if (offset === 0 && !document.querySelector(".dep-list li[data-uid]:not(.passed)")) {
+      dayOffset = 7;
+      await loadAll(true);
+    }
+    return;
+  }
 }
 
 // Everything the file says is built in departures-core.js; this end only
@@ -268,6 +316,13 @@ function downloadPicks() {
   // Revoked later rather than at once: Safari reads the blob after the click
   // returns.
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function setNoticeOpen(detail, isOpen) {
+  detail.classList.toggle('open', isOpen);
+  detail.closest('li').querySelectorAll('.dep-notice').forEach(b =>
+    b.setAttribute('aria-expanded', String(isOpen))
+  );
 }
 
 function render(containerId, calls, fresh, direction) {
@@ -394,46 +449,63 @@ function render(containerId, calls, fresh, direction) {
     return { key: `dl-${dep.time}`, html, base: html };
   });
 
-  const openIds = new Set(
-    [...container.querySelectorAll('.dep-detail.open')].map(el => el.id)
-  );
+  // What a row looks like, without the UID: the same boat time on another day
+  // has another UID but the same look, and should not be redrawn.
+  const look = (html) => html.replace(/ data-uid="[^"]*"/, '');
+  const uidOf = (html) => html.match(/ data-uid="([^"]*)"/)?.[1];
   const previous = prevRows.get(containerId);
-  container.innerHTML = `<ul class="dep-list">${items.map(i => i.html).join('')}</ul>`;
-
   const list = container.querySelector('.dep-list');
-  if (fresh || !previous) {
-    list.classList.add('is-fresh');
-  } else {
-    const lis = list.children;
-    items.forEach((item, i) => {
-      const prev = previous.get(item.key);
-      if (!prev || prev.base !== item.base) {
-        lis[i].classList.add('is-changed');
-      } else if (prev.html !== item.html) {
-        // Only the countdown ticked: fade that element, leave the row still.
-        lis[i].querySelector('.dep-countdown')?.classList.add('is-tick');
-      }
-    });
-  }
-  prevRows.set(containerId, new Map(items.map(i => [i.key, { html: i.html, base: i.base }])));
+  prevRows.set(containerId, items.map(i => ({ html: i.html, base: i.base })));
 
-  const setOpen = (detail, isOpen) => {
-    detail.classList.toggle('open', isOpen);
-    detail.closest('li').querySelectorAll('.dep-notice').forEach(b =>
-      b.setAttribute('aria-expanded', String(isOpen))
-    );
-  };
-  openIds.forEach(id => {
-    const detail = document.getElementById(id);
-    if (detail) setOpen(detail, true);
-  });
-  container.querySelectorAll('.dep-notice').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const detail = btn.closest('li').querySelector('.dep-detail');
-      if (!detail) return;
-      setOpen(detail, !detail.classList.contains('open'));
+  if (!list || !previous) {
+    // Nothing to build on (first load, or after an empty day or an error):
+    // one short fade of the whole list.
+    container.innerHTML = `<ul class="dep-list is-fresh">${items.map(i => i.html).join('')}</ul>`;
+  } else {
+    // Row by row against what is on screen, for a refresh and a day change
+    // alike. A row that looks the same stays exactly as it is, so the times
+    // that do not change between days never blink; a countdown that ticked
+    // has only its own element swapped; a row that differs is replaced, with a
+    // short fade only when the day changed.
+    const lis = [...list.children];
+    const build = (html) => {
+      const t = document.createElement('template');
+      t.innerHTML = html.trim();
+      const li = t.content.firstElementChild;
+      if (fresh) li.classList.add('is-new');
+      return li;
+    };
+    items.forEach((item, i) => {
+      const prev = previous[i];
+      const li = lis[i];
+      if (!li || !prev) {
+        list.appendChild(build(item.html));
+        return;
+      }
+      if (prev.html === item.html) return;
+      const uid = uidOf(item.html);
+      if (look(prev.html) === look(item.html)) {
+        if (uid) li.dataset.uid = uid;
+        return;
+      }
+      if (look(prev.base) === look(item.base)) {
+        const now = build(item.html).querySelector('.dep-countdown');
+        const tick = li.querySelector('.dep-countdown');
+        if (tick && now) tick.replaceWith(now);
+        else if (now) li.querySelector('.dep-info')?.appendChild(now);
+        else tick?.remove();
+        if (uid) li.dataset.uid = uid;
+        return;
+      }
+      // An open notice stays open across the swap.
+      const next = build(item.html);
+      if (li.querySelector('.dep-detail.open') && next.querySelector('.dep-detail')) {
+        setNoticeOpen(next.querySelector('.dep-detail'), true);
+      }
+      li.replaceWith(next);
     });
-  });
+    lis.slice(items.length).forEach(li => li.remove());
+  }
   syncPicks(container);
 }
 
@@ -595,6 +667,18 @@ document.getElementById("dep-pick-start")?.addEventListener("click", () => {
   document.getElementById("dep-pick-bar")?.focus();
 });
 document.getElementById("dep-pick-weekly")?.addEventListener("change", (e) => setWeekly(e.target.checked));
+document.getElementById("dep-pick-seg")?.addEventListener("click", (e) => {
+  const seg = e.target.closest("button[data-kind]");
+  if (seg) showKind(seg.dataset.kind);
+});
+document.getElementById("dep-pick-days")?.addEventListener("click", (e) => {
+  const chip = e.target.closest("button[data-day]");
+  if (!chip) return;
+  const day = Number(chip.dataset.day);
+  if (weekdayChoice.has(day)) weekdayChoice.delete(day);
+  else weekdayChoice.add(day);
+  syncPicks();
+});
 document.getElementById("dep-pick-list")?.addEventListener("click", (e) => {
   const remove = e.target.closest("button[data-uid]");
   if (remove) togglePick(remove.dataset.uid);
@@ -616,6 +700,13 @@ document.getElementById("dep-pick-google")?.addEventListener("click", () => {
 // info button keeps its own job, opening the notice, even while picking.
 const columns = document.querySelector(".dep-columns");
 columns?.addEventListener("click", (e) => {
+  // The info button keeps its own job, opening the notice, even while picking.
+  const notice = e.target.closest(".dep-info-notice");
+  if (notice) {
+    const detail = notice.closest("li").querySelector(".dep-detail");
+    if (detail) setNoticeOpen(detail, !detail.classList.contains("open"));
+    return;
+  }
   if (!picking || e.target.closest(".dep-notice")) return;
   const li = e.target.closest("li[data-uid]");
   if (li && !li.classList.contains("passed")) togglePick(li.dataset.uid);
