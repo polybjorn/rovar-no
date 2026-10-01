@@ -470,6 +470,10 @@ document.addEventListener("click", (e) => {
 
 document.getElementById("dep-pick-start")?.addEventListener("click", () => {
   setPicking(true);
+  // Late in the day every boat has sailed and nothing on the board can be
+  // picked, which reads as a broken button. Start on the next day instead.
+  const pickable = document.querySelector(".dep-list li[data-uid]:not(.passed)");
+  if (!pickable && dayOffset < MAX_DAY_OFFSET) { dayOffset++; loadAll(true); }
   document.getElementById("dep-pick-bar")?.focus();
 });
 document.getElementById("dep-pick-cancel")?.addEventListener("click", () => {

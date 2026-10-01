@@ -53,7 +53,7 @@
       "bookLabel": "Vorausbuchung erforderlich",
       "infoLabel": "Info",
       "pickStart": "Abfahrten in den Kalender eintragen",
-      "pickHint": "Tippen Sie die gewünschten Abfahrten an. Sie können dabei den Tag wechseln.",
+      "pickHint": "Tippen Sie auf eine Abfahrt, um sie auszuwählen. Mit den Pfeilen oben wechseln Sie den Tag.",
       "pickCount": "{{count}} ausgewählt",
       "pickSave": "Für den Kalender herunterladen",
       "pickGoogle": "In Google Kalender öffnen",

@@ -75,23 +75,6 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     />
   </p>
 
-  <!-- Pick mode: the reader chooses the departures that go in their calendar,
-       rather than taking every crossing. departures.js drives it. -->
-  <div class="dep-pick">
-    <button type="button" class="dep-pick-start" id="dep-pick-start">
-      <svg class="dep-pick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>
-      {t.board.pickStart}
-    </button>
-    <div class="dep-pick-bar" id="dep-pick-bar" role="group" aria-label={t.board.pickStart} tabindex="-1" hidden>
-      <p class="dep-pick-hint">{t.board.pickHint} <span class="dep-pick-count" id="dep-pick-count" aria-live="polite"></span></p>
-      <div class="dep-pick-actions">
-        <button type="button" class="dep-pick-btn dep-pick-primary" id="dep-pick-save" disabled>{t.board.pickSave}</button>
-        <a class="dep-pick-btn" id="dep-pick-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
-        <button type="button" class="dep-pick-btn" id="dep-pick-cancel">{t.board.pickCancel}</button>
-      </div>
-    </div>
-  </div>
-
   <p class="dep-credit">
     <Sentence
       text={t.credit}
@@ -110,6 +93,23 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
       }}
     />
   </p>
+
+  <!-- Pick mode: the reader chooses the departures that go in their calendar,
+       rather than taking every crossing. departures.js drives it. -->
+  <div class="dep-pick">
+    <button type="button" class="dep-pick-start" id="dep-pick-start">
+      <svg class="dep-pick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>
+      {t.board.pickStart}
+    </button>
+    <div class="dep-pick-bar" id="dep-pick-bar" role="group" aria-label={t.board.pickStart} tabindex="-1" hidden>
+      <p class="dep-pick-hint">{t.board.pickHint} <span class="dep-pick-count" id="dep-pick-count" aria-live="polite"></span></p>
+      <div class="dep-pick-actions">
+        <button type="button" class="dep-pick-btn dep-pick-primary" id="dep-pick-save" disabled>{t.board.pickSave}</button>
+        <a class="dep-pick-btn" id="dep-pick-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
+        <button type="button" class="dep-pick-btn" id="dep-pick-cancel">{t.board.pickCancel}</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="../scripts/departures.js"></script>
@@ -168,8 +168,8 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
       height: 160px;
     }
     .dep-booking { order: 4; }
-    .dep-pick { order: 5; }
-    .dep-credit { order: 6; }
+    .dep-credit { order: 5; }
+    .dep-pick { order: 6; }
     .dep-nav {
       justify-content: center;
     }

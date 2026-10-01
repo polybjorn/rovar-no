@@ -52,7 +52,7 @@
       "bookLabel": "Advance booking required",
       "infoLabel": "Info",
       "pickStart": "Add departures to your calendar",
-      "pickHint": "Tap the departures you want. You can change day as you go.",
+      "pickHint": "Tap a departure to pick it, and use the arrows at the top to pick from other days too.",
       "pickCount": "{{count}} selected",
       "pickSave": "Download for your calendar",
       "pickGoogle": "Open in Google Calendar",

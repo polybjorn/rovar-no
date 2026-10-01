@@ -52,7 +52,7 @@
       "bookLabel": "Bestillingsrute",
       "infoLabel": "Info",
       "pickStart": "Legg avganger i kalenderen",
-      "pickHint": "Trykk på avgangene du vil ha med. Du kan bytte dag underveis.",
+      "pickHint": "Trykk på en avgang for å velge den, og bytt dag med pilene øverst for å velge flere dager.",
       "pickCount": "{{count}} valgt",
       "pickSave": "Last ned til kalenderen",
       "pickGoogle": "Åpne i Google Kalender",
