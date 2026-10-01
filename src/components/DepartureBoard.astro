@@ -127,6 +127,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
       <div class="cal-body cal-scroll">
         <section class="cal-field">
           <div class="cal-seg" id="cal-freq" role="group" aria-label={t.board.pickFreq}>
+            <span class="cal-seg-pill" aria-hidden="true"></span>
             <button type="button" data-freq="once" aria-pressed="true">{t.board.pickOnce}</button>
             <button type="button" data-freq="weekly" aria-pressed="false">{t.board.pickWeekly}</button>
           </div>
@@ -142,6 +143,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
         <div class="cal-reveal" id="cal-when-weekly" inert>
           <section class="cal-field">
             <div class="cal-seg cal-seg-3" id="cal-kind" role="group" aria-label={t.board.pickDays}>
+              <span class="cal-seg-pill" aria-hidden="true"></span>
               <button type="button" data-kind="weekday" aria-pressed="true">{t.board.pickWeekdays}</button>
               <button type="button" data-kind="saturday" aria-pressed="false">{t.board.pickSaturday}</button>
               <button type="button" data-kind="sunday" aria-pressed="false">{t.board.pickSunday}</button>
@@ -939,9 +941,9 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     height: 1.1rem;
   }
 
-  /* Scrollbars in the dialog show only while that part is being scrolled or
-     pointed at; calendar-picker.js sets .is-scrolling and drops it when the
-     scrolling stops. scrollbar-color for Firefox and Chromium, the webkit
+  /* Scrollbars in the dialog show only while that part is being scrolled:
+     calendar-picker.js sets .is-scrolling and drops it when the scrolling
+     stops. scrollbar-color for Firefox and Chromium, the webkit
      pseudo-elements for Safari. */
   .cal-scroll {
     scrollbar-width: thin;
@@ -949,8 +951,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     transition: scrollbar-color 0.3s;
   }
 
-  .cal-scroll.is-scrolling,
-  .cal-scroll:hover {
+  .cal-scroll.is-scrolling {
     scrollbar-color: color-mix(in srgb, var(--color-text-light) 55%, transparent) transparent;
   }
 
@@ -964,8 +965,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     background: transparent;
   }
 
-  .cal-scroll.is-scrolling::-webkit-scrollbar-thumb,
-  .cal-scroll:hover::-webkit-scrollbar-thumb {
+  .cal-scroll.is-scrolling::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--color-text-light) 55%, transparent);
   }
 
@@ -1035,8 +1035,11 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     background: var(--color-sand);
   }
 
-  .cal-seg::before {
-    content: "";
+  /* A real element rather than ::before: WebKit and Blink do not always
+     start a transition on a pseudo-element when only an inherited custom
+     property changed, so the fill jumped instead of sliding there. The
+     script sets the transform itself. */
+  .cal-seg-pill {
     position: absolute;
     top: 0.2rem;
     bottom: 0.2rem;
@@ -1045,7 +1048,6 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     border-radius: 999px;
     background: var(--color-ocean);
     box-shadow: 0 2px 6px rgba(14, 54, 80, 0.25);
-    transform: translateX(calc(var(--seg, 0) * 100%));
     transition: transform 0.25s ease;
   }
 
@@ -1521,7 +1523,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     .cal-dialog.is-closing,
     .cal-dialog.is-closing::backdrop,
     .cal-reveal,
-    .cal-seg::before {
+    .cal-seg-pill {
       animation: none;
       transition: none;
     }

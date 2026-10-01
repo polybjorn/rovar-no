@@ -289,14 +289,15 @@ function render() {
   setPressed(byId('cal-freq'), 'freq', (v) => v === state.freq);
   setPressed(byId('cal-kind'), 'kind', (v) => v === state.kind);
   setPressed(byId('cal-weekdays'), 'day', (v) => state.weekdays.has(Number(v)));
-  // The sliding white pill under a segmented control follows its choice.
+  // The sliding fill under a segmented control follows its choice.
   for (const [id, attr, value] of [
     ['cal-freq', 'freq', state.freq],
     ['cal-kind', 'kind', state.kind],
   ]) {
     const seg = byId(id);
     const buttons = [...(seg?.querySelectorAll(`[data-${attr}]`) ?? [])];
-    seg?.style.setProperty('--seg', String(buttons.findIndex((b) => b.dataset[attr] === value)));
+    const pill = seg?.querySelector('.cal-seg-pill');
+    if (pill) pill.style.transform = `translateX(${buttons.findIndex((b) => b.dataset[attr] === value) * 100}%)`;
   }
   reveal(byId('cal-when-once'), state.freq === 'once');
   reveal(byId('cal-when-weekly'), state.freq === 'weekly');
