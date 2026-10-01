@@ -285,20 +285,6 @@ function renderFooter() {
   }
 }
 
-// The shared cell of the two pick panels takes the shown one's height; the
-// CSS animates the change. Without animate, as when the dialog opens, it jumps.
-function sizeWhen(animate = true) {
-  const cell = dialog?.querySelector('.cal-when');
-  const shown = byId(state.freq === 'once' ? 'cal-when-once' : 'cal-when-weekly');
-  if (!cell || !shown || !dialog.open) return;
-  if (!animate) cell.style.transition = 'none';
-  cell.style.height = `${shown.offsetHeight}px`;
-  if (!animate) {
-    cell.offsetHeight; // commit the height before the transition comes back
-    cell.style.transition = '';
-  }
-}
-
 function render() {
   setPressed(byId('cal-freq'), 'freq', (v) => v === state.freq);
   setPressed(byId('cal-kind'), 'kind', (v) => v === state.kind);
@@ -315,7 +301,6 @@ function render() {
   reveal(byId('cal-when-once'), state.freq === 'once');
   reveal(byId('cal-when-weekly'), state.freq === 'weekly');
   reveal(byId('cal-weekdays-wrap'), state.freq === 'weekly' && state.kind === 'weekday');
-  sizeWhen();
   renderDates();
   renderTimes();
   renderFooter();
@@ -345,7 +330,6 @@ function open() {
   if (!dialog) return;
   render();
   dialog.showModal();
-  sizeWhen(false);
   document.documentElement.classList.add('cal-open');
   load();
 }
@@ -397,11 +381,7 @@ dialog?.querySelectorAll('.cal-scroll').forEach((el) => {
   }, { passive: true });
 });
 
-addEventListener('resize', () => {
-  if (!dialog?.open) return;
-  measureVia();
-  sizeWhen(false);
-});
+addEventListener('resize', () => { if (dialog?.open) measureVia(); });
 
 byId('cal-open')?.addEventListener('click', open);
 byId('cal-close')?.addEventListener('click', close);

@@ -991,10 +991,12 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     color: var(--color-text-light);
   }
 
-  /* The date strip and the weekly controls share one cell and crossfade;
-     the cell takes the shown panel's height, set and animated by
-     calendar-picker.js, so nothing jumps and no space sits empty. The weekday
-     row fades in place, keeping its height under Lørdag and Søndag. The
+  /* The date strip and the weekly controls share one cell and crossfade.
+     The cell is as tall as the taller panel whichever is shown, so switching
+     never moves anything below; the date buttons and the weekday row are
+     sized so the two panels come out within a few pixels of each other, and
+     no band sits empty. The weekday row fades in place, keeping its height
+     under Lørdag and Søndag. The
      script sets .is-open and inert together.
      minmax(0, 1fr), not the auto column a bare grid gets: an auto column
      grows to the date strip's full length and the whole dialog scrolls
@@ -1002,13 +1004,10 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
   .cal-when {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    overflow: hidden;
-    transition: height 0.25s ease;
   }
 
   .cal-when > * {
     grid-area: 1 / 1;
-    align-self: start;
     min-width: 0;
   }
 
@@ -1084,11 +1083,17 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
   }
 
   /* One-off: a strip of dates, scrolled sideways on a phone. */
+  /* A fixed height, the weekly controls' own, whether the platform draws
+     its scrollbar over the strip or under it: the two panels share a cell,
+     so equal heights are what keeps a band from opening under either. */
   .cal-dates {
+    box-sizing: border-box;
     display: flex;
+    align-items: flex-start;
     gap: 0.35rem;
+    height: 5.2rem;
     overflow-x: auto;
-    padding-bottom: 0.25rem;
+    overflow-y: hidden;
   }
 
   .cal-dates :global(button) {
@@ -1098,7 +1103,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     flex-direction: column;
     align-items: center;
     min-width: 3rem;
-    padding: 0.35rem 0.4rem 0.55rem;
+    padding: 0.45rem 0.4rem 0.65rem;
     border: 1.5px solid var(--color-border);
     border-radius: 12px;
     background: var(--color-foam);
@@ -1154,7 +1159,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 0.35rem;
-    padding-top: 0.5rem;
+    padding-top: 0.4rem;
   }
 
   .cal-weekdays button {
@@ -1162,7 +1167,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    min-height: 2.2rem;
+    min-height: 2rem;
     padding: 0.25rem;
     border: 1.5px solid var(--color-border);
     border-radius: 999px;
@@ -1516,7 +1521,6 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     .cal-dialog.is-closing,
     .cal-dialog.is-closing::backdrop,
     .cal-reveal,
-    .cal-when,
     .cal-seg::before {
       animation: none;
       transition: none;
