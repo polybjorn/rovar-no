@@ -31,6 +31,8 @@ import {
   offsetOf,
   shiftMonth,
   weekdayNames,
+  dayKind,
+  osloWeekday,
 } from './departures-core.js';
 
 const depPage = document.querySelector('.dep-page');
@@ -194,6 +196,7 @@ function render(containerId, calls, fresh) {
   const previous = prevRows.get(containerId);
   const list = container.querySelector('.dep-list');
   prevRows.set(containerId, items.map(i => ({ html: i.html, base: i.base })));
+  rememberRows(containerId, items.length);
 
   if (!list || !previous) {
     // Nothing to build on (first load, or after an empty day or an error):
@@ -259,6 +262,33 @@ function setDate() {
   if (kolumbus) kolumbus.href = kolumbusUrl(toOsloDate(d));
 }
 
+// While the first load is out, each list holds its place with as many blank
+// rows as the same kind of day had last time, so the board stands at about
+// its full length from the start instead of growing when the times arrive.
+// Browser storage is a convenience here: without it, a typical day's count.
+const ROWS_KEY = 'rovar-dep-rows';
+const TYPICAL_ROWS = 10;
+const rowsKey = (id) => `${id} ${dayKind(osloWeekday(`${selectedDate()}T12:00:00Z`))}`;
+
+function rememberedRows(id) {
+  try {
+    return JSON.parse(localStorage.getItem(ROWS_KEY) || '{}')[rowsKey(id)] || TYPICAL_ROWS;
+  } catch {
+    return TYPICAL_ROWS;
+  }
+}
+
+function rememberRows(id, count) {
+  try {
+    const all = JSON.parse(localStorage.getItem(ROWS_KEY) || '{}');
+    all[rowsKey(id)] = count;
+    localStorage.setItem(ROWS_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+const placeholder = (id) =>
+  `<ul class="dep-skeleton"><li>${esc(S.loading)}</li>${'<li aria-hidden="true"><span></span></li>'.repeat(rememberedRows(id) - 1)}</ul>`;
+
 let lastLoad = 0;
 
 // fresh: a new board (first load, day change) animates in. A background
@@ -268,7 +298,7 @@ async function loadAll(fresh = false) {
   ["from-rovar", "from-haugesund"].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el.querySelector(".dep-list")) {
-      el.innerHTML = `<div class="dep-loading">${esc(S.loading)}</div>`;
+      el.innerHTML = placeholder(id);
     }
   });
 

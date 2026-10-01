@@ -491,6 +491,34 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     padding: 0.25rem 0;
   }
 
+  /* Blank rows while the first load is out; see placeholder() in
+     departures.js. As tall as a departure row, still, so nothing slides. */
+  .dep-direction :global(.dep-skeleton) {
+    list-style: none;
+    padding: 0.25rem 0;
+  }
+
+  .dep-direction :global(.dep-skeleton li) {
+    display: flex;
+    align-items: center;
+    min-height: 2.95rem;
+    padding: 0.55rem 1.25rem;
+    border-bottom: 1px solid var(--color-sand-dark);
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+  }
+
+  .dep-direction :global(.dep-skeleton li:last-child) {
+    border-bottom: none;
+  }
+
+  .dep-direction :global(.dep-skeleton span) {
+    width: 40%;
+    height: 0.8rem;
+    border-radius: 4px;
+    background: var(--color-sand);
+  }
+
   .dep-direction :global(.dep-list li) {
     padding: 0.55rem 1.25rem;
     border-bottom: 1px solid var(--color-sand-dark);
@@ -984,8 +1012,11 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     background: color-mix(in srgb, var(--color-text-light) 55%, transparent);
   }
 
-  /* The only part that scrolls: head and foot stay in view on a phone. */
+  /* The only part that scrolls: head and foot stay in view on a phone. Its
+     scrollbar's room is kept whether or not a day needs one, so a short day
+     after a long one does not shift everything sideways. */
   .cal-body {
+    scrollbar-gutter: stable;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
