@@ -67,6 +67,8 @@
       "pickDepartures": "Departures",
       "pickEvery": "every {{day}}",
       "pickEveryWeekday": "weekdays",
+      "pickNoDays": "no days chosen",
+      "pickChooseDays": "Choose which weekdays above.",
       "pickRemove": "Remove",
       "pickLoading": "Loading the timetable...",
       "pickSummary": "{{count}} departures to your calendar.",

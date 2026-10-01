@@ -39,7 +39,9 @@ const state = {
   freq: 'once',
   date: toOsloDate(new Date()),
   kind: 'weekday',
-  weekdays: new Set(WEEKDAYS),
+  // None to begin with: the reader says which weekdays, rather than
+  // unticking the ones they do not travel.
+  weekdays: new Set(),
 };
 
 // Picks by key: a one-off pick is its event's UID, a weekly pick its kind of
@@ -243,6 +245,7 @@ function chipWhen(pick) {
       day: event.start.toLocaleDateString(S.locale, { weekday: 'long', timeZone: 'Europe/Oslo' }),
     });
   }
+  if (!state.weekdays.size) return S.pickNoDays;
   if (state.weekdays.size === WEEKDAYS.length) return S.pickEveryWeekday;
   return [...state.weekdays]
     .sort()
@@ -273,11 +276,16 @@ function renderFooter() {
   const summary = byId('cal-summary');
   if (summary) {
     const weekly = values.some(([, p]) => p.freq === 'weekly');
+    // A Hverdager pick with no weekday chosen repeats on no day at all.
+    const needDays = !state.weekdays.size &&
+      values.some(([, p]) => p.freq === 'weekly' && dayKind(weekdayOf(dateOf(p.event))) === 'weekday');
     const last = events.at(-1);
     // Nothing picked needs no sentence: the greyed button already says it.
     summary.hidden = !values.length;
     summary.textContent = !values.length
       ? ''
+      : needDays
+      ? S.pickChooseDays
       : fill(weekly ? S.pickSummaryUntil : events.length === 1 ? S.pickSummaryOne : S.pickSummary, {
           count: events.length,
           date: last

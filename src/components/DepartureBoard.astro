@@ -158,7 +158,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
             <div class="cal-reveal" id="cal-weekdays-wrap" inert>
               <div class="cal-weekdays" id="cal-weekdays" role="group" aria-label={t.board.pickWhichDays}>
                 {pickDays.map((name, i) => (
-                  <button type="button" data-day={WEEKDAYS[i]} aria-pressed="true" aria-label={name.long}>
+                  <button type="button" data-day={WEEKDAYS[i]} aria-pressed="false" aria-label={name.long}>
                     <span class="cal-wd-long" aria-hidden="true">{name.long}</span><span class="cal-wd-short" aria-hidden="true">{name.short}</span>
                   </button>
                 ))}
@@ -841,7 +841,10 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     inset: 0;
     margin: auto;
     width: min(40rem, calc(100vw - 1.5rem));
-    max-height: min(54rem, calc(100dvh - 1.5rem));
+    /* A fixed height, not a max: the dialog opens at its full length and
+       stays there while the timetable loads, rather than growing when the
+       lists arrive. */
+    height: min(54rem, calc(100dvh - 1.5rem));
     padding: 0;
     border: none;
     border-radius: 20px;

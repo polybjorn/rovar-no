@@ -68,6 +68,8 @@
       "pickDepartures": "Abfahrten",
       "pickEvery": "jeden {{day}}",
       "pickEveryWeekday": "werktags",
+      "pickNoDays": "keine Tage gewählt",
+      "pickChooseDays": "Wähle oben die Wochentage.",
       "pickRemove": "Entfernen",
       "pickLoading": "Fahrplan wird geladen...",
       "pickSummary": "{{count}} Abfahrten in den Kalender.",

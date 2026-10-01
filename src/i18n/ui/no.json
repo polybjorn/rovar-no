@@ -67,6 +67,8 @@
       "pickDepartures": "Avganger",
       "pickEvery": "hver {{day}}",
       "pickEveryWeekday": "hverdager",
+      "pickNoDays": "ingen dager valgt",
+      "pickChooseDays": "Velg hvilke hverdager over.",
       "pickRemove": "Fjern",
       "pickLoading": "Henter rutetidene...",
       "pickSummary": "{{count}} avganger i kalenderen.",
