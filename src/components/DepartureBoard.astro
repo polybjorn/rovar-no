@@ -21,6 +21,14 @@ const { lang = defaultLocale, title } = Astro.props;
 const t = ui(lang).ferry;
 const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
 
+// The weekday toggles carry the full name, or the short one where the row is
+// too narrow for it; capitalised like the Lørdag and Søndag beside them.
+const cap = (name: string) => name.charAt(0).toLocaleUpperCase(lang) + name.slice(1);
+const intl = localeInfo(lang).intl;
+const longDays = weekdayNames(intl, 'long');
+const shortDays = weekdayNames(intl);
+const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(shortDays[i]) }));
+
 
 ---
 
@@ -140,8 +148,10 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
             </div>
             <div class="cal-reveal" id="cal-weekdays-wrap" inert>
               <div class="cal-weekdays" id="cal-weekdays" role="group" aria-label={t.board.pickWhichDays}>
-                {weekdayNames(localeInfo(lang).intl).filter((_, i) => WEEKDAYS.includes(i)).map((name, i) => (
-                  <button type="button" data-day={i} aria-pressed="true"><span class="cal-tick" aria-hidden="true"></span>{name}</button>
+                {pickDays.map((name, i) => (
+                  <button type="button" data-day={WEEKDAYS[i]} aria-pressed="true" aria-label={name.long}>
+                    <span class="cal-wd-long" aria-hidden="true">{name.long}</span><span class="cal-wd-short" aria-hidden="true">{name.short}</span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -822,7 +832,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     inset: 0;
     margin: auto;
     width: min(40rem, calc(100vw - 1.5rem));
-    max-height: min(46rem, calc(100dvh - 1.5rem));
+    max-height: min(54rem, calc(100dvh - 1.5rem));
     padding: 0;
     border: none;
     border-radius: 20px;
@@ -981,20 +991,24 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     color: var(--color-text-light);
   }
 
-  /* Parts that come and go fade in place and keep their space, so nothing
-     under them moves: the date strip and the weekly controls share one cell,
-     as tall as the taller of the two, and the weekday row holds its height
-     under Lørdag and Søndag. The script sets .is-open and inert together. */
-  /* minmax(0, 1fr), not the auto column a bare grid gets: an auto column
+  /* The date strip and the weekly controls share one cell and crossfade;
+     the cell takes the shown panel's height, set and animated by
+     calendar-picker.js, so nothing jumps and no space sits empty. The weekday
+     row fades in place, keeping its height under Lørdag and Søndag. The
+     script sets .is-open and inert together.
+     minmax(0, 1fr), not the auto column a bare grid gets: an auto column
      grows to the date strip's full length and the whole dialog scrolls
      sideways, where only the strip should. */
   .cal-when {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    overflow: hidden;
+    transition: height 0.25s ease;
   }
 
   .cal-when > * {
     grid-area: 1 / 1;
+    align-self: start;
     min-width: 0;
   }
 
@@ -1133,9 +1147,10 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     color: var(--color-on-dark);
   }
 
-  /* Weekly, under Hverdager: which weekdays. On is a solid kelp chip with a
-     check; off is an outline with nothing in it. */
+  /* Weekly, under Hverdager: which weekdays. On is a solid kelp chip, off
+     an outline. Full names, short ones when the row gets too narrow. */
   .cal-weekdays {
+    container-type: inline-size;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 0.35rem;
@@ -1166,18 +1181,17 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     color: var(--color-on-dark);
   }
 
-  .cal-tick {
+  .cal-wd-short {
     display: none;
-    width: 0.3rem;
-    height: 0.55rem;
-    margin: 0 0.1rem 0.15rem 0;
-    border: solid currentColor;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
   }
 
-  .cal-weekdays button[aria-pressed="true"] .cal-tick {
-    display: inline-block;
+  @container (max-width: 25rem) {
+    .cal-wd-long {
+      display: none;
+    }
+    .cal-wd-short {
+      display: inline;
+    }
   }
 
   .cal-dirs {
@@ -1241,7 +1255,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     align-items: center;
     gap: 0.4rem;
     width: 100%;
-    padding: 0.65rem 0.9rem;
+    padding: 0.4rem 0.9rem;
     border: none;
     background: var(--color-foam);
     color: var(--color-text);
@@ -1268,8 +1282,8 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     position: relative;
     flex: none;
     box-sizing: border-box;
-    width: 1.3rem;
-    height: 1.3rem;
+    width: 1.15rem;
+    height: 1.15rem;
     margin-right: 0.2rem;
     border: 2px solid var(--color-border);
     border-radius: 6px;
@@ -1502,6 +1516,7 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     .cal-dialog.is-closing,
     .cal-dialog.is-closing::backdrop,
     .cal-reveal,
+    .cal-when,
     .cal-seg::before {
       animation: none;
       transition: none;

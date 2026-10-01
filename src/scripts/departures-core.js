@@ -293,10 +293,10 @@ export function offsetOf(dateStr, now = new Date()) {
 }
 
 // 2024-01-01 was a Monday, so walking a week from it gives Monday-first names.
-export function weekdayNames(locale) {
+export function weekdayNames(locale, weekday = 'short') {
   return Array.from({ length: 7 }, (_, i) =>
     new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(locale, {
-      weekday: 'short',
+      weekday,
       timeZone: 'UTC',
     })
   );
