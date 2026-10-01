@@ -177,18 +177,7 @@ function renderDates() {
 
 function renderTimes() {
   const lists = [...(byId('cal-times')?.querySelectorAll('[data-list]') ?? [])];
-  const label = byId('cal-day-label');
   if (!lists.length) return;
-  const date = shownDate();
-  // A one-off pick shows its date in the strip already; the label is for a
-  // weekly pick, to say which real day the listed times come from.
-  if (label) {
-    label.textContent = date && state.freq === 'weekly'
-      ? new Date(`${date}T12:00:00Z`).toLocaleDateString(S.locale, {
-          weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC',
-        })
-      : '\u00a0'; // keeps its line, so Avganger stays put
-  }
   const note = (text) => `<li class="cal-times-note">${esc(text)}</li>`;
   const rows = shownRows();
   const now = new Date();
@@ -200,6 +189,18 @@ function renderTimes() {
     const mine = rows.filter((e) => e.direction === list.dataset.list);
     list.innerHTML = mine.length ? mine.map((e) => row(e, now)).join('') : note(S.empty);
   }
+  requestAnimationFrame(measureVia);
+}
+
+// A via list wider than its row gets the distance and time to pan to its end,
+// at an even reading pace whatever its length.
+function measureVia() {
+  byId('cal-times')?.querySelectorAll('.cal-via').forEach((box) => {
+    const over = box.firstElementChild.scrollWidth - box.clientWidth;
+    box.classList.toggle('is-long', over > 0);
+    box.style.setProperty('--pan', `${-over}px`);
+    box.style.setProperty('--pan-time', `${(1.5 + over / 30).toFixed(1)}s`);
+  });
 }
 
 function row(e, now) {
@@ -207,7 +208,9 @@ function row(e, now) {
   // borrows the row for its clock time, so there it stays pickable.
   const gone = state.freq === 'once' && e.start <= now;
   const on = picks.has(keyOf(e));
-  const via = e.via?.length ? `<span class="cal-via">via ${esc(e.via.join(', '))}</span>` : '';
+  const via = e.via?.length
+    ? `<span class="cal-via"><span class="cal-via-text">via ${esc(e.via.join(', '))}</span></span>`
+    : '';
   return `<li><button type="button" class="cal-time" data-uid="${esc(e.uid)}" aria-pressed="${on}"${gone ? ' disabled' : ''}>
     <span class="cal-check" aria-hidden="true"></span>
     <span class="cal-dep">${esc(fmt(e.start))}</span>
@@ -377,6 +380,8 @@ dialog?.querySelectorAll('.cal-scroll').forEach((el) => {
     timer = setTimeout(() => el.classList.remove('is-scrolling'), 800);
   }, { passive: true });
 });
+
+addEventListener('resize', () => { if (dialog?.open) measureVia(); });
 
 byId('cal-open')?.addEventListener('click', open);
 byId('cal-close')?.addEventListener('click', close);

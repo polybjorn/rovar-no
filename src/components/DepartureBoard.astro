@@ -127,15 +127,13 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
         <div class="cal-when">
         <div class="cal-reveal is-open" id="cal-when-once">
           <section class="cal-field">
-            <p class="cal-label" id="cal-date-label">{t.board.pickDate}</p>
-            <div class="cal-dates cal-scroll" id="cal-dates" role="group" aria-labelledby="cal-date-label"></div>
+            <div class="cal-dates cal-scroll" id="cal-dates" role="group" aria-label={t.board.pickDate}></div>
           </section>
         </div>
 
         <div class="cal-reveal" id="cal-when-weekly" inert>
           <section class="cal-field">
-            <p class="cal-label" id="cal-kind-label">{t.board.pickDays}</p>
-            <div class="cal-seg cal-seg-3" id="cal-kind" role="group" aria-labelledby="cal-kind-label">
+            <div class="cal-seg cal-seg-3" id="cal-kind" role="group" aria-label={t.board.pickDays}>
               <button type="button" data-kind="weekday" aria-pressed="true">{t.board.pickWeekdays}</button>
               <button type="button" data-kind="saturday" aria-pressed="false">{t.board.pickSaturday}</button>
               <button type="button" data-kind="sunday" aria-pressed="false">{t.board.pickSunday}</button>
@@ -152,13 +150,10 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
         </div>
 
         <section class="cal-field">
-          <div class="cal-times-head">
-            <p class="cal-label">{t.board.pickDepartures}</p>
-            <span class="cal-day-label" id="cal-day-label"></span>
-          </div>
           <!-- Both directions side by side, so a trip out and back is two
-               ticks on one screen. -->
-          <div class="cal-dirs" id="cal-times">
+               ticks on one screen. The switches above say which day, so the
+               lists carry no heading of their own. -->
+          <div class="cal-dirs" id="cal-times" role="group" aria-label={t.board.pickDepartures}>
             <div class="cal-dir">
               <h3 class="cal-dir-head" id="cal-head-to-rovar">Haugesund<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Røvær</h3>
               <ul class="cal-times" data-list="to-rovar" aria-labelledby="cal-head-to-rovar"></ul>
@@ -1185,24 +1180,10 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     display: inline-block;
   }
 
-  /* The departures of the shown day, in the chosen direction. */
-  .cal-times-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
-
-  .cal-day-label {
-    font-size: 0.8rem;
-    color: var(--color-text-light);
-  }
-
   .cal-dirs {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
-    margin-top: 0.5rem;
   }
 
   @media (max-width: 560px) {
@@ -1252,11 +1233,13 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     color: var(--color-text-light);
   }
 
+  /* One line per departure, always: a via list too long for the row is cut
+     with a fade and pans to its end while the row is hovered or focused, so
+     the booking mark never drops to a line of its own. */
   .cal-times :global(.cal-time) {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 0.2rem 0.4rem;
+    gap: 0.4rem;
     width: 100%;
     padding: 0.65rem 0.9rem;
     border: none;
@@ -1327,12 +1310,54 @@ const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
     font-variant-numeric: tabular-nums;
   }
 
-  .cal-times :global(.cal-via) {
-    font-size: 0.8rem;
-    color: var(--color-text-light);
+  .cal-times :global(.cal-time > *) {
+    flex: none;
   }
 
-  .cal-times :global(.cal-booking) {
+  .cal-times :global(.cal-time > .cal-via) {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    white-space: nowrap;
+  }
+
+  .cal-times :global(.cal-via-text) {
+    display: inline-block;
+  }
+
+  /* --pan and --pan-time are measured in calendar-picker.js. */
+  .cal-times :global(.cal-via.is-long) {
+    mask-image: linear-gradient(to right, #000 80%, transparent);
+  }
+
+  .cal-times :global(.cal-time:hover .cal-via.is-long),
+  .cal-times :global(.cal-time:focus-visible .cal-via.is-long) {
+    mask-image: none;
+  }
+
+  .cal-times :global(.cal-time:hover .cal-via.is-long .cal-via-text),
+  .cal-times :global(.cal-time:focus-visible .cal-via.is-long .cal-via-text) {
+    animation: cal-via-pan var(--pan-time, 3s) ease-in-out infinite alternate;
+  }
+
+  @keyframes cal-via-pan {
+    0%, 15% { transform: none; }
+    85%, 100% { transform: translateX(var(--pan, 0)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cal-times :global(.cal-time:hover .cal-via.is-long .cal-via-text),
+    .cal-times :global(.cal-time:focus-visible .cal-via.is-long .cal-via-text) {
+      animation: none;
+    }
+    .cal-times :global(.cal-time > .cal-via) {
+      white-space: normal;
+    }
+  }
+
+  .cal-times :global(.cal-time > .cal-booking) {
     display: inline-flex;
     margin-left: auto;
     color: var(--color-kelp);
