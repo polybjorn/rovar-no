@@ -136,7 +136,14 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
         <div class="cal-when">
         <div class="cal-reveal is-open" id="cal-when-once">
           <section class="cal-field">
-            <div class="cal-dates cal-scroll" id="cal-dates" role="group" aria-label={t.board.pickDate}></div>
+            <!-- Arrows for a mouse with no sideways scroll, and for anyone who
+                 would not think to swipe; each shows only while there is more
+                 that way. -->
+            <div class="cal-dates-wrap">
+              <div class="cal-dates cal-scroll" id="cal-dates" role="group" aria-label={t.board.pickDate}></div>
+              <button type="button" class="cal-dates-nav cal-dates-prev" data-step="-1" aria-label={t.board.pickEarlier} hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button type="button" class="cal-dates-nav cal-dates-next" data-step="1" aria-label={t.board.pickLater} hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
           </section>
         </div>
 
@@ -1088,6 +1095,10 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
   /* A fixed height, the weekly controls' own, whether the platform draws
      its scrollbar over the strip or under it: the two panels share a cell,
      so equal heights are what keeps a band from opening under either. */
+  .cal-dates-wrap {
+    --date-h: 3.9rem;
+  }
+
   .cal-dates {
     box-sizing: border-box;
     display: flex;
@@ -1098,9 +1109,60 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     overflow-y: hidden;
   }
 
+  .cal-dates-wrap {
+    position: relative;
+  }
+
+  /* Over the strip's ends, as tall as a date, on a fade so the date under
+     it reads as cut off rather than missing. */
+  .cal-dates-nav {
+    position: absolute;
+    top: 0;
+    display: flex;
+    align-items: center;
+    width: 3rem;
+    height: var(--date-h);
+    padding: 0;
+    border: none;
+    color: var(--color-ocean);
+    cursor: pointer;
+  }
+
+  .cal-dates-nav[hidden] {
+    display: none;
+  }
+
+  .cal-dates-prev {
+    left: 0;
+    justify-content: flex-start;
+    background: linear-gradient(to right, var(--color-foam) 45%, transparent);
+  }
+
+  .cal-dates-next {
+    right: 0;
+    justify-content: flex-end;
+    background: linear-gradient(to left, var(--color-foam) 45%, transparent);
+  }
+
+  .cal-dates-nav svg {
+    box-sizing: content-box;
+    width: 1rem;
+    height: 1rem;
+    padding: 0.35rem;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-foam);
+    box-shadow: 0 2px 6px rgba(14, 54, 80, 0.15);
+  }
+
+  .cal-dates-nav:hover svg {
+    background: var(--color-sand);
+  }
+
   .cal-dates :global(button) {
     position: relative;
     flex: none;
+    height: var(--date-h);
     display: flex;
     flex-direction: column;
     align-items: center;

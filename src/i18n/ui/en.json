@@ -57,6 +57,8 @@
       "pickOnce": "Specific dates",
       "pickWeekly": "Every week",
       "pickDate": "Dates",
+      "pickEarlier": "Earlier dates",
+      "pickLater": "Later dates",
       "pickDays": "Days",
       "pickWeekdays": "Weekdays",
       "pickSaturday": "Saturday",

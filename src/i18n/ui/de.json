@@ -58,6 +58,8 @@
       "pickOnce": "Bestimmte Tage",
       "pickWeekly": "Jede Woche",
       "pickDate": "Tage",
+      "pickEarlier": "Frühere Tage",
+      "pickLater": "Spätere Tage",
       "pickDays": "Tage",
       "pickWeekdays": "Werktage",
       "pickSaturday": "Samstag",

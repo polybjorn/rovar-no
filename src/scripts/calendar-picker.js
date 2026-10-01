@@ -173,6 +173,16 @@ function renderDates() {
     })
     .join('');
   strip.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  requestAnimationFrame(updateDateNav);
+}
+
+// Each arrow shows while the strip has more dates out of sight its way.
+function updateDateNav() {
+  const strip = byId('cal-dates');
+  if (!strip) return;
+  const end = strip.scrollWidth - strip.clientWidth;
+  dialog.querySelector('.cal-dates-prev').hidden = strip.scrollLeft <= 1;
+  dialog.querySelector('.cal-dates-next').hidden = strip.scrollLeft >= end - 1;
 }
 
 function renderTimes() {
@@ -382,7 +392,19 @@ dialog?.querySelectorAll('.cal-scroll').forEach((el) => {
   }, { passive: true });
 });
 
-addEventListener('resize', () => { if (dialog?.open) measureVia(); });
+addEventListener('resize', () => {
+  if (!dialog?.open) return;
+  measureVia();
+  updateDateNav();
+});
+
+byId('cal-dates')?.addEventListener('scroll', updateDateNav, { passive: true });
+dialog?.querySelectorAll('.cal-dates-nav').forEach((nav) =>
+  nav.addEventListener('click', () => {
+    const strip = byId('cal-dates');
+    strip.scrollBy({ left: Number(nav.dataset.step) * strip.clientWidth * 0.8, behavior: 'smooth' });
+  })
+);
 
 byId('cal-open')?.addEventListener('click', open);
 byId('cal-close')?.addEventListener('click', close);

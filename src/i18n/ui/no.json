@@ -57,6 +57,8 @@
       "pickOnce": "Bestemte datoer",
       "pickWeekly": "Hver uke",
       "pickDate": "Datoer",
+      "pickEarlier": "Tidligere datoer",
+      "pickLater": "Senere datoer",
       "pickDays": "Dager",
       "pickWeekdays": "Hverdager",
       "pickSaturday": "Lørdag",
