@@ -314,23 +314,12 @@ function renderFooter() {
   const events = result();
   const summary = byId('cal-summary');
   if (summary) {
-    const weekly = values.some(([, p]) => p.freq === 'weekly');
-    // A Hverdager pick with no weekday chosen repeats on no day at all.
+    // The chips already show what is picked, so the line speaks only when a
+    // pick would come to nothing: a Hverdager pick with no weekday chosen.
     const needDays = !state.weekdays.size &&
       values.some(([, p]) => p.freq === 'weekly' && dayKind(weekdayOf(dateOf(p.event))) === 'weekday');
-    const last = events.at(-1);
-    // Nothing picked needs no sentence: the greyed button already says it.
-    summary.hidden = !values.length;
-    summary.textContent = !values.length
-      ? ''
-      : needDays
-      ? S.pickChooseDays
-      : fill(weekly ? S.pickSummaryUntil : events.length === 1 ? S.pickSummaryOne : S.pickSummary, {
-          count: events.length,
-          date: last
-            ? last.start.toLocaleDateString(S.locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Oslo' })
-            : '',
-        });
+    summary.hidden = !needDays;
+    summary.textContent = needDays ? S.pickChooseDays : '';
   }
   const save = byId('cal-save');
   if (save) save.disabled = !events.length;
