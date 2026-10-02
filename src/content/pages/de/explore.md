@@ -76,10 +76,12 @@ Lachsgehegen.
 
 - **Abfahrt:** täglich {{ribDepartures}} _bis zum {{end}}_
 - **Dauer:** etwa 45 Minuten, inklusive Anziehen der Ausrüstung
-- **Preis:** {{ribPriceAdult}} Erwachsene · {{ribPriceChild}} Kinder
-- **Alter:** ab 6 Jahren. Kinder von 6 bis 12 Jahren müssen von einem
-  Erwachsenen begleitet werden, unter 18 Jahren brauchen sie eine
-  schriftliche Erlaubnis der Erziehungsberechtigten.
+- **Preis:** {{ribPriceAdult}} Erwachsene\
+  {{ribPriceChild}} Kinder
+- **Alter:** ab 6 Jahren
+
+Kinder unter 12 Jahren müssen von einem Erwachsenen begleitet werden, unter
+18 Jahren braucht es eine schriftliche Erlaubnis der Erziehungsberechtigten.
 
 Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.
@@ -97,7 +99,9 @@ mit einer Ausstellung über das Unglück von 1899.
 Souvenirladen mit von lokalen Händen gefertigten Waren.
 
 - **Sonntags und donnerstags:** {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
-- **Preis:** {{hiltaPriceAdult}} Erwachsene · {{hiltaPriceReduced}} Studenten und Senioren · Kinder unter 16 frei
+- **Preis:** {{hiltaPriceAdult}} Erwachsene\
+  {{hiltaPriceReduced}} Studenten und Senioren\
+  Kinder unter 16 frei
 
 Außerhalb der Öffnungszeiten können Sie beim Haugalandmuseet eine Führung buchen.
 

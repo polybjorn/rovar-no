@@ -74,9 +74,12 @@ pens.
 
 - **Departures:** every day {{ribDepartures}} _until {{end}}_
 - **Duration:** about 45 minutes, including getting dressed for the trip
-- **Price:** {{ribPriceAdult}} adults · {{ribPriceChild}} children
-- **Age:** 6 and up. Children aged 6 to 12 must be accompanied by an adult,
-  and under 18 they need written permission from a guardian.
+- **Price:** {{ribPriceAdult}} adults\
+  {{ribPriceChild}} children
+- **Age:** 6 and up
+
+Children under 12 must come with an adult, and anyone under 18 needs written
+permission from a guardian.
 
 Sign up for the trip at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone. Payment at Røvær Sjøhus or by Vipps.
 
@@ -93,7 +96,9 @@ exhibition about the accident in 1899.
 shop with items handcrafted by local hands.
 
 - **Sundays and Thursdays:** {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
-- **Price:** {{hiltaPriceAdult}} adults · {{hiltaPriceReduced}} students and seniors · free under 16
+- **Price:** {{hiltaPriceAdult}} adults\
+  {{hiltaPriceReduced}} students and seniors\
+  free under 16
 
 Outside these hours, you can book a guided tour with Haugalandmuseet.
 
