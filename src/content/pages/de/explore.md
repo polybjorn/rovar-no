@@ -140,6 +140,7 @@ Der inseleigene Laden bietet Lebensmittel, Post, Paketausgabe und
 Angelzubehör und ist täglich von {{narbutikkenOpens}} Uhr bis Mitternacht
 geöffnet.
 
+Neuigkeiten gibt es regelmäßig auf [Facebook]({{narbutikkenFacebookUrl}}).
 Mehr auf [ihrer Website]({{narbutikkenUrl}}), Kontakt unter
 [{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
 oder telefonisch unter {{narbutikkenPhone}}.

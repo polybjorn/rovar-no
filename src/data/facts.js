@@ -38,6 +38,7 @@ export const facts = {
 
   // Nærbutikken Røvær
   narbutikkenUrl: 'https://narbutikken.no/finn-butikk/narbutikken-rovar',
+  narbutikkenFacebookUrl: 'https://www.facebook.com/rovarnarbutikk/',
   narbutikkenOpens: '05:45',
   narbutikkenEmail: 'narbutikken.rovaer@narbutikken.no',
   narbutikkenPhone: '52 71 80 23',
