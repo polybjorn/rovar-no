@@ -59,15 +59,14 @@ Det er GRATIS å besøke visningssenteret!
 
 ![Guide forteller til gjestene i RIB-en ved laksemerden](laksemerd)
 
-Vi arrangerer visningstur i RIB ut til laksemerdene hver dag i sommer
-frem til {{end}}. Avgang kl. {{ribDepartures}}. Varighet ca. 45 min,
-dette er inkludert påkledning.
+Vi arrangerer visningstur i RIB ut til laksemerdene hver dag i sommer.
 
-Pris: {{ribPriceAdult}} for voksne og {{ribPriceChild}} for barn.
-
-- Aldersgrense for visningstur i RIB er 6 år.
-- Fra 6 til 12 år må barn være i følge med en voksen.
-- Barn under 18 år må ha skriftlig tillatelse fra foresatte.
+- **Avganger:** kl. {{ribDepartures}}, hver dag frem til {{end}}
+- **Varighet:** ca. 45 min, inkludert påkledning
+- **Voksne:** {{ribPriceAdult}}
+- **Barn:** {{ribPriceChild}}
+- **Alder:** fra 6 år. Fra 6 til 12 år må barn være i følge med en voksen,
+  og under 18 år må de ha skriftlig tillatelse fra foresatte.
 
 Påmelding på Røvær Sjøhus (åpent daglig {{sjohusSummer}} frem til
 {{end}}), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
@@ -85,12 +84,14 @@ Røvær. Det sies at Røværulykka preger Røværbuen den dag i dag.
 Skjoldbladbua rett ved siden av Hiltahuset selger varer laget av lokale
 hender.
 
-Hiltahuset er åpent søndager kl. {{hiltaSunday}} fra {{hiltaOpens}} til
-{{hiltaCloses}}, og ellers etter avtale med Haugalandmuseet.
+- **Åpent:** søndager kl. {{hiltaSunday}}, {{hiltaOpens}} til {{hiltaCloses}}
+- **Ellers:** etter avtale med Haugalandmuseet
+- **Voksne:** {{hiltaPriceAdult}}
+- **Redusert:** {{hiltaPriceReduced}} for studenter (16-18 år) og honnør
+- **Barn under 16:** gratis
 
-Billett: {{hiltaPriceAdult}} for voksne, {{hiltaPriceReduced}} for studenter (16-18 år)
-og honnør, gratis for barn under 16. Billetten gir også inngang til to av
-Haugalandmuseets andre museer innen 48 timer.
+Billetten gir også inngang til to av Haugalandmuseets andre museer innen
+48 timer.
 
 - [{{hiltaEmail}}](mailto:{{hiltaEmail}})
 - [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})

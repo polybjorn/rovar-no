@@ -69,15 +69,15 @@ Visiting the centre is FREE!
 
 ![A guide talks to the guests in the RIB alongside the salmon pen](laksemerd)
 
-Every day this summer until {{end}}, a RIB boat tour takes visitors
-out to the salmon pens. Departures at {{ribDepartures}}. Duration about
-45 minutes, including getting dressed for the trip.
+Every day this summer, a RIB boat tour takes visitors out to the salmon
+pens.
 
-Price: {{ribPriceAdult}} for adults and {{ribPriceChild}} for children.
-
-- The age limit for the RIB tour is 6 years.
-- Children aged 6 to 12 must be accompanied by an adult.
-- Children under 18 need written permission from a guardian.
+- **Departures:** {{ribDepartures}}, every day until {{end}}
+- **Duration:** about 45 minutes, including getting dressed for the trip
+- **Adults:** {{ribPriceAdult}}
+- **Children:** {{ribPriceChild}}
+- **Age:** 6 and up. Children aged 6 to 12 must be accompanied by an adult,
+  and under 18 they need written permission from a guardian.
 
 Sign up at Røvær Sjøhus (open daily {{sjohusSummer}} until {{end}}), by
 email or by phone. Payment at Røvær Sjøhus or by Vipps.
@@ -92,12 +92,14 @@ a skillful guide will fill you in on the story of our island.
 “Skjoldbladbua” is the museum's nearest neighbour and is a souvenir
 shop with items handcrafted by local hands.
 
-Hiltahuset is open on Sundays {{hiltaSunday}} from {{hiltaOpens}} to
-{{hiltaCloses}}, and otherwise by appointment with Haugalandmuseet.
+- **Open:** Sundays {{hiltaSunday}}, {{hiltaOpens}} to {{hiltaCloses}}
+- **Otherwise:** by appointment with Haugalandmuseet
+- **Adults:** {{hiltaPriceAdult}}
+- **Reduced:** {{hiltaPriceReduced}} for students (16-18) and seniors
+- **Children under 16:** free
 
-Tickets: {{hiltaPriceAdult}} for adults, {{hiltaPriceReduced}} for students (16-18)
-and seniors, free for children under 16. The ticket also gets you into two
-of Haugalandmuseet's other museums within 48 hours.
+The ticket also gets you into two of Haugalandmuseet's other museums
+within 48 hours.
 
 - [{{hiltaEmail}}](mailto:{{hiltaEmail}})
 - [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})

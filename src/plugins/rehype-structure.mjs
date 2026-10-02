@@ -9,6 +9,7 @@ import { visit } from 'unist-util-visit';
 //   a lone image                        -> .section-img, unwrapped from its <p>
 //   a list inside an info box           -> .contact-list
 //   a list of nothing but links         -> .link-list
+//   a list of "**Label:** value" lines  -> .fact-list
 //
 // Everything here is language-independent: it runs the same on all 15 content
 // folders.
@@ -38,6 +39,16 @@ function linksOnly(node) {
   return items.length > 0 && items.every((li) => {
     const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
     return real.length === 1 && isElement(real[0], 'a');
+  });
+}
+
+// A list whose every item opens with a bold label and goes on with its value:
+// opening hours, prices, a tour's departures.
+function labelled(node) {
+  const items = node.children.filter((c) => isElement(c, 'li'));
+  return items.length > 0 && items.every((li) => {
+    const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+    return real.length > 1 && isElement(real[0], 'strong');
   });
 }
 
@@ -90,6 +101,10 @@ export function rehypeStructure() {
 
       if (isElement(node, 'ul') && linksOnly(node)) {
         node.properties.className = [...(node.properties.className ?? []), 'link-list'];
+      }
+
+      if (isElement(node, 'ul') && labelled(node)) {
+        node.properties.className = [...(node.properties.className ?? []), 'fact-list'];
       }
 
       if (isElement(node, 'p') && !section) {

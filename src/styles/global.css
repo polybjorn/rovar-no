@@ -745,6 +745,28 @@ img.section-img {
   --icon-link: url("../assets/icons/menu.svg");
 }
 
+/* Hours, prices and the like as label and value, the labels in a column of
+   their own so the values line up down the list. Each item is a row of the
+   list's grid (subgrid), so one long label sets the column for all. */
+.section ul.fact-list {
+  list-style: none;
+  padding-left: 0;
+  display: grid;
+  grid-template-columns: fit-content(40%) 1fr;
+  gap: 0.3rem 1rem;
+}
+
+.fact-list li {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.fact-list strong {
+  font-weight: 600;
+}
+
 /* Footer */
 
 .footer {

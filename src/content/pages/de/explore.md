@@ -71,15 +71,16 @@ Der Besuch des Zentrums ist KOSTENLOS!
 
 ![Ein Guide spricht zu den Gästen im RIB am Lachsgehege](laksemerd)
 
-Diesen Sommer fährt bis zum {{end}} täglich eine RIB-Bootstour
-hinaus zu den Lachsgehegen. Abfahrt um {{ribDepartures}} Uhr. Dauer etwa
-45 Minuten, inklusive Anziehen der Ausrüstung.
+Diesen Sommer fährt täglich eine RIB-Bootstour hinaus zu den
+Lachsgehegen.
 
-Preis: {{ribPriceAdult}} für Erwachsene und {{ribPriceChild}} für Kinder.
-
-- Das Mindestalter für die RIB-Tour beträgt 6 Jahre.
-- Kinder von 6 bis 12 Jahren müssen von einem Erwachsenen begleitet werden.
-- Kinder unter 18 Jahren benötigen eine schriftliche Erlaubnis der Erziehungsberechtigten.
+- **Abfahrt:** {{ribDepartures}} Uhr, täglich bis zum {{end}}
+- **Dauer:** etwa 45 Minuten, inklusive Anziehen der Ausrüstung
+- **Erwachsene:** {{ribPriceAdult}}
+- **Kinder:** {{ribPriceChild}}
+- **Alter:** ab 6 Jahren. Kinder von 6 bis 12 Jahren müssen von einem
+  Erwachsenen begleitet werden, unter 18 Jahren brauchen sie eine
+  schriftliche Erlaubnis der Erziehungsberechtigten.
 
 Anmeldung im Røvær Sjøhus (täglich {{sjohusSummer}} Uhr geöffnet, bis zum
 {{end}}), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
@@ -95,13 +96,14 @@ geöffnet werden – ein kundiger Führer erzählt Ihnen die Geschichte
 unserer Insel. „Skjoldbladbua“ ist der nächste Nachbar des Museums, ein
 Souvenirladen mit von lokalen Händen gefertigten Waren.
 
-Das Hiltahuset ist sonntags von {{hiltaSunday}} Uhr geöffnet, vom
-{{hiltaOpens}} bis zum {{hiltaCloses}}, sonst nach Vereinbarung mit dem
-Haugalandmuseet.
+- **Geöffnet:** sonntags {{hiltaSunday}} Uhr, vom {{hiltaOpens}} bis zum {{hiltaCloses}}
+- **Sonst:** nach Vereinbarung mit dem Haugalandmuseet
+- **Erwachsene:** {{hiltaPriceAdult}}
+- **Ermäßigt:** {{hiltaPriceReduced}} für Schüler, Studenten (16-18) und Senioren
+- **Kinder unter 16:** frei
 
-Eintritt: {{hiltaPriceAdult}} für Erwachsene, {{hiltaPriceReduced}} für Schüler und
-Studenten (16-18) sowie Senioren, frei für Kinder unter 16. Die Karte gilt
-außerdem 48 Stunden lang für zwei weitere Museen des Haugalandmuseet.
+Die Karte gilt außerdem 48 Stunden lang für zwei weitere Museen des
+Haugalandmuseet.
 
 - [{{hiltaEmail}}](mailto:{{hiltaEmail}})
 - [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
