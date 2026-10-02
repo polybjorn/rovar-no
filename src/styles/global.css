@@ -633,8 +633,8 @@ img.section-img {
   font-size: 1rem;
 }
 
-/* Same box as .nav-inner and .page-wide. The links sit centred on a wide
-   screen, so the footer does not leave its right half empty, with the contact
+/* Same box as .nav-inner and .page-wide. The links sit centred at every
+   width, so the footer does not leave its right half empty, with the contact
    line closing the footer underneath them. */
 .footer-inner {
   max-width: var(--max-width);
@@ -684,14 +684,12 @@ img.section-img {
   text-decoration: underline;
 }
 
-@media (max-width: 800px) {
-  .footer-inner {
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .footer-links,
-  .footer-contact {
-    justify-content: flex-start;
+/* Below this the two link columns no longer fit side by side in every
+   language. Stacked as one grid they keep a shared left edge, centred as a
+   block, rather than each list centring on its own. */
+@media (max-width: 520px) {
+  .footer-links {
+    display: grid;
+    justify-content: center;
   }
 }
