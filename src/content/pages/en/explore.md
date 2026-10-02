@@ -48,7 +48,9 @@ tables, if you brought your own food – that is as long as you clean up
 after yourselves and leave the area in a good state. There is also a
 football court close by.
 
-## Røvær Aquaculture Centre
+## Røvær Aquaculture Centre and Sjøhus
+
+### The aquaculture centre
 
 ![From the exhibition at Røvær Havbrukssenter](havbruk)
 
@@ -65,7 +67,7 @@ activities.
 
 - [Website]({{havbrukUrl}})
 
-## RIB tour to the salmon pens
+### RIB tour to the salmon pens
 
 ![A guide talks to the guests in the RIB alongside the salmon pen](laksemerd)
 
@@ -83,6 +85,17 @@ permission from a guardian.
 
 Sign up for the trip at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone. Payment at Røvær Sjøhus or by Vipps.
 
+### Røvær Sjøhus
+
+Røvær Sjøhus has tourist information and sells coffee, soft drinks,
+ice cream and sweets. All lunch and dinner service is at Røvær
+Havhotell this year. Røvær Sjøhus is also known for serving the
+traditional Norwegian dish “komle”.
+
+* **Every day:** {{sjohusSummer}} _until {{end}}_
+* **Saturday and Sunday:** {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
 - [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
@@ -108,17 +121,7 @@ Outside these hours, you can book a guided tour with Haugalandmuseet.
 
 ## Food, drinks and accommodation
 
-### Røvær Sjøhus
-
-Røvær Sjøhus has tourist information and sells coffee, soft drinks,
-ice cream and sweets. All lunch and dinner service is at Røvær
-Havhotell this year. Røvær Sjøhus is also known for serving the
-traditional Norwegian dish “komle”.
-
-* **Every day:** {{sjohusSummer}} _until {{end}}_
-* **Saturday and Sunday:** {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
+Coffee, ice cream and sweets are also sold at [Røvær Sjøhus](#røvær-sjøhus).
 
 ### Røvær Havhotell
 

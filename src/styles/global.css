@@ -674,9 +674,19 @@ img.section-img {
   margin-bottom: 1.5rem;
 }
 
-.info-box h3 {
+/* A place under a ### heading (rehype-structure): heading, picture and
+   description as running text, then its card. */
+.place {
+  margin-top: 2rem;
+}
+
+.section-title + .place {
+  margin-top: 0;
+}
+
+.place h3 {
   font-weight: 600;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Contact */
@@ -775,7 +785,7 @@ img.section-img {
   background: var(--color-foam);
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  /* Inside an info box it is also a .contact-list, whose smaller, lighter
+  /* Inside a .place it is also a .contact-list, whose smaller, lighter
      text is for a place's address lines, not for its hours and prices. */
   font-size: inherit;
   color: inherit;

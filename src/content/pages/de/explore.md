@@ -50,7 +50,9 @@ Spielplatz für Kinder. Mitgebrachtes Essen können Sie an den Bänken und
 Tischen verzehren – solange Sie aufräumen und den Ort in gutem Zustand
 hinterlassen. Gleich daneben gibt es auch einen kleinen Fußballplatz.
 
-## Røvær Havbrukssenter (Aquakulturzentrum)
+## Røvær Havbrukssenter und Sjøhus
+
+### Das Aquakulturzentrum
 
 ![Aus der Ausstellung im Røvær Havbrukssenter](havbruk)
 
@@ -67,7 +69,7 @@ Aktivitäten.
 
 - [Website]({{havbrukUrl}})
 
-## RIB-Tour zu den Lachsgehegen
+### RIB-Tour zu den Lachsgehegen
 
 ![Ein Guide spricht zu den Gästen im RIB am Lachsgehege](laksemerd)
 
@@ -86,6 +88,17 @@ Kinder unter 12 Jahren müssen von einem Erwachsenen begleitet werden, unter
 Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.
 
+### Røvær Sjøhus
+
+Im Røvær Sjøhus gibt es Touristeninformation und Verkauf von Kaffee,
+Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
+werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
+auch für das traditionelle norwegische Gericht „Komle“ bekannt.
+
+* **Täglich:** {{sjohusSummer}} _bis zum {{end}}_
+* **Samstags und sonntags:** {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
 - [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
@@ -111,17 +124,7 @@ Außerhalb der Öffnungszeiten können Sie beim Haugalandmuseet eine Führung bu
 
 ## Essen, Trinken und Unterkunft
 
-### Røvær Sjøhus
-
-Im Røvær Sjøhus gibt es Touristeninformation und Verkauf von Kaffee,
-Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
-werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
-auch für das traditionelle norwegische Gericht „Komle“ bekannt.
-
-* **Täglich:** {{sjohusSummer}} _bis zum {{end}}_
-* **Samstags und sonntags:** {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
+Kaffee, Eis und Süßigkeiten gibt es auch im [Røvær Sjøhus](#røvær-sjøhus).
 
 ### Røvær Havhotell
 

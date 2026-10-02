@@ -40,7 +40,9 @@ Ved Skolen og Barnehagen er det en ny og fin lekeplass og mulighet for å
 spise medbrakt mat om man rydder opp og forlater området i fin stand til
 nestemann. Det er også en fotballbinge like ved.
 
-## Røvær Havbrukssenter
+## Røvær Havbrukssenter og Sjøhus
+
+### Havbrukssenteret
 
 ![Bilde fra utstillingen på Røvær havbrukssenter](havbruk)
 
@@ -55,7 +57,7 @@ fordypning, spill og aktiviteter.
 
 - [Nettside]({{havbrukUrl}})
 
-## Visningstur til laksemerd
+### Visningstur til laksemerd
 
 ![Guide forteller til gjestene i RIB-en ved laksemerden](laksemerd)
 
@@ -72,6 +74,15 @@ tillatelse fra foresatte.
 
 Påmelding til turen gjøres på [Røvær Sjøhus](#røvær-sjøhus), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
 
+### Røvær Sjøhus
+
+På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
+søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
+
+* **Hver dag:** kl. {{sjohusSummer}} _til {{end}}_
+* **Lørdag og søndag:** kl. {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
 - [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
@@ -96,15 +107,7 @@ Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 
 ## Mat, drikke og overnatting
 
-### Røvær Sjøhus
-
-På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
-søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
-
-* **Hver dag:** kl. {{sjohusSummer}} _til {{end}}_
-* **Lørdag og søndag:** kl. {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
+Kaffe, is og søtsaker får du også på [Røvær Sjøhus](#røvær-sjøhus).
 
 ### Røvær Havhotell
 
