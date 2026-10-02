@@ -259,6 +259,17 @@ addEventListener("resize", () => {
   document.querySelectorAll(".dep-direction").forEach(measureVia);
 });
 
+// The intro line has a two-line slot beside the photo; when it would need a
+// third it is hidden, never cut mid-sentence, so the title and the board stay
+// where they are.
+const intro = document.querySelector(".dep-intro > p");
+if (intro) {
+  const fit = () => intro.parentElement.classList.toggle("is-tight", intro.scrollHeight > intro.clientHeight + 1);
+  new ResizeObserver(fit).observe(intro);
+  // The web font wraps differently from the fallback, without the box changing size.
+  document.fonts?.ready.then(fit);
+}
+
 function setDate() {
   const el = document.getElementById("dep-date");
   if (!el) return;

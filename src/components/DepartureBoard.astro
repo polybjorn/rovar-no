@@ -29,6 +29,16 @@ const longDays = weekdayNames(intl, 'long');
 const shortDays = weekdayNames(intl);
 const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(shortDays[i]) }));
 
+// The date bar holds the width of the language's longest dates, laid out
+// unseen under the real one, so stepping a day never resizes the bar or the
+// photo beside it. Formatted exactly as departures.js formats the shown date;
+// the few longest by length, since the widest glyphs need not be in the
+// longest string. Two years, so a year change is covered.
+const dateFormat = new Intl.DateTimeFormat(intl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Oslo' });
+const longestDates = [...new Set(
+  Array.from({ length: 731 }, (_, i) => cap(dateFormat.format(new Date(Date.UTC(2026, 0, 1 + i, 12)))))
+)].sort((a, b) => b.length - a.length).slice(0, 6);
+
 
 ---
 
@@ -40,7 +50,10 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
       <button class="dep-nav-btn" id="dep-prev" disabled aria-label={t.prevDay}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
-      <p class="dep-date-line" id="dep-date" aria-live="polite"></p>
+      <span class="dep-date-box">
+        <p class="dep-date-line" id="dep-date" aria-live="polite"></p>
+        {longestDates.map((d) => <span class="dep-date-line dep-date-sizer" aria-hidden="true">{d}</span>)}
+      </span>
       <button class="dep-nav-btn" id="dep-next" aria-label={t.nextDay}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </button>
@@ -208,7 +221,10 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
 <style>
   .dep-page {
     display: grid;
-    grid-template-columns: 1fr 280px;
+    /* The photo gives way before the date bar does: the intro column never
+       gets narrower than the bar on one line, and the photo takes what is
+       left, up to 280px. */
+    grid-template-columns: minmax(min-content, 1fr) minmax(160px, 280px);
     column-gap: 2rem;
     align-items: start;
     padding-top: 1rem;
@@ -220,32 +236,26 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     align-self: center;
   }
 
-  /* The intro lines show only where they fit beside the photo as written, two
-     lines: wrapped any further they make the row taller than the photo, which
-     pushes the board down and the photo, centred in the row, with it. 33rem
-     is the longest language's line (516 px measured, German) with room to
-     spare. Never on a phone, where the board is what the screen is for. */
-  .dep-intro {
-    container-type: inline-size;
-  }
-
+  /* The intro line keeps a two-line slot beside the photo whether it fills
+     it or not, so the title and the date bar never move as it wraps. Should
+     it need a third line, it is hidden rather than let grow: a taller intro
+     makes the row taller than the photo, which pushes the board down and the
+     photo, centred in the row, with it. departures.js measures that. Never
+     on a phone, where the board is what the screen is for. */
   .dep-intro > :global(p) {
-    display: none;
+    height: 2lh;
+    overflow: hidden;
   }
 
-  @media (min-width: 641px) {
-    @container (min-width: 33rem) {
-      .dep-intro > :global(p) {
-        display: block;
-      }
-    }
+  .dep-intro.is-tight > :global(p) {
+    visibility: hidden;
   }
 
   .dep-boat-wrap {
     grid-column: 2;
     grid-row: 1;
     align-self: center;
-    width: 280px;
+    width: 100%;
     height: 180px;
     border-radius: 10px;
     overflow: hidden;
@@ -269,6 +279,7 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
       grid-template-columns: 1fr;
     }
     .dep-intro { order: 1; grid-column: auto; grid-row: auto; }
+    .dep-intro > :global(p) { display: none; }
     .dep-columns { order: 2; grid-column: auto; }
     .dep-boat-wrap {
       order: 3;
@@ -444,6 +455,36 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     font-size: 1rem;
     color: var(--color-text-light);
     margin-bottom: 0;
+  }
+
+  .dep-date-box {
+    display: grid;
+  }
+
+  .dep-date-box > * {
+    grid-area: 1 / 1;
+  }
+
+  .dep-date-sizer {
+    visibility: hidden;
+    display: none;
+  }
+
+  /* One line beside the photo, where a wrapped date would make the row taller
+     than the photo; a phone has the full width and may wrap it, and spends no
+     height on a longer date than the one shown. */
+  @media (min-width: 641px) {
+    .dep-date-line {
+      white-space: nowrap;
+    }
+    .dep-date-sizer {
+      display: block;
+    }
+    /* Centred in the reserved width, so a short date sits evenly between
+       the arrows rather than leaving the gap all on one side. */
+    .dep-date-box {
+      text-align: center;
+    }
   }
 
   .dep-columns {
