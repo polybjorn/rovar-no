@@ -68,8 +68,7 @@ Vi arrangerer visningstur i RIB ut til laksemerdene hver dag på sommeren.
 - **Alder:** fra 6 år. Fra 6 til 12 år må barn være i følge med en voksen,
   og under 18 år må de ha skriftlig tillatelse fra foresatte.
 
-Påmelding på Røvær Sjøhus (åpent daglig {{sjohusSummer}} frem til
-{{end}}), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
+Påmelding på [Røvær Sjøhus](#røvær-sjøhus), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
 
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
 - [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})

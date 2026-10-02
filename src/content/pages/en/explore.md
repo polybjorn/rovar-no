@@ -79,8 +79,7 @@ pens.
 - **Age:** 6 and up. Children aged 6 to 12 must be accompanied by an adult,
   and under 18 they need written permission from a guardian.
 
-Sign up at Røvær Sjøhus (open daily {{sjohusSummer}} until {{end}}), by
-email or by phone. Payment at Røvær Sjøhus or by Vipps.
+Sign up at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone. Payment at Røvær Sjøhus or by Vipps.
 
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
 - [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
