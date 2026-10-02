@@ -104,7 +104,7 @@ Outside these hours, you can book a guided tour with Haugalandmuseet.
 
 - [{{hiltaEmail}}](mailto:{{hiltaEmail}})
 - [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
-- [Haugalandmuseet](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
+- [Website](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
 
 ## Food, drinks and accommodation
 

@@ -692,8 +692,8 @@ img.section-img {
 
 /* A place's own links (a list of nothing but links, see rehype-structure),
    each with an icon for what it opens, side by side and wrapping as the
-   card has room, rather than one down the left with the right of the card
-   empty. */
+   card has room and centred across it, rather than one down the left with
+   the right of the card empty. */
 .section ul.link-list {
   list-style: none;
   padding-left: 0;
@@ -701,6 +701,7 @@ img.section-img {
   color: var(--color-text-light);
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   column-gap: 1.25rem;
 }
 
@@ -714,6 +715,7 @@ img.section-img {
 .link-list li.link-contact {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   column-gap: 1.25rem;
   row-gap: 0.35rem;
 }

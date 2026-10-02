@@ -107,7 +107,7 @@ Außerhalb der Öffnungszeiten können Sie beim Haugalandmuseet eine Führung bu
 
 - [{{hiltaEmail}}](mailto:{{hiltaEmail}})
 - [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
-- [Haugalandmuseet](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
+- [Website](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
 
 ## Essen, Trinken und Unterkunft
 

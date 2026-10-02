@@ -92,7 +92,7 @@ Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 
 - [{{hiltaEmail}}](mailto:{{hiltaEmail}})
 - [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
-- [Haugalandmuseet](https://haugalandmuseet.no/museum/hiltahuset/)
+- [Nettside](https://haugalandmuseet.no/museum/hiltahuset/)
 
 ## Mat, drikke og overnatting
 
