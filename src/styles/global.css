@@ -670,13 +670,19 @@ img.section-img {
   gap: 0.3rem;
 }
 
-/* One line on a wide screen. The postcode drops under the address on its own
-   rather than splitting the address when the line runs out of room. */
+/* The closing line, under a rule across the footer and quieter than the links
+   above it. One line on a wide screen; the postcode drops under the address on
+   its own rather than splitting the address when the line runs out of room. */
 .footer-contact {
+  align-self: stretch;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.2);
+  font-size: 0.9rem;
+  color: rgb(255 255 255 / 0.75);
 }
 
 .footer a {
