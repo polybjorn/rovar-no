@@ -228,6 +228,9 @@ const longestDates = [...new Set(
     column-gap: 2rem;
     align-items: start;
     padding-top: 1rem;
+    /* The calendar button ends the page, so it needs less than the 4rem
+       other pages leave under their last paragraph. */
+    padding-bottom: 2.5rem;
   }
 
   .dep-intro {
@@ -929,7 +932,7 @@ const longestDates = [...new Set(
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem 1.5rem;
+    gap: 1.25rem 1.5rem;
   }
 
   .dep-foot-text {
@@ -1825,10 +1828,6 @@ const longestDates = [...new Set(
     .dep-foot {
       flex-direction: column;
       align-items: stretch;
-    }
-    .dep-pick {
-      margin-top: 0.75rem;
-      text-align: center;
     }
     .dep-credit {
       line-height: 1.5;
