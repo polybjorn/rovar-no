@@ -684,16 +684,18 @@ img.section-img {
   font-size: 1rem;
 }
 
-/* Same box as .nav-inner and .page-wide, so the columns line up with the
-   content above them. */
+/* Same box as .nav-inner and .page-wide. The links sit centred at every
+   width, so the footer does not leave its right half empty, with the contact
+   line closing the footer underneath them. */
 .footer-inner {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 0 1.5rem;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 2rem 3rem;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.75rem;
 }
 
 .footer-col h2 {
@@ -702,23 +704,36 @@ img.section-img {
   margin-bottom: 0.6rem;
 }
 
-.footer-col p {
-  max-width: 380px;
-}
-
-/* One column per group in src/data/footer.js. Two of them keep the list about
-   as tall as the contact block beside it, and wrap into one on a phone. */
+/* One column per group in src/data/footer.js, side by side on a wide screen
+   and wrapping into one on a phone. */
 .footer-links {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.3rem 2rem;
 }
 
 .footer-links ul {
   list-style: none;
+  text-align: left;
   display: grid;
   align-content: start;
   gap: 0.3rem;
+}
+
+/* The closing line, under a rule across the footer and quieter than the links
+   above it. One line on a wide screen; the postcode drops under the address on
+   its own rather than splitting the address when the line runs out of room. */
+.footer-contact {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.2);
+  font-size: 0.9rem;
+  color: rgb(255 255 255 / 0.75);
 }
 
 .footer a {
@@ -726,8 +741,12 @@ img.section-img {
   text-decoration: underline;
 }
 
-@media (max-width: 800px) {
-  .footer-inner {
-    gap: 1.75rem;
+/* Below this the two link columns no longer fit side by side in every
+   language. Stacked as one grid they keep a shared left edge, centred as a
+   block, rather than each list centring on its own. */
+@media (max-width: 520px) {
+  .footer-links {
+    display: grid;
+    justify-content: center;
   }
 }
