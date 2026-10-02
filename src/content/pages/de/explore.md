@@ -112,15 +112,13 @@ Außerhalb der Öffnungszeiten können Sie beim Haugalandmuseet eine Führung bu
 
 ### Røvær Sjøhus
 
-Im Sommer {{year}} ist das Røvær Sjøhus bis zum {{end}} täglich von
-{{sjohusSummer}} Uhr geöffnet, mit Touristeninformation und Verkauf
-von Kaffee, Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und
-Abendessen werden dieses Jahr im Røvær Havhotell serviert. Das Røvær
-Sjøhus ist auch für das traditionelle norwegische Gericht „Komle“
-bekannt.
+Im Røvær Sjøhus gibt es Touristeninformation und Verkauf von Kaffee,
+Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
+werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
+auch für das traditionelle norwegische Gericht „Komle“ bekannt.
 
-Nach dem {{end}} ist samstags und sonntags von {{sjohusAutumn}} Uhr
-geöffnet, bis Ende September.
+* **Sommer {{year}}:** täglich {{sjohusSummer}} Uhr, bis zum {{end}}
+* **Nach dem {{end}}:** samstags und sonntags {{sjohusAutumn}} Uhr, bis Ende September
 
 - [Facebook]({{sjohusFacebookUrl}})
 

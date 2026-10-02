@@ -96,11 +96,11 @@ Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 
 ### Røvær Sjøhus
 
-Røvær Sjøhus har sommeren {{year}} åpent hver dag kl. {{sjohusSummer}} frem
-til {{end}}. Her er det turistinformasjon og salg av kaffe, brus,
-is og søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
+På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
+søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
 
-Etter {{end}} er det åpent lørdag og søndag kl. {{sjohusAutumn}} ut september.
+* **Sommeren {{year}}:** hver dag kl. {{sjohusSummer}}, frem til {{end}}
+* **Etter {{end}}:** lørdag og søndag kl. {{sjohusAutumn}}, ut september
 
 - [Facebook]({{sjohusFacebookUrl}})
 
