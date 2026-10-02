@@ -220,6 +220,27 @@ const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(short
     align-self: center;
   }
 
+  /* The intro lines show only where they fit beside the photo as written, two
+     lines: wrapped any further they make the row taller than the photo, which
+     pushes the board down and the photo, centred in the row, with it. 33rem
+     is the longest language's line (516 px measured, German) with room to
+     spare. Never on a phone, where the board is what the screen is for. */
+  .dep-intro {
+    container-type: inline-size;
+  }
+
+  .dep-intro > :global(p) {
+    display: none;
+  }
+
+  @media (min-width: 641px) {
+    @container (min-width: 33rem) {
+      .dep-intro > :global(p) {
+        display: block;
+      }
+    }
+  }
+
   .dep-boat-wrap {
     grid-column: 2;
     grid-row: 1;
