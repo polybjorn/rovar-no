@@ -16,6 +16,9 @@ const cache = {};
 // German pages. Grouping is kept as written in facts.js, which is the local
 // convention (2-2-2-2 for landlines, 3-2-3 for mobiles), and stays readable
 // behind a country code.
+//
+// Each number also gets a {{<key>Tel}} twin for a tel: link: the country code
+// and the digits, with no spaces, the same in every language.
 export function phoneStrings(code) {
   if (cache[code]) return cache[code];
 
@@ -24,6 +27,7 @@ export function phoneStrings(code) {
   for (const [key, value] of Object.entries(facts)) {
     if (!key.endsWith('Phone')) continue;
     out[key] = local ? value : `${countryCode} ${value}`;
+    out[`${key}Tel`] = countryCode + value.replace(/\s/g, '');
   }
 
   cache[code] = out;

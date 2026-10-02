@@ -675,6 +675,47 @@ img.section-img {
   color: var(--color-text-light);
 }
 
+/* A place's own links on the explore page, one to a line with an icon for
+   what each one opens. Picked out by the Facebook link every such list has, so
+   a contact list that labels its lines in words ("E-post: ...") stays plain. */
+.contact-list:has(a[href*="facebook.com"]) a::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.45em;
+  vertical-align: -0.15em;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon-link);
+  mask-image: var(--icon-link);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.contact-list {
+  --icon-link: url("../assets/icons/globe.svg");
+}
+
+.contact-list a[href*="facebook.com"] {
+  --icon-link: url("../assets/icons/facebook.svg");
+}
+
+.contact-list a[href^="mailto:"] {
+  --icon-link: url("../assets/icons/mail.svg");
+}
+
+.contact-list a[href^="tel:"] {
+  --icon-link: url("../assets/icons/phone.svg");
+}
+
+.contact-list a[href*="/meny"] {
+  --icon-link: url("../assets/icons/menu.svg");
+}
+
 /* Footer */
 
 .footer {

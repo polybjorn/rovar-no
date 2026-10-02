@@ -109,7 +109,7 @@ bekannt.
 Nach dem {{end}} ist samstags und sonntags von {{sjohusAutumn}} Uhr
 geöffnet, bis Ende September.
 
-[Facebook]({{sjohusFacebookUrl}})
+- [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
@@ -123,9 +123,11 @@ geöffnet, bis Ende September.)
 Das Røvær Havhotell bietet ganzjährig Übernachtungen auf Anfrage und
 veranstaltet über das Jahr verschiedene Events.
 
-[Facebook]({{havhotellFacebookUrl}}) · [Website]({{havhotellUrl}}) ·
-[Speisekarte]({{havhotellMenuUrl}}) ·
-[{{havhotellEmail}}](mailto:{{havhotellEmail}}) · {{havhotellPhone}}
+- [Facebook]({{havhotellFacebookUrl}})
+- [Website]({{havhotellUrl}})
+- [Speisekarte]({{havhotellMenuUrl}})
+- [{{havhotellEmail}}](mailto:{{havhotellEmail}})
+- [{{havhotellPhone}}](tel:{{havhotellPhoneTel}})
 
 ### Nærbutikken Røvær
 
@@ -133,5 +135,7 @@ Der inseleigene Laden bietet Lebensmittel, Post, Paketausgabe und
 Angelzubehör und ist täglich von {{narbutikkenOpens}} Uhr bis Mitternacht
 geöffnet.
 
-[Facebook]({{narbutikkenFacebookUrl}}) · [Website]({{narbutikkenUrl}}) ·
-[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}}) · {{narbutikkenPhone}}
+- [Facebook]({{narbutikkenFacebookUrl}})
+- [Website]({{narbutikkenUrl}})
+- [{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
+- [{{narbutikkenPhone}}](tel:{{narbutikkenPhoneTel}})

@@ -94,7 +94,7 @@ is og søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
 
 Etter {{end}} er det åpent lørdag og søndag kl. {{sjohusAutumn}} ut september.
 
-[Facebook]({{sjohusFacebookUrl}})
+- [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
@@ -108,14 +108,18 @@ kl. {{hotelAutumn}} ut september.)
 Røvær Havhotell har åpent for overnatting på bestilling hele året,
 og har forskjellige arrangementer i løpet av året.
 
-[Facebook]({{havhotellFacebookUrl}}) · [Nettside]({{havhotellUrl}}) ·
-[Meny]({{havhotellMenuUrl}}) ·
-[{{havhotellEmail}}](mailto:{{havhotellEmail}}) · {{havhotellPhone}}
+- [Facebook]({{havhotellFacebookUrl}})
+- [Nettside]({{havhotellUrl}})
+- [Meny]({{havhotellMenuUrl}})
+- [{{havhotellEmail}}](mailto:{{havhotellEmail}})
+- [{{havhotellPhone}}](tel:{{havhotellPhoneTel}})
 
 ### Nærbutikken Røvær
 
 Øyas egen butikk har dagligvarer, post, pakkeutlevering og fiskeutstyr,
 og er åpen hver dag fra {{narbutikkenOpens}} til midnatt.
 
-[Facebook]({{narbutikkenFacebookUrl}}) · [Nettside]({{narbutikkenUrl}}) ·
-[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}}) · {{narbutikkenPhone}}
+- [Facebook]({{narbutikkenFacebookUrl}})
+- [Nettside]({{narbutikkenUrl}})
+- [{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
+- [{{narbutikkenPhone}}](tel:{{narbutikkenPhoneTel}})

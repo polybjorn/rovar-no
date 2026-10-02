@@ -77,6 +77,15 @@ test('Norwegian writes the clock with a period, English with a colon', () => {
   assert.match(seasonStrings('en').sjohusSummer, /11:00/);
 });
 
+test('every phone number has a tel: twin with no spaces', () => {
+  for (const code of localeCodes) {
+    const s = phoneStrings(code);
+    for (const key of Object.keys(s).filter((k) => k.endsWith('Phone'))) {
+      assert.match(s[`${key}Tel`], /^\+47\d{8}$/, `${code} ${key}Tel`);
+    }
+  }
+});
+
 test('a single time is formatted like the ends of a range', () => {
   assert.equal(seasonStrings('no').narbutikkenOpens, '05.45');
   assert.equal(seasonStrings('en').narbutikkenOpens, '05:45');
@@ -126,7 +135,9 @@ test('every phone number in facts is formatted for every language', () => {
 
 test('the country code is added once, never doubled', () => {
   for (const code of localeCodes) {
-    for (const value of Object.values(phoneStrings(code))) {
+    // The displayed numbers; the tel: twins carry +47 in every language.
+    const shown = Object.entries(phoneStrings(code)).filter(([k]) => k.endsWith('Phone'));
+    for (const [, value] of shown) {
       assert.equal(value.match(/\+47/g)?.length ?? 0, code === defaultLocale ? 0 : 1, value);
     }
   }
