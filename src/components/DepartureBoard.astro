@@ -1178,6 +1178,14 @@ const longestDates = [...new Set(
     min-width: 0;
   }
 
+  /* The three rows of buttons at the top - how often, which kind of day,
+     which weekdays - sit the same distance apart. A step closer than the
+     fields below, and what comes off here goes under Hverdager, so the
+     weekly panel keeps the date strip's height. */
+  .cal-when > * > .cal-field {
+    margin-top: 0.65rem;
+  }
+
   .cal-reveal {
     opacity: 0;
     visibility: hidden;
@@ -1398,7 +1406,7 @@ const longestDates = [...new Set(
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 0.35rem;
-    padding-top: 0.4rem;
+    padding-top: 0.65rem;
   }
 
   .cal-weekdays button {
