@@ -76,6 +76,11 @@ Android opens the calendar app where a download would only land in the
 downloads folder. A calendar holding every crossing of the month was the
 reason for all of this.
 
+A departure that has to be booked is flagged in the dialog with the booking
+rule, and in the downloaded file it carries an alarm an hour before its
+booking deadline. The Google link cannot carry one, and the feeds below never
+do, since a feed holds every booking boat and would ring every evening.
+
 The subscription feeds are still built, unlinked, so an existing subscription
 keeps working: `/rutebaten.ics` with every departure in both directions, one
 per language (`/en/ferry.ics`, `/de/ferry.ics`), and `/rutebaten-summary.ics`
