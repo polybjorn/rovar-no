@@ -40,6 +40,12 @@ import {
   departureEvent,
   icsEvent,
   icsCalendar,
+  googleCalendarUrl,
+  osloWeekday,
+  weeklyEvents,
+  dayKind,
+  nextDateOfKind,
+  collectEvents,
   ICS_PRODID,
   FEED_TTL_MINUTES,
   groupByOsloDate,
@@ -683,6 +689,27 @@ test('a departure carries no alarm: a timetable is read, not attended', () => {
   assert.ok(!lines.some((l) => l.startsWith('TRIGGER')));
 });
 
+test('a booking departure carries its deadline, a plain one none', () => {
+  const booked = departureEvent(bookedCall(), { stamp: ICS_STAMP });
+  assert.equal(booked.start - booked.bookingDeadline, 40 * 60000);
+  const plain = departureEvent(call({ time: '2026-07-15T08:00:00+02:00', stops: [] }), { stamp: ICS_STAMP });
+  assert.equal(plain.bookingDeadline, null);
+});
+
+test('an alarm the caller attaches rings that many minutes before departure', () => {
+  const event = departureEvent(bookedCall(), { stamp: ICS_STAMP });
+  const lines = icsEvent({ ...event, alarm: { minutesBefore: 40, text: 'Ring, nå' } });
+  const at = lines.indexOf('BEGIN:VALARM');
+  assert.deepEqual(lines.slice(at, at + 5), [
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Ring\\, nå',
+    'TRIGGER:-PT40M',
+    'END:VALARM',
+  ]);
+  assert.equal(lines.at(-1), 'END:VEVENT');
+});
+
 test('the calendar wraps its events and ends with a CRLF', () => {
   const event = departureEvent(bookedCall(), {
     direction: 'to-haugesund',
@@ -708,6 +735,132 @@ test('a subscription feed advertises how often to come back', () => {
 test('a download carries METHOD:PUBLISH and a feed does not', () => {
   assert.ok(icsCalendar([], { method: 'PUBLISH' }).includes('METHOD:PUBLISH'));
   assert.ok(!icsCalendar([]).includes('METHOD:'));
+});
+
+test('a Google Calendar link carries the crossing in UTC, start to arrival', () => {
+  const event = departureEvent(bookedCall(), {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+    strings: { icsSummary: 'Rutebåten {{from}}-{{to}}', icsLocation: '{{from}} kai' },
+    url: 'https://rovar.no/rutebaten/',
+  });
+  const url = new URL(googleCalendarUrl(event));
+  assert.equal(url.origin + url.pathname, 'https://calendar.google.com/calendar/render');
+  assert.equal(url.searchParams.get('action'), 'TEMPLATE');
+  assert.equal(url.searchParams.get('dates'), '20260715T190500Z/20260715T193000Z');
+  assert.equal(url.searchParams.get('text'), event.summary);
+  assert.equal(url.searchParams.get('location'), event.location);
+  assert.ok(url.searchParams.get('details').endsWith('https://rovar.no/rutebaten/'));
+});
+
+test('a Google Calendar link for an unknown arrival starts and ends together', () => {
+  const c = call({ time: '2026-07-15T08:00:00+02:00', stops: [] });
+  const event = departureEvent(c, { direction: 'to-haugesund', stamp: ICS_STAMP });
+  const dates = new URL(googleCalendarUrl(event)).searchParams.get('dates');
+  assert.equal(dates, '20260715T060000Z/20260715T060000Z');
+});
+
+// A stand-in event: only the fields weeklyEvents reads.
+const ev = (iso, direction = 'to-haugesund') => ({ uid: `${iso}-${direction}`, start: new Date(iso), direction });
+
+test('osloWeekday counts from Monday, like weekdayNames', () => {
+  assert.equal(osloWeekday('2026-10-05T12:00:00Z'), 0);
+  assert.equal(osloWeekday('2026-10-11T12:00:00Z'), 6);
+});
+
+test('the week has three kinds of day', () => {
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map(dayKind), [
+    'weekday', 'weekday', 'weekday', 'weekday', 'weekday', 'saturday', 'sunday',
+  ]);
+});
+
+test('a weekday pick repeats on every weekday, same direction and clock time', () => {
+  const pick = ev('2026-10-02T05:50:00Z'); // Friday 07:50 in Oslo
+  const timetable = [
+    pick,
+    ev('2026-10-05T05:50:00Z'), // Monday 07:50: kept
+    ev('2026-10-06T05:50:00Z'), // Tuesday 07:50: kept
+    ev('2026-10-05T06:05:00Z'), // Monday 08:05: another boat
+    ev('2026-10-05T05:50:00Z', 'to-rovar'), // Monday 07:50 the other way
+    ev('2026-10-03T05:50:00Z'), // Saturday 07:50: a weekend day
+  ];
+  const out = weeklyEvents([pick], timetable, '2026-10-01');
+  assert.deepEqual(out.map((e) => e.uid), [pick.uid, timetable[1].uid, timetable[2].uid]);
+});
+
+test('the chosen weekdays narrow a weekday pick, and leave a weekend pick alone', () => {
+  const friday = ev('2026-10-02T05:50:00Z'); // Friday 07:50
+  const saturday = ev('2026-10-03T08:00:00Z'); // Saturday 10:00
+  const timetable = [
+    friday,
+    saturday,
+    ev('2026-10-05T05:50:00Z'), // Monday 07:50: not chosen
+    ev('2026-10-06T05:50:00Z'), // Tuesday 07:50: chosen
+    ev('2026-10-10T08:00:00Z'), // next Saturday 10:00: kept
+  ];
+  const out = weeklyEvents([friday, saturday], timetable, '2026-10-01', [1, 3]);
+  assert.deepEqual(out.map((e) => e.uid), [saturday.uid, timetable[3].uid, timetable[4].uid]);
+});
+
+test('Saturday and Sunday picks each keep their own day', () => {
+  const saturday = ev('2026-10-03T20:45:00Z'); // Saturday 22:45
+  const timetable = [
+    saturday,
+    ev('2026-10-04T20:45:00Z'), // Sunday 22:45: Sunday was not picked
+    ev('2026-10-10T20:45:00Z'), // next Saturday: kept
+  ];
+  const out = weeklyEvents([saturday], timetable, '2026-10-01');
+  assert.deepEqual(out.map((e) => e.uid), [saturday.uid, timetable[2].uid]);
+});
+
+test('a weekly pick matches the Oslo clock across the DST change, not the UTC one', () => {
+  const pick = ev('2026-10-19T05:50:00Z'); // Monday 07:50, summer time
+  const winter = ev('2026-11-02T06:50:00Z'); // Monday 07:50, winter time
+  assert.ok(weeklyEvents([pick], [winter], '2026-10-01').includes(winter));
+});
+
+test('a day where the boat does not run is left out', () => {
+  const pick = ev('2026-10-02T05:50:00Z');
+  const holiday = ev('2026-10-05T07:00:00Z'); // Monday, only a later boat
+  assert.deepEqual(weeklyEvents([pick], [pick, holiday], '2026-10-01'), [pick]);
+});
+
+test('a weekly pick never reaches back before the start date', () => {
+  const pick = ev('2026-10-09T05:50:00Z');
+  const past = ev('2026-10-02T05:50:00Z');
+  assert.deepEqual(weeklyEvents([pick], [past, pick], '2026-10-05'), [pick]);
+});
+
+test('the next date of a kind skips days that are not of it', () => {
+  const timetable = [
+    ev('2026-10-02T05:50:00Z'), // Friday
+    ev('2026-10-03T05:50:00Z'), // Saturday
+    ev('2026-10-04T05:50:00Z'), // Sunday
+    ev('2026-10-10T05:50:00Z'), // next Saturday
+  ];
+  assert.equal(nextDateOfKind(timetable, 'saturday', '2026-10-01'), '2026-10-03');
+  assert.equal(nextDateOfKind(timetable, 'saturday', '2026-10-04'), '2026-10-10');
+  assert.equal(nextDateOfKind(timetable, 'weekday', '2026-10-03'), null);
+});
+
+test('collected picks hold each boat once, in time order', () => {
+  const friday = ev('2026-10-02T05:50:00Z');
+  const nextFriday = ev('2026-10-09T05:50:00Z');
+  const sunday = ev('2026-10-04T12:00:00Z');
+  const timetable = [friday, sunday, nextFriday];
+  // Picked once and also covered by the weekly pick: still one event.
+  const out = collectEvents([nextFriday, sunday], [friday], timetable, '2026-10-01');
+  assert.deepEqual(out.map((e) => e.uid), [friday.uid, sunday.uid, nextFriday.uid]);
+});
+
+test('with no weekly picks, collecting is just the one-off picks', () => {
+  const sunday = ev('2026-10-04T12:00:00Z');
+  assert.deepEqual(collectEvents([sunday], [], [], '2026-10-01'), [sunday]);
+});
+
+test('an event carries its via stops, for the picker to show', () => {
+  const event = departureEvent(bookedCall(), { direction: 'to-haugesund', stamp: ICS_STAMP });
+  assert.ok(Array.isArray(event.via));
 });
 
 test('osloClock prints the Oslo wall clock, not the visitor local time', () => {

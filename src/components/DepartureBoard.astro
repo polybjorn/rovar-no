@@ -2,8 +2,7 @@
 import { Image } from 'astro:assets';
 import { ui } from '../i18n/ui.js';
 import Sentence from './Sentence.astro';
-import { kolumbusUrl, ENTUR_SITE } from '../scripts/departures-core.js';
-import { pathFor } from '../i18n/routes.js';
+import { kolumbusUrl, ENTUR_SITE, weekdayNames, WEEKDAYS } from '../scripts/departures-core.js';
 import { defaultLocale, localeInfo } from '../i18n/locales.js';
 import { facts } from '../data/facts.js';
 import boatImg from '../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
@@ -22,14 +21,24 @@ const { lang = defaultLocale, title } = Astro.props;
 const t = ui(lang).ferry;
 const boardStrings = { ...t.board, locale: localeInfo(lang).intl };
 
-// The feed sits beside the page it belongs to, as webcal: so a calendar app
-// takes it as a subscription rather than a one-off import. Without a site set
-// there is no host to build an absolute URL from, so the plain path stands in.
-const feedPath = `${pathFor('ferry', lang).replace(/\/$/, '')}.ics`;
-const webcal = (path) =>
-  Astro.site ? new URL(path, Astro.site).href.replace(/^https?:/, 'webcal:') : path;
-const feedUrl = webcal(feedPath);
-const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
+// The weekday toggles carry the full name, or the short one where the row is
+// too narrow for it; capitalised like the Lørdag and Søndag beside them.
+const cap = (name: string) => name.charAt(0).toLocaleUpperCase(lang) + name.slice(1);
+const intl = localeInfo(lang).intl;
+const longDays = weekdayNames(intl, 'long');
+const shortDays = weekdayNames(intl);
+const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(shortDays[i]) }));
+
+// The date bar holds the width of the language's longest dates, laid out
+// unseen under the real one, so stepping a day never resizes the bar or the
+// photo beside it. Formatted exactly as departures.js formats the shown date;
+// the few longest by length, since the widest glyphs need not be in the
+// longest string. Two years, so a year change is covered.
+const dateFormat = new Intl.DateTimeFormat(intl, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Oslo' });
+const longestDates = [...new Set(
+  Array.from({ length: 731 }, (_, i) => cap(dateFormat.format(new Date(Date.UTC(2026, 0, 1 + i, 12)))))
+)].sort((a, b) => b.length - a.length).slice(0, 6);
+
 
 ---
 
@@ -41,7 +50,10 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
       <button class="dep-nav-btn" id="dep-prev" disabled aria-label={t.prevDay}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
-      <p class="dep-date-line" id="dep-date" aria-live="polite"></p>
+      <span class="dep-date-box">
+        <p class="dep-date-line" id="dep-date" aria-live="polite"></p>
+        {longestDates.map((d) => <span class="dep-date-line dep-date-sizer" aria-hidden="true">{d}</span>)}
+      </span>
       <button class="dep-nav-btn" id="dep-next" aria-label={t.nextDay}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </button>
@@ -69,57 +81,150 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     </section>
   </div>
 
-  <p class="dep-booking">
-    <svg class="dep-booking-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>
-    <span aria-hidden="true">=</span>
-    <Sentence
-      text={t.legend}
-      links={{
-        bookingSiteLink: {
-          href: facts.kolumbusBookingUrl,
-          label: facts.kolumbusBookingHost,
-          external: true,
-        },
-      }}
-    />
-  </p>
+  <div class="dep-foot">
+    <div class="dep-foot-text">
+      <p class="dep-booking">
+        <svg class="dep-booking-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>
+        <span aria-hidden="true">=</span>
+        <Sentence
+          text={t.legend}
+          links={{
+            bookingSiteLink: {
+              href: facts.kolumbusBookingUrl,
+              label: facts.kolumbusBookingHost,
+              external: true,
+            },
+          }}
+        />
+      </p>
 
-  <p class="dep-feed">
-    <svg class="dep-feed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>
-    <Sentence text={t.feedLine} links={{ feedLink: { href: feedUrl, label: t.feedLabel } }} />
-    {' '}
-    <Sentence
-      text={t.feedSummaryLine}
-      links={{ feedSummaryLink: { href: feedSummaryUrl, label: t.feedSummaryLabel } }}
-    />
-  </p>
+      <p class="dep-credit">
+        <Sentence
+          text={t.credit}
+          links={{ enturLink: { href: ENTUR_SITE, label: 'Entur', external: true } }}
+        />
+        <span class="dep-kolumbus-sep">|</span>
+        <Sentence
+          text={t.kolumbus.line}
+          links={{
+            kolumbusLink: {
+              href: kolumbusUrl(),
+              label: t.kolumbus.label,
+              id: 'kolumbus-link',
+              external: true,
+            },
+          }}
+        />
+      </p>
+    </div>
 
-  <p class="dep-credit">
-    <Sentence
-      text={t.credit}
-      links={{ enturLink: { href: ENTUR_SITE, label: 'Entur', external: true } }}
-    />
-    <span class="dep-kolumbus-sep">|</span>
-    <Sentence
-      text={t.kolumbus.line}
-      links={{
-        kolumbusLink: {
-          href: kolumbusUrl(),
-          label: t.kolumbus.label,
-          id: 'kolumbus-link',
-          external: true,
-        },
-      }}
-    />
-  </p>
+    <!-- The calendar picker opens in a dialog of its own, so the board stays a
+         timetable with no controls on its rows. calendar-picker.js drives it. -->
+    <div class="dep-pick">
+      <button type="button" class="dep-pick-start" id="cal-open" aria-haspopup="dialog">
+        <svg class="dep-pick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14v4M10 16h4" stroke-linecap="round"/></svg>
+        {t.board.pickStart}
+      </button>
+    </div>
+  </div>
+
+  <dialog class="cal-dialog" id="cal-dialog" aria-labelledby="cal-title">
+    <div class="cal-box">
+      <header class="cal-head">
+        <h2 class="cal-title" id="cal-title" tabindex="-1" autofocus>{t.board.pickTitle}</h2>
+        <button type="button" class="cal-close" id="cal-close" aria-label={t.board.pickCancel}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <div class="cal-body cal-scroll">
+        <section class="cal-field">
+          <div class="cal-seg" id="cal-freq" role="group" aria-label={t.board.pickFreq}>
+            <span class="cal-seg-pill" aria-hidden="true"></span>
+            <button type="button" data-freq="once" aria-pressed="true">{t.board.pickOnce}</button>
+            <button type="button" data-freq="weekly" aria-pressed="false">{t.board.pickWeekly}</button>
+          </div>
+        </section>
+
+        <div class="cal-when">
+        <div class="cal-reveal is-open" id="cal-when-once">
+          <section class="cal-field">
+            <!-- Arrows for a mouse with no sideways scroll, and for anyone who
+                 would not think to swipe; each shows only while there is more
+                 that way. -->
+            <div class="cal-dates-wrap">
+              <div class="cal-dates cal-scroll" id="cal-dates" role="group" aria-label={t.board.pickDate}></div>
+              <button type="button" class="cal-dates-nav cal-dates-prev" data-step="-1" aria-label={t.board.pickEarlier}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button type="button" class="cal-dates-nav cal-dates-next" data-step="1" aria-label={t.board.pickLater}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </section>
+        </div>
+
+        <div class="cal-reveal" id="cal-when-weekly" inert>
+          <section class="cal-field">
+            <div class="cal-seg cal-seg-3" id="cal-kind" role="group" aria-label={t.board.pickDays}>
+              <span class="cal-seg-pill" aria-hidden="true"></span>
+              <button type="button" data-kind="weekday" aria-pressed="true">{t.board.pickWeekdays}</button>
+              <button type="button" data-kind="saturday" aria-pressed="false">{t.board.pickSaturday}</button>
+              <button type="button" data-kind="sunday" aria-pressed="false">{t.board.pickSunday}</button>
+            </div>
+            <div class="cal-reveal" id="cal-weekdays-wrap" inert>
+              <div class="cal-weekdays" id="cal-weekdays" role="group" aria-label={t.board.pickWhichDays}>
+                {pickDays.map((name, i) => (
+                  <button type="button" data-day={WEEKDAYS[i]} aria-pressed="false" aria-label={name.long}>
+                    <span class="cal-wd-long" aria-hidden="true">{name.long}</span><span class="cal-wd-short" aria-hidden="true">{name.short}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        </div>
+        </div>
+
+        <section class="cal-field">
+          <!-- Both directions side by side, so a trip out and back is two
+               ticks on one screen. The switches above say which day, so the
+               lists carry no heading of their own. -->
+          <div class="cal-dirs" id="cal-times" role="group" aria-label={t.board.pickDepartures}>
+            <div class="cal-dir">
+              <h3 class="cal-dir-head" id="cal-head-to-rovar">Haugesund<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Røvær</h3>
+              <ul class="cal-times" data-list="to-rovar" aria-labelledby="cal-head-to-rovar"></ul>
+            </div>
+            <div class="cal-dir">
+              <h3 class="cal-dir-head" id="cal-head-to-haugesund">Røvær<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Haugesund</h3>
+              <ul class="cal-times" data-list="to-haugesund" aria-labelledby="cal-head-to-haugesund"></ul>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="cal-foot">
+        <ul class="cal-chosen cal-scroll" id="cal-chosen" hidden></ul>
+        <p class="cal-summary" id="cal-summary" aria-live="polite"></p>
+        <p class="cal-booking-note" id="cal-booking-note" aria-live="polite" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg><span></span></p>
+        <div class="cal-actions">
+          <a class="cal-google" id="cal-google" target="_blank" rel="noopener" hidden>{t.board.pickGoogle}</a>
+          <button type="button" class="cal-save" id="cal-save" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            {t.board.pickSave}
+          </button>
+        </div>
+      </footer>
+    </div>
+  </dialog>
 </div>
 
 <script src="../scripts/departures.js"></script>
+<script src="../scripts/calendar-picker.js"></script>
+
 
 <style>
   .dep-page {
     display: grid;
-    grid-template-columns: 1fr 280px;
+    /* The photo gives way before the date bar does: the intro column never
+       gets narrower than the bar on one line, and the photo takes what is
+       left, up to 280px. */
+    grid-template-columns: minmax(min-content, 1fr) minmax(160px, 280px);
     column-gap: 2rem;
     align-items: start;
     padding-top: 1rem;
@@ -131,17 +236,38 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     align-self: center;
   }
 
+  /* The intro line keeps a two-line slot beside the photo whether it fills
+     it or not, so the title and the date bar never move as it wraps. Should
+     it need a third line, it is hidden rather than let grow: a taller intro
+     makes the row taller than the photo, which pushes the board down and the
+     photo, centred in the row, with it. departures.js measures that. Never
+     on a phone, where the board is what the screen is for. */
+  .dep-intro > :global(p) {
+    height: 2lh;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+
+  .dep-intro.is-tight > :global(p) {
+    visibility: hidden;
+  }
+
+  /* Exactly as tall as the intro beside it, so neither leaves empty space
+     under the other: the image is taken out of the flow, so it is the intro
+     alone that sets the row's height. */
   .dep-boat-wrap {
+    position: relative;
     grid-column: 2;
     grid-row: 1;
-    align-self: center;
-    width: 280px;
-    height: 180px;
+    align-self: stretch;
+    width: 100%;
     border-radius: 10px;
     overflow: hidden;
   }
 
   .dep-boat-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -150,9 +276,7 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
   }
 
   .dep-columns,
-  .dep-booking,
-  .dep-feed,
-  .dep-credit {
+  .dep-foot {
     grid-column: 1 / -1;
   }
 
@@ -161,6 +285,7 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
       grid-template-columns: 1fr;
     }
     .dep-intro { order: 1; grid-column: auto; grid-row: auto; }
+    .dep-intro > :global(p) { display: none; }
     .dep-columns { order: 2; grid-column: auto; }
     .dep-boat-wrap {
       order: 3;
@@ -169,9 +294,7 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
       width: 100%;
       height: 160px;
     }
-    .dep-booking { order: 4; }
-    .dep-feed { order: 5; }
-    .dep-credit { order: 6; }
+    .dep-foot { order: 4; }
     .dep-nav {
       justify-content: center;
     }
@@ -340,6 +463,36 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     margin-bottom: 0;
   }
 
+  .dep-date-box {
+    display: grid;
+  }
+
+  .dep-date-box > * {
+    grid-area: 1 / 1;
+  }
+
+  .dep-date-sizer {
+    visibility: hidden;
+    display: none;
+  }
+
+  /* One line beside the photo, where a wrapped date would make the row taller
+     than the photo; a phone has the full width and may wrap it, and spends no
+     height on a longer date than the one shown. */
+  @media (min-width: 641px) {
+    .dep-date-line {
+      white-space: nowrap;
+    }
+    .dep-date-sizer {
+      display: block;
+    }
+    /* Centred in the reserved width, so a short date sits evenly between
+       the arrows rather than leaving the gap all on one side. */
+    .dep-date-box {
+      text-align: center;
+    }
+  }
+
   .dep-columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -393,22 +546,13 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     transform: translateY(0.15em);
   }
 
-  /* The list is rebuilt on first load, on a day change and on every 60s
-     refresh, but only the first two are a new board: those get the staggered
-     fade up (.is-fresh). A refresh that lands on the same rows must not move
-     anything, so it animates nothing; a row whose content actually changed
-     (a new time, a departure that has just passed) gets a plain fade of its
-     own (.is-changed), no stagger, no travel. A countdown tick fades only
-     the countdown text (.is-tick), the rest of the row stays still. */
-  @keyframes dep-row-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.35rem);
-    }
-  }
-
-  @keyframes dep-row-change {
-    from { opacity: 0.15; }
+  /* departures.js compares every row with the one on screen, on a refresh
+     and on a day change: a row that looks the same is left alone, so a time
+     that runs every day never blinks. Only a first load fades the whole list,
+     and only a row that changed on a day change fades in on its own; no
+     stagger, no travel. */
+  @keyframes dep-list-in {
+    from { opacity: 0; }
   }
 
   .dep-direction :global(.dep-list) {
@@ -416,29 +560,50 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     padding: 0.25rem 0;
   }
 
+  /* Blank rows while the first load is out; see placeholder() in
+     departures.js. As tall as a departure row, still, so nothing slides. */
+  .dep-direction :global(.dep-skeleton) {
+    list-style: none;
+    padding: 0.25rem 0;
+  }
+
+  .dep-direction :global(.dep-skeleton li) {
+    display: flex;
+    align-items: center;
+    min-height: 2.95rem;
+    padding: 0.55rem 1.25rem;
+    border-bottom: 1px solid var(--color-sand-dark);
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+  }
+
+  .dep-direction :global(.dep-skeleton li:last-child) {
+    border-bottom: none;
+  }
+
+  .dep-direction :global(.dep-skeleton span) {
+    width: 40%;
+    height: 0.8rem;
+    border-radius: 4px;
+    background: var(--color-sand);
+  }
+
   .dep-direction :global(.dep-list li) {
     padding: 0.55rem 1.25rem;
     border-bottom: 1px solid var(--color-sand-dark);
   }
 
-  .dep-direction :global(.dep-list.is-fresh li) {
-    animation: dep-row-in 0.35s ease both;
+  .dep-direction :global(.dep-list.is-fresh),
+  .dep-direction :global(.dep-list li.is-new) {
+    animation: dep-list-in 0.15s ease both;
   }
 
-  .dep-direction :global(.dep-list li.is-changed) {
-    animation: dep-row-change 0.3s ease both;
+  @media (prefers-reduced-motion: reduce) {
+    .dep-direction :global(.dep-list.is-fresh),
+    .dep-direction :global(.dep-list li.is-new) {
+      animation: none;
+    }
   }
-
-  .dep-direction :global(.dep-countdown.is-tick) {
-    animation: dep-row-change 0.3s ease both;
-  }
-
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(2)) { animation-delay: 0.04s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(3)) { animation-delay: 0.08s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(4)) { animation-delay: 0.12s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(5)) { animation-delay: 0.16s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(6)) { animation-delay: 0.2s; }
-  .dep-direction :global(.dep-list.is-fresh li:nth-child(n + 7)) { animation-delay: 0.24s; }
 
   .dep-direction :global(.dep-row) {
     display: flex;
@@ -522,7 +687,6 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
   .dep-direction :global(.dep-route) {
     display: flex;
     align-items: baseline;
-    flex-wrap: wrap;
     gap: 0.15rem 0.3rem;
     min-width: 0;
     flex: 1 1 0;
@@ -563,9 +727,48 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     color: var(--color-text-light);
   }
 
-  .dep-direction :global(.dep-via) {
+  .dep-direction :global(.dep-route > *) {
+    flex: none;
+  }
+
+  /* One line per departure, always, as in the picker: a via list too long
+     for the row is cut with a fade and pans to its end while the row is
+     hovered or has focus. --pan and --pan-time are measured in departures.js. */
+  .dep-direction :global(.dep-route > .dep-via) {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
     font-size: 0.85rem;
     color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  .dep-direction :global(.dep-via-text) {
+    display: inline-block;
+  }
+
+  .dep-direction :global(.dep-via.is-long) {
+    mask-image: linear-gradient(to right, #000 80%, transparent);
+  }
+
+  .dep-direction :global(li:hover .dep-via.is-long),
+  .dep-direction :global(li:focus-within .dep-via.is-long) {
+    mask-image: none;
+  }
+
+  .dep-direction :global(li:hover .dep-via.is-long .dep-via-text),
+  .dep-direction :global(li:focus-within .dep-via.is-long .dep-via-text) {
+    animation: cal-via-pan var(--pan-time, 3s) ease-in-out infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dep-direction :global(li:hover .dep-via.is-long .dep-via-text),
+    .dep-direction :global(li:focus-within .dep-via.is-long .dep-via-text) {
+      animation: none;
+    }
+    .dep-direction :global(.dep-route > .dep-via) {
+      white-space: normal;
+    }
   }
 
   .dep-direction :global(.dep-info) {
@@ -715,22 +918,878 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
     margin-top: 0.15rem;
   }
 
-  .dep-feed {
+  /* Legend and credit on the left, the calendar button on the right, centred
+     on the two lines of text beside it. */
+  .dep-foot {
     display: flex;
-    align-items: flex-start;
-    gap: 0.3rem;
-    font-size: 0.85rem;
-    color: var(--color-text-light);
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
   }
 
-  .dep-feed-icon {
-    width: 1rem;
-    height: 1rem;
+  .dep-foot-text {
+    min-width: 0;
+  }
+
+  .dep-pick {
+    flex: none;
+  }
+
+  .dep-pick-start {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-foam);
+    color: var(--color-ocean);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .dep-pick-start:hover {
+    background: var(--color-sand);
+    border-color: var(--color-ocean-light);
+  }
+
+  .dep-pick-icon {
+    width: 1.1rem;
+    height: 1.1rem;
     color: var(--color-kelp);
     flex-shrink: 0;
-    margin-top: 0.15rem;
+  }
+
+  /* --- calendar picker dialog ------------------------------------------- */
+
+  /* While the dialog is open the page under it stays put. */
+  :global(html.cal-open) {
+    overflow: hidden;
+  }
+
+  /* margin: auto is what centres a modal dialog; the site's reset takes it
+     away, so it goes back here. */
+  /* The top edge stays where a full-length dialog would have it, and only
+     the bottom moves: calendar-picker.js sets the height to what the content
+     needs, up to the full length, and the change is animated. While the
+     timetable loads the dialog stands at full length, so it never grows on
+     arrival. */
+  .cal-dialog {
+    --cal-full: min(54rem, calc(100dvh - 1.5rem));
+    inset: 0;
+    margin: calc((100dvh - var(--cal-full)) / 2) auto auto;
+    width: min(40rem, calc(100vw - 1.5rem));
+    height: var(--cal-full);
+    max-height: var(--cal-full);
+    transition: height 0.3s ease;
+    padding: 0;
+    border: none;
+    border-radius: 20px;
+    background: var(--color-foam);
+    color: var(--color-text);
+    box-shadow: 0 24px 60px rgba(14, 54, 80, 0.3);
+    overflow: hidden;
+  }
+
+  /* Opening, the box rises and settles while the backdrop fades in; closing
+     runs it back, quicker. A modal dialog leaves the screen the moment
+     close() is called, so the script sets .is-closing, waits for the
+     animation to end and only then closes. */
+  .cal-dialog[open] {
+    display: flex;
+    animation: cal-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  }
+
+  .cal-dialog::backdrop {
+    background: rgba(14, 54, 80, 0.45);
+    backdrop-filter: blur(3px);
+  }
+
+  .cal-dialog[open]::backdrop {
+    animation: cal-fade 0.25s ease both;
+  }
+
+  .cal-dialog.is-closing {
+    animation: cal-out 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+  }
+
+  .cal-dialog.is-closing::backdrop {
+    animation: cal-fade 0.2s ease reverse both;
+  }
+
+  @keyframes cal-in {
+    from { opacity: 0; transform: translateY(1.5rem) scale(0.96); }
+  }
+
+  @keyframes cal-out {
+    to { opacity: 0; transform: translateY(1rem) scale(0.97); }
+  }
+
+  @keyframes cal-fade {
+    from { opacity: 0; }
+  }
+
+  /* On a phone it comes up from the bottom edge, like any sheet there. */
+  @media (max-width: 640px) {
+    @keyframes cal-in {
+      from { opacity: 0; transform: translateY(40%); }
+    }
+    @keyframes cal-out {
+      to { opacity: 0; transform: translateY(40%); }
+    }
+  }
+
+  .cal-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem 0.75rem;
+    border-bottom: 1px solid var(--color-sand-dark);
+  }
+
+  /* Focus starts on the title, so a screen reader hears what opened and no
+     control lights up a ring before anything is touched. */
+  .cal-title {
+    outline: none;
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-ocean-dark);
+  }
+
+  .cal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-sand);
+    color: var(--color-text-light);
+    cursor: pointer;
+  }
+
+  .cal-close:hover {
+    background: var(--color-sand-dark);
+  }
+
+  .cal-close svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  /* Scrollbars in the dialog show only while that part is being scrolled:
+     calendar-picker.js sets .is-scrolling and drops it when the scrolling
+     stops. scrollbar-color for Firefox and Chromium, the webkit
+     pseudo-elements for Safari. */
+  .cal-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s;
+  }
+
+  .cal-scroll.is-scrolling {
+    scrollbar-color: color-mix(in srgb, var(--color-text-light) 55%, transparent) transparent;
+  }
+
+  .cal-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .cal-scroll::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: transparent;
+  }
+
+  .cal-scroll.is-scrolling::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-text-light) 55%, transparent);
+  }
+
+  /* The only part that scrolls: head and foot stay in view on a phone. Its
+     scrollbar's room is kept whether or not a day needs one, so a short day
+     after a long one does not shift everything sideways. */
+  .cal-body {
+    scrollbar-gutter: stable;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.25rem 1.1rem 1rem;
+  }
+
+  .cal-field {
+    margin-top: 0.9rem;
+  }
+
+  .cal-label {
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+  }
+
+  /* The date strip and the weekly controls share one cell and crossfade.
+     The cell is as tall as the taller panel whichever is shown, so switching
+     never moves anything below; the date buttons and the weekday row are
+     sized so the two panels come out within a few pixels of each other, and
+     no band sits empty. The weekday row fades in place, keeping its height
+     under Lørdag and Søndag. The
+     script sets .is-open and inert together.
+     minmax(0, 1fr), not the auto column a bare grid gets: an auto column
+     grows to the date strip's full length and the whole dialog scrolls
+     sideways, where only the strip should. */
+  .cal-when {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cal-when > * {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .cal-reveal {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+  }
+
+  .cal-reveal.is-open {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, visibility 0s;
+  }
+
+  /* Segmented controls. What is chosen is a solid fill with white text, so
+     it reads as on at a glance; the fill slides between options. */
+  .cal-seg {
+    position: relative;
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    padding: 0.2rem;
+    border-radius: 999px;
+    background: var(--color-sand);
+  }
+
+  /* A real element rather than ::before: WebKit and Blink do not always
+     start a transition on a pseudo-element when only an inherited custom
+     property changed, so the fill jumped instead of sliding there. The
+     script sets the transform itself. */
+  .cal-seg-pill {
+    position: absolute;
+    top: 0.2rem;
+    bottom: 0.2rem;
+    left: 0.2rem;
+    width: calc((100% - 0.4rem) / var(--n, 2));
+    border-radius: 999px;
+    background: var(--color-ocean);
+    box-shadow: 0 2px 6px rgba(14, 54, 80, 0.25);
+    transition: transform 0.25s ease;
+  }
+
+  .cal-seg-3 {
+    --n: 3;
+  }
+
+  .cal-seg button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2.4rem;
+    padding: 0.35rem 0.5rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .cal-seg button[aria-pressed="true"] {
+    color: var(--color-on-dark);
+  }
+
+  .cal-seg button svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    flex: none;
+  }
+
+  /* One-off: a strip of dates, scrolled sideways on a phone. */
+  /* A fixed height, the weekly controls' own, whether the platform draws
+     its scrollbar over the strip or under it: the two panels share a cell,
+     so equal heights are what keeps a band from opening under either. */
+  .cal-dates-wrap {
+    --date-h: 3.9rem;
+  }
+
+  .cal-dates {
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    height: 5.2rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .cal-dates-wrap {
+    position: relative;
+  }
+
+  /* Over the strip's ends, as tall as a date, on a fade so the date under
+     it reads as cut off rather than missing. */
+  .cal-dates-nav {
+    position: absolute;
+    top: 0;
+    display: flex;
+    align-items: center;
+    width: 3rem;
+    height: var(--date-h);
+    padding: 0;
+    border: none;
+    color: var(--color-ocean);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+
+  /* They fade and slide in from their own edge, and back out the same way.
+     The script sets .is-shown; visibility keeps a hidden one out of reach. */
+  .cal-dates-prev:not(.is-shown) {
+    transform: translateX(-0.5rem);
+  }
+
+  .cal-dates-next:not(.is-shown) {
+    transform: translateX(0.5rem);
+  }
+
+  .cal-dates-nav.is-shown {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s;
+  }
+
+  .cal-dates-prev {
+    left: 0;
+    justify-content: flex-start;
+    background: linear-gradient(to right, var(--color-foam) 45%, transparent);
+  }
+
+  .cal-dates-next {
+    right: 0;
+    justify-content: flex-end;
+    background: linear-gradient(to left, var(--color-foam) 45%, transparent);
+  }
+
+  .cal-dates-nav svg {
+    box-sizing: content-box;
+    width: 1rem;
+    height: 1rem;
+    padding: 0.35rem;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-foam);
+    box-shadow: 0 2px 6px rgba(14, 54, 80, 0.15);
+  }
+
+  .cal-dates-nav:hover svg {
+    background: var(--color-sand);
+  }
+
+  .cal-dates :global(button) {
+    position: relative;
+    flex: none;
+    height: var(--date-h);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 3rem;
+    padding: 0.45rem 0.4rem 0.65rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-foam);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .cal-dates :global(button.is-weekend) {
+    background: var(--color-sand);
+  }
+
+  .cal-dates :global(.cal-date-wd) {
+    font-size: 0.72rem;
+    color: var(--color-text-light);
+  }
+
+  .cal-dates :global(.cal-date-d) {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .cal-dates :global(button.has-pick)::after {
+    content: "";
+    position: absolute;
+    bottom: 0.2rem;
+    left: 50%;
+    width: 0.3rem;
+    height: 0.3rem;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: var(--color-kelp);
+  }
+
+  .cal-dates :global(button[aria-pressed="true"].has-pick)::after {
+    background: var(--color-on-dark);
+  }
+
+  .cal-dates :global(button[aria-pressed="true"]) {
+    border-color: var(--color-ocean);
+    background: var(--color-ocean);
+    color: var(--color-on-dark);
+  }
+
+  .cal-dates :global(button[aria-pressed="true"] .cal-date-wd) {
+    color: var(--color-on-dark);
+  }
+
+  /* Weekly, under Hverdager: which weekdays. On is a solid kelp chip, off
+     an outline. Full names, short ones when the row gets too narrow. */
+  .cal-weekdays {
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.35rem;
+    padding-top: 0.4rem;
+  }
+
+  .cal-weekdays button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2rem;
+    padding: 0.25rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-foam);
+    color: var(--color-text-light);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .cal-weekdays button[aria-pressed="true"] {
+    border-color: var(--color-kelp);
+    background: var(--color-kelp);
+    color: var(--color-on-dark);
+  }
+
+  .cal-wd-short {
+    display: none;
+  }
+
+  @container (max-width: 25rem) {
+    .cal-wd-long {
+      display: none;
+    }
+    .cal-wd-short {
+      display: inline;
+    }
+  }
+
+  .cal-dirs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 560px) {
+    .cal-dirs {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cal-dir {
+    min-width: 0;
+  }
+
+  .cal-dir-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    margin: 0 0 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-ocean-dark);
+  }
+
+  .cal-dir-head svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    flex: none;
+  }
+
+  .cal-times {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--color-sand-dark);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .cal-times :global(li + li) {
+    border-top: 1px solid var(--color-sand-dark);
+  }
+
+  /* Blank rows while the timetable loads: a departure row's own box with
+     an empty check and no time. */
+  .cal-times :global(.cal-time.is-wait) {
+    cursor: default;
+  }
+
+  .cal-times :global(.cal-wait-text) {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--color-text-light);
+  }
+
+  .cal-times :global(.cal-times-note) {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+  }
+
+  /* One line per departure, always: a via list too long for the row is cut
+     with a fade and pans to its end while the row is hovered or focused, so
+     the booking mark never drops to a line of its own. */
+  .cal-times :global(.cal-time) {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.4rem 0.9rem;
+    border: none;
+    background: var(--color-foam);
+    color: var(--color-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .cal-times :global(.cal-time:hover:not(:disabled)) {
+    background: var(--color-sand);
+  }
+
+  .cal-times :global(.cal-time[aria-pressed="true"]) {
+    background: color-mix(in srgb, var(--color-kelp) 14%, var(--color-foam));
+  }
+
+  .cal-times :global(.cal-time:disabled) {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  .cal-times :global(.cal-check) {
+    position: relative;
+    flex: none;
+    box-sizing: border-box;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-right: 0.2rem;
+    border: 2px solid var(--color-border);
+    border-radius: 6px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .cal-times :global(.cal-time[aria-pressed="true"] .cal-check) {
+    border-color: var(--color-kelp);
+    background: var(--color-kelp);
+  }
+
+  .cal-times :global(.cal-time[aria-pressed="true"] .cal-check)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 0.3rem;
+    height: 0.6rem;
+    border: solid var(--color-on-dark);
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .cal-times :global(.cal-dep) {
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cal-times :global(.cal-time > svg) {
+    width: 0.9rem;
+    height: 0.9rem;
+    color: var(--color-text-light);
+  }
+
+  .cal-times :global(.cal-arr) {
+    color: var(--color-text-light);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cal-times :global(.cal-time > *) {
+    flex: none;
+  }
+
+  .cal-times :global(.cal-time > .cal-via) {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    white-space: nowrap;
+  }
+
+  .cal-times :global(.cal-via-text) {
+    display: inline-block;
+  }
+
+  /* --pan and --pan-time are measured in calendar-picker.js. */
+  .cal-times :global(.cal-via.is-long) {
+    mask-image: linear-gradient(to right, #000 80%, transparent);
+  }
+
+  .cal-times :global(.cal-time:hover .cal-via.is-long),
+  .cal-times :global(.cal-time:focus-visible .cal-via.is-long) {
+    mask-image: none;
+  }
+
+  .cal-times :global(.cal-time:hover .cal-via.is-long .cal-via-text),
+  .cal-times :global(.cal-time:focus-visible .cal-via.is-long .cal-via-text) {
+    animation: cal-via-pan var(--pan-time, 3s) ease-in-out infinite alternate;
+  }
+
+  @keyframes cal-via-pan {
+    0%, 15% { transform: none; }
+    85%, 100% { transform: translateX(var(--pan, 0)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cal-times :global(.cal-time:hover .cal-via.is-long .cal-via-text),
+    .cal-times :global(.cal-time:focus-visible .cal-via.is-long .cal-via-text) {
+      animation: none;
+    }
+    .cal-times :global(.cal-time > .cal-via) {
+      white-space: normal;
+    }
+  }
+
+  .cal-times :global(.cal-time > .cal-booking) {
+    display: inline-flex;
+    margin-left: auto;
+    color: var(--color-kelp);
+  }
+
+  .cal-times :global(.cal-booking svg) {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  /* The foot: what is chosen, from any day or kind, and the one action. */
+  .cal-foot {
+    padding: 0.75rem 1.1rem 1rem;
+    border-top: 1px solid var(--color-sand-dark);
+    background: var(--color-foam);
+  }
+
+  .cal-chosen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    max-height: 5.5rem;
+    margin: 0 0 0.6rem;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  .cal-chosen[hidden] {
+    display: none;
+  }
+
+  .cal-chosen :global(li) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.2rem 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-kelp) 14%, var(--color-foam));
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+
+  .cal-chosen :global(.cal-chip-when) {
+    color: var(--color-text-light);
+  }
+
+  .cal-chosen :global(.cal-chip-time) {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cal-chosen :global(.cal-chip-to) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .cal-chosen :global(svg) {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .cal-chosen :global(button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-light);
+    cursor: pointer;
+  }
+
+  .cal-chosen :global(button:hover) {
+    background: color-mix(in srgb, var(--color-kelp) 25%, transparent);
+  }
+
+  .cal-summary {
+    margin: 0 0 0.6rem;
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+  }
+
+  /* The same warm tint as the board's deadline rows: the same warning. */
+  .cal-booking-note {
+    display: flex;
+    gap: 0.45rem;
+    align-items: baseline;
+    margin: 0 0 0.6rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--color-warn) 10%, transparent);
+    color: var(--color-text);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .cal-booking-note[hidden] {
+    display: none;
+  }
+
+  .cal-booking-note svg {
+    flex: none;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: var(--color-kelp);
+    transform: translateY(0.15em);
+  }
+
+  .cal-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .cal-save {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.9rem;
+    padding: 0 1.1rem;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-ocean);
+    color: var(--color-on-dark);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+
+  .cal-save:hover:not(:disabled) {
+    background: var(--color-ocean-dark);
+  }
+
+  .cal-save:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .cal-save svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .cal-google {
+    flex: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ocean-light);
+    white-space: nowrap;
+  }
+
+  .cal-google[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cal-dialog,
+    .cal-dialog[open],
+    .cal-dialog[open]::backdrop,
+    .cal-dialog.is-closing,
+    .cal-dialog.is-closing::backdrop,
+    .cal-reveal,
+    .cal-dates-nav,
+    .cal-seg-pill {
+      animation: none;
+      transition: none;
+    }
   }
 
   .dep-credit {
@@ -755,14 +1814,13 @@ const feedSummaryUrl = webcal(feedPath.replace(/\.ics$/, '-summary.ics'));
       display: inline-block;
       vertical-align: -0.15rem;
     }
-    .dep-feed {
-      display: block;
-      line-height: 1.5;
-      text-align: center;
+    .dep-foot {
+      flex-direction: column;
+      align-items: stretch;
     }
-    .dep-feed-icon {
-      display: inline-block;
-      vertical-align: -0.15rem;
+    .dep-pick {
+      margin-top: 0.75rem;
+      text-align: center;
     }
     .dep-credit {
       line-height: 1.5;

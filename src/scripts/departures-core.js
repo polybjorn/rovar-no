@@ -50,8 +50,18 @@ export const query = `query departures($stopId: String!, $n: Int!, $startTime: D
 
 // --- time -------------------------------------------------------------------
 
+// Formatters built once: toLocaleDateString builds a new one on every call,
+// and the calendar picker runs these over the whole published timetable on
+// every tick, which made a tick take a tenth of a second. Same options, so
+// the same output.
+const OSLO_DATE = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' });
+const OSLO_PART = {
+  hour: new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Oslo' }),
+  minute: new Intl.DateTimeFormat('en-US', { minute: 'numeric', hour12: false, timeZone: 'Europe/Oslo' }),
+};
+
 export function toOsloDate(dt) {
-  return dt.toLocaleDateString('en-CA', { timeZone: 'Europe/Oslo' });
+  return OSLO_DATE.format(dt);
 }
 
 // "+01:00" or "+02:00", whichever Oslo was on that date.
@@ -82,8 +92,7 @@ export function osloMidnight(offset, now = new Date()) {
 
 // Minutes since Oslo midnight, for comparing a departure against "now".
 export function osloMinutes(dt) {
-  const part = (unit) =>
-    parseInt(dt.toLocaleTimeString('en-US', { [unit]: 'numeric', hour12: false, timeZone: 'Europe/Oslo' }));
+  const part = (unit) => parseInt(OSLO_PART[unit].format(dt));
   return part('hour') * 60 + part('minute');
 }
 
@@ -293,10 +302,10 @@ export function offsetOf(dateStr, now = new Date()) {
 }
 
 // 2024-01-01 was a Monday, so walking a week from it gives Monday-first names.
-export function weekdayNames(locale) {
+export function weekdayNames(locale, weekday = 'short') {
   return Array.from({ length: 7 }, (_, i) =>
     new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(locale, {
-      weekday: 'short',
+      weekday,
       timeZone: 'UTC',
     })
   );
@@ -464,6 +473,8 @@ export function departureEvent(call, opts = {}) {
     from,
     to,
     isBooking,
+    bookingDeadline: isBooking ? bookingDeadline : null,
+    via,
     summary: fill(strings.icsSummary ?? '{{from}}-{{to}}', { from, to }),
     location: fill(strings.icsLocation ?? '{{from}}', { from, to }),
     description: description.join('\n'),
@@ -496,8 +507,37 @@ export function icsEvent(event) {
   // transparent it shows in the calendar without claiming the day as busy,
   // which an all-day event would otherwise do to every free/busy lookup.
   if (event.transparent) lines.push('TRANSP:TRANSPARENT');
+  // Only on an event the caller asked for one: the published feed carries
+  // every booking departure, and an alarm there would ring every evening.
+  // Counted back from the start, which more clients honour than a fixed time.
+  if (event.alarm) {
+    lines.push(
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${icsEscape(event.alarm.text)}`,
+      `TRIGGER:-PT${event.alarm.minutesBefore}M`,
+      'END:VALARM'
+    );
+  }
   lines.push('END:VEVENT');
   return lines;
+}
+
+// The same event as a Google Calendar link. On Android that opens the
+// calendar app with the event filled in, where a downloaded .ics only lands in
+// the downloads folder. A link carries one event, so it is only offered for a
+// single pick. With no known arrival the event starts and ends together, the
+// link's nearest thing to an event with no end.
+export function googleCalendarUrl(event) {
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: event.summary,
+    dates: `${icsTime(event.start)}/${icsTime(event.end ?? event.start)}`,
+  });
+  if (event.location) params.set('location', event.location);
+  const details = [event.description, event.url].filter(Boolean).join('\n\n');
+  if (details) params.set('details', details);
+  return `https://calendar.google.com/calendar/render?${params}`;
 }
 
 // CRLF throughout and a trailing one, per RFC 5545 - some clients reject a
@@ -556,6 +596,61 @@ export function feedEvents(batches, opts = {}) {
       });
     }
   }
+  return [...byUid.values()].sort((a, b) => a.start - b.start);
+}
+
+// Monday-first, matching weekdayNames: 0 is Monday, 6 is Sunday.
+export function osloWeekday(date) {
+  return (new Date(date).getUTCDay() + 6) % 7;
+}
+
+// The timetable comes in three kinds of day: Monday to Friday share one,
+// Saturday and Sunday each have their own (measured on Entur's published
+// timetable, October 2026; the other variants are public holidays).
+export const WEEKDAYS = [0, 1, 2, 3, 4];
+
+export function dayKind(weekday) {
+  return weekday < 5 ? 'weekday' : weekday === 5 ? 'saturday' : 'sunday';
+}
+
+// A pick repeated every week, on the days of its own kind: a pick from a
+// weekday's board repeats on the chosen weekdays, a Saturday pick on
+// Saturdays. The repeat is a match, not a copy - the same direction leaving at
+// the same Oslo clock time - so a day where that boat does not run, a holiday
+// say, is simply left out. Everything is counted from `from` on.
+export function weeklyEvents(picks, events, from, weekdays = WEEKDAYS) {
+  const chosen = new Set(weekdays);
+  const weekdayOf = (event) => osloWeekday(`${toOsloDate(event.start)}T12:00:00Z`);
+  const templates = picks.map((pick) => ({
+    direction: pick.direction,
+    minutes: osloMinutes(pick.start),
+    days: dayKind(weekdayOf(pick)) === 'weekday' ? chosen : new Set([weekdayOf(pick)]),
+  }));
+  return events
+    .filter((event) => {
+      if (toOsloDate(event.start) < from) return false;
+      const weekday = weekdayOf(event);
+      const minutes = osloMinutes(event.start);
+      return templates.some(
+        (t) => t.direction === event.direction && t.minutes === minutes && t.days.has(weekday)
+      );
+    })
+    .sort((x, y) => x.start - y.start);
+}
+
+// The first date on or after `from` that is of a kind and has boats in the
+// timetable, so the picker can show a real Saturday rather than an empty one.
+export function nextDateOfKind(events, kind, from) {
+  const dates = [...new Set(events.map((event) => toOsloDate(event.start)))].sort();
+  return dates.find((date) => date >= from && dayKind(osloWeekday(`${date}T12:00:00Z`)) === kind) ?? null;
+}
+
+// Everything a reader picked, as the events that go in the file: one-off
+// picks as they are, weekly picks matched across the timetable. One event per
+// boat however it was reached, in time order.
+export function collectEvents(once, weekly, events, from, weekdays = WEEKDAYS) {
+  const repeated = weekly.length ? weeklyEvents(weekly, events, from, weekdays) : [];
+  const byUid = new Map([...once, ...repeated].map((event) => [event.uid, event]));
   return [...byUid.values()].sort((a, b) => a.start - b.start);
 }
 

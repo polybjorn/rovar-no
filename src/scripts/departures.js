@@ -31,6 +31,8 @@ import {
   offsetOf,
   shiftMonth,
   weekdayNames,
+  dayKind,
+  osloWeekday,
 } from './departures-core.js';
 
 const depPage = document.querySelector('.dep-page');
@@ -74,6 +76,13 @@ function selectedDate() {
 // the board is wiped (empty day, error), so the next list counts as new.
 const prevRows = new Map();
 
+function setNoticeOpen(detail, isOpen) {
+  detail.classList.toggle('open', isOpen);
+  detail.closest('li').querySelectorAll('.dep-notice').forEach(b =>
+    b.setAttribute('aria-expanded', String(isOpen))
+  );
+}
+
 function render(containerId, calls, fresh) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -115,7 +124,7 @@ function render(containerId, calls, fresh) {
     }
 
     const arrHtml = arrivalTime ? `${arrowIcon}<span class="dep-arr">${esc(fmt(arrivalTime))}</span>` : '';
-    const viaHtml = via.length ? `<span class="dep-via">via ${esc(via.join(', '))}</span>` : '';
+    const viaHtml = via.length ? `<span class="dep-via"><span class="dep-via-text">via ${esc(via.join(', '))}</span></span>` : '';
     const durationHtml = duration ? `<span class="dep-duration">${duration} min</span>` : '';
 
     // The phone is a marker, not a control: the legend under the board explains
@@ -184,46 +193,81 @@ function render(containerId, calls, fresh) {
     return { key: `dl-${dep.time}`, html, base: html };
   });
 
-  const openIds = new Set(
-    [...container.querySelectorAll('.dep-detail.open')].map(el => el.id)
-  );
   const previous = prevRows.get(containerId);
-  container.innerHTML = `<ul class="dep-list">${items.map(i => i.html).join('')}</ul>`;
-
   const list = container.querySelector('.dep-list');
-  if (fresh || !previous) {
-    list.classList.add('is-fresh');
-  } else {
-    const lis = list.children;
-    items.forEach((item, i) => {
-      const prev = previous.get(item.key);
-      if (!prev || prev.base !== item.base) {
-        lis[i].classList.add('is-changed');
-      } else if (prev.html !== item.html) {
-        // Only the countdown ticked: fade that element, leave the row still.
-        lis[i].querySelector('.dep-countdown')?.classList.add('is-tick');
-      }
-    });
-  }
-  prevRows.set(containerId, new Map(items.map(i => [i.key, { html: i.html, base: i.base }])));
+  prevRows.set(containerId, items.map(i => ({ html: i.html, base: i.base })));
+  rememberRows(containerId, items.length);
 
-  const setOpen = (detail, isOpen) => {
-    detail.classList.toggle('open', isOpen);
-    detail.closest('li').querySelectorAll('.dep-notice').forEach(b =>
-      b.setAttribute('aria-expanded', String(isOpen))
-    );
-  };
-  openIds.forEach(id => {
-    const detail = document.getElementById(id);
-    if (detail) setOpen(detail, true);
-  });
-  container.querySelectorAll('.dep-notice').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const detail = btn.closest('li').querySelector('.dep-detail');
-      if (!detail) return;
-      setOpen(detail, !detail.classList.contains('open'));
+  if (!list || !previous) {
+    // Nothing to build on (first load, or after an empty day or an error):
+    // one short fade of the whole list.
+    container.innerHTML = `<ul class="dep-list is-fresh">${items.map(i => i.html).join('')}</ul>`;
+  } else {
+    // Row by row against what is on screen, for a refresh and a day change
+    // alike. A row that looks the same stays exactly as it is, so the times
+    // that do not change between days never blink; a countdown that ticked
+    // has only its own element swapped; a row that differs is replaced, with a
+    // short fade only when the day changed.
+    const lis = [...list.children];
+    const build = (html) => {
+      const t = document.createElement('template');
+      t.innerHTML = html.trim();
+      const li = t.content.firstElementChild;
+      if (fresh) li.classList.add('is-new');
+      return li;
+    };
+    items.forEach((item, i) => {
+      const prev = previous[i];
+      const li = lis[i];
+      if (!li || !prev) {
+        list.appendChild(build(item.html));
+        return;
+      }
+      if (prev.html === item.html) return;
+      if (prev.base === item.base) {
+        const now = build(item.html).querySelector('.dep-countdown');
+        const tick = li.querySelector('.dep-countdown');
+        if (tick && now) tick.replaceWith(now);
+        else if (now) li.querySelector('.dep-info')?.appendChild(now);
+        else tick?.remove();
+        return;
+      }
+      // An open notice stays open across the swap.
+      const next = build(item.html);
+      if (li.querySelector('.dep-detail.open') && next.querySelector('.dep-detail')) {
+        setNoticeOpen(next.querySelector('.dep-detail'), true);
+      }
+      li.replaceWith(next);
     });
+    lis.slice(items.length).forEach(li => li.remove());
+  }
+  requestAnimationFrame(() => measureVia(container));
+}
+
+// One line per departure, as in the picker: a via list wider than its row
+// gets the distance and time to pan to its end, at an even reading pace.
+function measureVia(root) {
+  root.querySelectorAll(".dep-via").forEach((box) => {
+    const over = box.firstElementChild.scrollWidth - box.clientWidth;
+    box.classList.toggle("is-long", over > 0);
+    box.style.setProperty("--pan", `${-over}px`);
+    box.style.setProperty("--pan-time", `${(1.5 + over / 30).toFixed(1)}s`);
   });
+}
+
+addEventListener("resize", () => {
+  document.querySelectorAll(".dep-direction").forEach(measureVia);
+});
+
+// The intro line has a two-line slot beside the photo; when it would need a
+// third it is hidden, never cut mid-sentence, so the title and the board stay
+// where they are.
+const intro = document.querySelector(".dep-intro > p");
+if (intro) {
+  const fit = () => intro.parentElement.classList.toggle("is-tight", intro.scrollHeight > intro.clientHeight + 1);
+  new ResizeObserver(fit).observe(intro);
+  // The web font wraps differently from the fallback, without the box changing size.
+  document.fonts?.ready.then(fit);
 }
 
 function setDate() {
@@ -245,6 +289,33 @@ function setDate() {
   if (kolumbus) kolumbus.href = kolumbusUrl(toOsloDate(d));
 }
 
+// While the first load is out, each list holds its place with as many blank
+// rows as the same kind of day had last time, so the board stands at about
+// its full length from the start instead of growing when the times arrive.
+// Browser storage is a convenience here: without it, a typical day's count.
+const ROWS_KEY = 'rovar-dep-rows';
+const TYPICAL_ROWS = 10;
+const rowsKey = (id) => `${id} ${dayKind(osloWeekday(`${selectedDate()}T12:00:00Z`))}`;
+
+function rememberedRows(id) {
+  try {
+    return JSON.parse(localStorage.getItem(ROWS_KEY) || '{}')[rowsKey(id)] || TYPICAL_ROWS;
+  } catch {
+    return TYPICAL_ROWS;
+  }
+}
+
+function rememberRows(id, count) {
+  try {
+    const all = JSON.parse(localStorage.getItem(ROWS_KEY) || '{}');
+    all[rowsKey(id)] = count;
+    localStorage.setItem(ROWS_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+const placeholder = (id) =>
+  `<ul class="dep-skeleton"><li>${esc(S.loading)}</li>${'<li aria-hidden="true"><span></span></li>'.repeat(rememberedRows(id) - 1)}</ul>`;
+
 let lastLoad = 0;
 
 // fresh: a new board (first load, day change) animates in. A background
@@ -254,7 +325,7 @@ async function loadAll(fresh = false) {
   ["from-rovar", "from-haugesund"].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el.querySelector(".dep-list")) {
-      el.innerHTML = `<div class="dep-loading">${esc(S.loading)}</div>`;
+      el.innerHTML = placeholder(id);
     }
   });
 
@@ -373,6 +444,16 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("click", (e) => {
   if (!e.target.closest(".dep-cal-wrap")) closeCal(false);
+});
+
+// One listener for both columns, since rows are swapped in and out.
+document.querySelector(".dep-columns")?.addEventListener("click", (e) => {
+  const notice = e.target.closest(".dep-info-notice");
+  if (notice) {
+    const detail = notice.closest("li").querySelector(".dep-detail");
+    if (detail) setNoticeOpen(detail, !detail.classList.contains("open"));
+    return;
+  }
 });
 
 const REFRESH_MS = 60000;
