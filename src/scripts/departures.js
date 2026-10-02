@@ -155,11 +155,11 @@ function render(containerId, calls, fresh) {
     const rowHtml = (countdown) => `<li class="${cls}">
       <div class="dep-row">
         <div class="dep-route">
-          <span class="dep-time">${esc(time)}</span>${arrHtml}${viaHtml}
+          <span class="dep-leg"><span class="dep-time">${esc(time)}</span>${arrHtml}</span>${viaHtml}
         </div>
         <div class="dep-info">
-          ${noticeHtml}${durationHtml}${countdown}
-        </div>
+          ${noticeHtml}${durationHtml}
+        </div>${countdown}
       </div>
       ${detailHtml}
     </li>`;
@@ -228,7 +228,7 @@ function render(containerId, calls, fresh) {
         const now = build(item.html).querySelector('.dep-countdown');
         const tick = li.querySelector('.dep-countdown');
         if (tick && now) tick.replaceWith(now);
-        else if (now) li.querySelector('.dep-info')?.appendChild(now);
+        else if (now) li.querySelector('.dep-row')?.appendChild(now);
         else tick?.remove();
         return;
       }
@@ -241,23 +241,7 @@ function render(containerId, calls, fresh) {
     });
     lis.slice(items.length).forEach(li => li.remove());
   }
-  requestAnimationFrame(() => measureVia(container));
 }
-
-// One line per departure, as in the picker: a via list wider than its row
-// gets the distance and time to pan to its end, at an even reading pace.
-function measureVia(root) {
-  root.querySelectorAll(".dep-via").forEach((box) => {
-    const over = box.firstElementChild.scrollWidth - box.clientWidth;
-    box.classList.toggle("is-long", over > 0);
-    box.style.setProperty("--pan", `${-over}px`);
-    box.style.setProperty("--pan-time", `${(1.5 + over / 30).toFixed(1)}s`);
-  });
-}
-
-addEventListener("resize", () => {
-  document.querySelectorAll(".dep-direction").forEach(measureVia);
-});
 
 // The intro line has a two-line slot beside the photo; when it would need a
 // third it is hidden, never cut mid-sentence, so the title and the board stay
