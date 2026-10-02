@@ -38,8 +38,11 @@ export function seasonStrings(code) {
   const range = localeInfo(code).range ?? '{a} – {b}';
   for (const [key, value] of Object.entries(season)) {
     if (key in out) continue;
+    // A date also gives its year, {{hiltaOpensYear}}, for a season that is not
+    // the page's own {{year}}.
     if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
       out[key] = date.format(new Date(`${value}T00:00:00Z`));
+      out[`${key}Year`] = value.slice(0, 4);
       continue;
     }
     if (typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)) {

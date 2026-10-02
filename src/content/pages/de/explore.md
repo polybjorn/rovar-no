@@ -71,10 +71,10 @@ Der Besuch des Zentrums ist KOSTENLOS!
 
 ![Ein Guide spricht zu den Gästen im RIB am Lachsgehege](laksemerd)
 
-Diesen Sommer fährt täglich eine RIB-Bootstour hinaus zu den
+Im Sommer fährt täglich eine RIB-Bootstour hinaus zu den
 Lachsgehegen.
 
-- **Abfahrt:** {{ribDepartures}} Uhr, täglich bis zum {{end}}
+- **Abfahrt {{year}}:** {{ribDepartures}} Uhr, täglich bis zum {{end}}
 - **Dauer:** etwa 45 Minuten, inklusive Anziehen der Ausrüstung
 - **Erwachsene:** {{ribPriceAdult}}
 - **Kinder:** {{ribPriceChild}}
@@ -98,7 +98,7 @@ mit einer Ausstellung über das Unglück von 1899.
 „Skjoldbladbua“ ist der nächste Nachbar des Museums, ein
 Souvenirladen mit von lokalen Händen gefertigten Waren.
 
-- **Geöffnet:** sonntags und donnerstags {{hiltaHours}} Uhr, vom {{hiltaOpens}} bis zum {{hiltaCloses}}
+- **Geöffnet {{hiltaOpensYear}}:** sonntags und donnerstags {{hiltaHours}} Uhr, vom {{hiltaOpens}} bis zum {{hiltaCloses}}
 - **Erwachsene:** {{hiltaPriceAdult}}
 - **Ermäßigt:** {{hiltaPriceReduced}} für Studenten und Senioren
 - **Kinder unter 16:** frei

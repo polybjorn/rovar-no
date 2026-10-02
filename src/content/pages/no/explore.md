@@ -59,9 +59,9 @@ Det er GRATIS å besøke visningssenteret!
 
 ![Guide forteller til gjestene i RIB-en ved laksemerden](laksemerd)
 
-Vi arrangerer visningstur i RIB ut til laksemerdene hver dag i sommer.
+Vi arrangerer visningstur i RIB ut til laksemerdene hver dag på sommeren.
 
-- **Avganger:** kl. {{ribDepartures}}, hver dag frem til {{end}}
+- **Avganger {{year}}:** kl. {{ribDepartures}}, hver dag frem til {{end}}
 - **Varighet:** ca. 45 min, inkludert påkledning
 - **Voksne:** {{ribPriceAdult}}
 - **Barn:** {{ribPriceChild}}
@@ -82,7 +82,7 @@ ulykken i 1899. [Les historien om huset.]({{historyPage}}#hiltahuset)
 Skjoldbladbua rett ved siden av Hiltahuset selger varer laget av lokale
 hender.
 
-- **Åpent:** søndager og torsdager kl. {{hiltaHours}}, {{hiltaOpens}} til {{hiltaCloses}}
+- **Åpent {{hiltaOpensYear}}:** søndager og torsdager kl. {{hiltaHours}}, {{hiltaOpens}} til {{hiltaCloses}}
 - **Voksne:** {{hiltaPriceAdult}}
 - **Redusert:** {{hiltaPriceReduced}} for studenter og honnør
 - **Barn under 16:** gratis

@@ -69,10 +69,10 @@ Visiting the centre is FREE!
 
 ![A guide talks to the guests in the RIB alongside the salmon pen](laksemerd)
 
-Every day this summer, a RIB boat tour takes visitors out to the salmon
+Every day in summer, a RIB boat tour takes visitors out to the salmon
 pens.
 
-- **Departures:** {{ribDepartures}}, every day until {{end}}
+- **Departures {{year}}:** {{ribDepartures}}, every day until {{end}}
 - **Duration:** about 45 minutes, including getting dressed for the trip
 - **Adults:** {{ribPriceAdult}}
 - **Children:** {{ribPriceChild}}
@@ -94,7 +94,7 @@ exhibition about the accident in 1899.
 “Skjoldbladbua” is the museum's nearest neighbour and is a souvenir
 shop with items handcrafted by local hands.
 
-- **Open:** Sundays and Thursdays {{hiltaHours}}, {{hiltaOpens}} to {{hiltaCloses}}
+- **Open {{hiltaOpensYear}}:** Sundays and Thursdays {{hiltaHours}}, {{hiltaOpens}} to {{hiltaCloses}}
 - **Adults:** {{hiltaPriceAdult}}
 - **Reduced:** {{hiltaPriceReduced}} for students and seniors
 - **Children under 16:** free
