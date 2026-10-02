@@ -777,6 +777,13 @@ img.section-img {
   font-weight: 600;
 }
 
+/* A link to another page of the site, set in running text ({{historyPage}}
+   and friends), stays in one piece: the whole of it moves to the next line
+   rather than breaking part way. They are short, so this never overflows. */
+.section p a[href^="../"] {
+  white-space: nowrap;
+}
+
 /* Footer */
 
 .footer {
