@@ -592,7 +592,8 @@ img.section-img {
   pointer-events: none;
 }
 
-.map-routes polyline {
+.map-routes polyline,
+.map-leader {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -607,16 +608,6 @@ img.section-img {
 .map-route-line {
   stroke: var(--color-ocean-dark);
   stroke-width: 3.5;
-}
-
-.map-route-loop .map-route-casing {
-  stroke-width: 5;
-  opacity: 0.8;
-}
-
-.map-route-loop .map-route-line {
-  stroke-width: 2;
-  stroke-dasharray: 6 5;
 }
 
 .map-stop {
@@ -638,9 +629,13 @@ img.section-img {
   box-shadow: 0 0 0 6px rgba(46, 125, 91, 0.3), 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-.map-stop-label {
+.map-leader {
+  stroke: var(--color-ocean-dark);
+  stroke-width: 1.5;
+}
+
+.map-label {
   position: absolute;
-  left: 50%;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
   background: var(--color-foam);
@@ -649,20 +644,8 @@ img.section-img {
   font-size: 0.8rem;
   font-weight: 600;
   white-space: nowrap;
-  transform: translateX(-50%);
-}
-
-.map-stop-label-above {
-  bottom: calc(100% + 10px);
-}
-
-/* Haugesund sits near the right edge: hang its label to the left of the dot
-   so a phone-width map does not cut it off. */
-.map-stop-label-below {
-  top: calc(100% + 8px);
-  left: auto;
-  right: -4px;
-  transform: none;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 /* The link covers the whole figure, so the map itself is what you click. */

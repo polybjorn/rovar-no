@@ -15,20 +15,23 @@ const heroBg = await getImage({ src: asset('hero'), format: 'webp', width: 1600 
 
 // The route overlay shares the map image's pixel grid (scripts/build-map.mjs
 // writes both), so a viewBox of the image size lines the two up at any width.
-// The sailings that call only at Vibrandsøy, or nowhere, get the bold line;
-// the rarer loop past Feøy and Kveitevik is drawn thin and dashed.
+// Two lines: Entur's path for the direct sailing, which leaves through the
+// southern channel, and the northern approach the boat often takes instead.
 const { width: mapW, height: mapH } = mapRoutes;
-const mapLines = mapRoutes.routes.map((r) => ({
-  points: r.points.map((p) => p.join(',')).join(' '),
-  main: r.stops.length <= 3,
-})).sort((a, b) => Number(a.main) - Number(b.main));
+const mapLines = (mapRoutes.routes as number[][][]).map((r) => r.map((p) => p.join(',')).join(' '));
 const pct = ([x, y]: number[]) => `left: ${(x / mapW) * 100}%; top: ${(y / mapH) * 100}%;`;
-const mapStops = Object.entries(mapRoutes.stops as Record<string, number[]>).map(([name, at]) => ({
-  name,
+const stops = mapRoutes.stops as Record<string, number[]>;
+const mapStops = Object.entries(stops).map(([name, at]) => ({
   style: pct(at),
   home: name === 'Røvær',
-  // The two ends get a name; the map already names the stops between.
-  label: name === 'Røvær' ? 'above' : name === 'Haugesund' ? 'below' : null,
+}));
+// The two ends get a name, set out in open water with a leader back to the
+// quay; the map already names the stops between.
+const mapLabels = Object.entries(mapRoutes.labels as Record<string, number[]>).map(([name, at]) => ({
+  name,
+  style: pct(at),
+  from: stops[name],
+  to: at,
 }));
 ---
 
@@ -60,17 +63,17 @@ const mapStops = Object.entries(mapRoutes.stops as Record<string, number[]>).map
     <div class="map-frame">
       <Image src={asset('kart')} alt={data.mapAlt} width={mapW} widths={[800, 1200, mapW]} sizes="(max-width: 960px) 100vw, 912px" layout="none" loading="lazy" />
       <svg class="map-routes" viewBox={`0 0 ${mapW} ${mapH}`} preserveAspectRatio="none" aria-hidden="true">
-        {mapLines.map((l) => (
-          <g class={l.main ? 'map-route' : 'map-route map-route-loop'}>
-            <polyline class="map-route-casing" points={l.points} />
-            <polyline class="map-route-line" points={l.points} />
-          </g>
+        {mapLines.map((points) => <polyline class="map-route-casing" points={points} />)}
+        {mapLines.map((points) => <polyline class="map-route-line" points={points} />)}
+        {mapLabels.map((l) => (
+          <line class="map-leader" x1={l.from[0]} y1={l.from[1]} x2={l.to[0]} y2={l.to[1]} />
         ))}
       </svg>
       {mapStops.map((s) => (
-        <span class:list={['map-stop', { 'map-stop-home': s.home }]} style={s.style} aria-hidden="true">
-          {s.label && <span class={`map-stop-label map-stop-label-${s.label}`}>{s.name}</span>}
-        </span>
+        <span class:list={['map-stop', { 'map-stop-home': s.home }]} style={s.style} aria-hidden="true"></span>
+      ))}
+      {mapLabels.map((l) => (
+        <span class="map-label" style={l.style} aria-hidden="true">{l.name}</span>
       ))}
     </div>
     <figcaption class="map-bar">
