@@ -244,6 +244,7 @@ const longestDates = [...new Set(
      on a phone, where the board is what the screen is for. */
   .dep-intro > :global(p) {
     height: 2lh;
+    margin-bottom: 0.75rem;
     overflow: hidden;
   }
 
@@ -251,17 +252,22 @@ const longestDates = [...new Set(
     visibility: hidden;
   }
 
+  /* Exactly as tall as the intro beside it, so neither leaves empty space
+     under the other: the image is taken out of the flow, so it is the intro
+     alone that sets the row's height. */
   .dep-boat-wrap {
+    position: relative;
     grid-column: 2;
     grid-row: 1;
-    align-self: center;
+    align-self: stretch;
     width: 100%;
-    height: 180px;
     border-radius: 10px;
     overflow: hidden;
   }
 
   .dep-boat-img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
