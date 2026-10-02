@@ -761,14 +761,41 @@ const longestDates = [...new Set(
     flex-shrink: 0;
   }
 
-  /* A line of its own across the foot of the row, so it never widens the
-     duration column: a via list beside the times keeps the room up to the
-     duration, and one that wraps sits above the countdown, never beside it. */
   .dep-direction :global(.dep-countdown) {
-    flex-basis: 100%;
-    margin: -0.4rem 0 0;
+    margin: 0;
     text-align: right;
     font-weight: 600;
+  }
+
+  /* The next departure, the only row with a countdown, is always two lines,
+     each side aligned with the other: the times beside the duration, the via
+     list beside the countdown. Left to wrap freely, a via list pushed under
+     the times made a third line, with the countdown alone below it. */
+  .dep-direction :global(.next .dep-row) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.1rem 0.75rem;
+  }
+
+  .dep-direction :global(.next .dep-route) {
+    display: contents;
+  }
+
+  .dep-direction :global(.next .dep-leg) {
+    grid-area: 1 / 1;
+  }
+
+  .dep-direction :global(.next .dep-route > .dep-via) {
+    grid-area: 2 / 1;
+  }
+
+  .dep-direction :global(.next .dep-info) {
+    grid-area: 1 / 2;
+  }
+
+  .dep-direction :global(.next .dep-countdown) {
+    grid-area: 2 / 2;
   }
 
   .dep-direction :global(.dep-duration),
