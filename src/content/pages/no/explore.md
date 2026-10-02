@@ -63,9 +63,12 @@ Vi arrangerer visningstur i RIB ut til laksemerdene hver dag på sommeren.
 
 - **Avganger:** hver dag kl. {{ribDepartures}} _til {{end}}_
 - **Varighet:** ca. 45 min, inkludert påkledning
-- **Pris:** {{ribPriceAdult}} voksne · {{ribPriceChild}} barn
-- **Alder:** fra 6 år. Fra 6 til 12 år må barn være i følge med en voksen,
-  og under 18 år må de ha skriftlig tillatelse fra foresatte.
+- **Pris:** {{ribPriceAdult}} voksne\
+  {{ribPriceChild}} barn
+- **Alder:** fra 6 år
+
+Barn under 12 år må ha med en voksen, og alle under 18 år trenger skriftlig
+tillatelse fra foresatte.
 
 Påmelding til turen gjøres på [Røvær Sjøhus](#røvær-sjøhus), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
 
@@ -81,7 +84,9 @@ Skjoldbladbua rett ved siden av Hiltahuset selger varer laget av lokale
 hender.
 
 - **Søndag og torsdag:** kl. {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
-- **Pris:** {{hiltaPriceAdult}} voksne · {{hiltaPriceReduced}} studenter og honnør · gratis under 16
+- **Pris:** {{hiltaPriceAdult}} voksne\
+  {{hiltaPriceReduced}} studenter og honnør\
+  gratis under 16 år
 
 Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 
