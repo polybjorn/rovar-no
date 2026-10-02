@@ -92,7 +92,16 @@ a skillful guide will fill you in on the story of our island.
 “Skjoldbladbua” is the museum's nearest neighbour and is a souvenir
 shop with items handcrafted by local hands.
 
-[Read more about opening hours and prices here.](https://www.fjordnorway.com/en/see-and-do/hiltahouse-rovaer)
+Hiltahuset is open on Sundays {{hiltaSunday}} from {{hiltaOpens}} to
+{{hiltaCloses}}, and otherwise by appointment with Haugalandmuseet.
+
+Tickets: {{hiltaPriceAdult}} for adults, {{hiltaPriceReduced}} for students (16-18)
+and seniors, free for children under 16. The ticket also gets you into two
+of Haugalandmuseet's other museums within 48 hours.
+
+- [{{hiltaEmail}}](mailto:{{hiltaEmail}})
+- [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
+- [Fjord Norway](https://www.fjordnorway.com/en/see-and-do/hiltahouse-rovaer)
 
 ## Food, drinks and accommodation
 

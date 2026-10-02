@@ -95,7 +95,17 @@ geöffnet werden – ein kundiger Führer erzählt Ihnen die Geschichte
 unserer Insel. „Skjoldbladbua“ ist der nächste Nachbar des Museums, ein
 Souvenirladen mit von lokalen Händen gefertigten Waren.
 
-[Lesen Sie hier mehr über Öffnungszeiten und Preise.](https://www.fjordnorway.com/de/sehen-und-erleben/das-hiltahus)
+Das Hiltahuset ist sonntags von {{hiltaSunday}} Uhr geöffnet, vom
+{{hiltaOpens}} bis zum {{hiltaCloses}}, sonst nach Vereinbarung mit dem
+Haugalandmuseet.
+
+Eintritt: {{hiltaPriceAdult}} für Erwachsene, {{hiltaPriceReduced}} für Schüler und
+Studenten (16-18) sowie Senioren, frei für Kinder unter 16. Die Karte gilt
+außerdem 48 Stunden lang für zwei weitere Museen des Haugalandmuseet.
+
+- [{{hiltaEmail}}](mailto:{{hiltaEmail}})
+- [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
+- [Fjord Norway](https://www.fjordnorway.com/de/sehen-und-erleben/das-hiltahus)
 
 ## Essen, Trinken und Unterkunft
 

@@ -38,6 +38,10 @@ export function seasonStrings(code) {
   const range = localeInfo(code).range ?? '{a} – {b}';
   for (const [key, value] of Object.entries(season)) {
     if (key in out) continue;
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      out[key] = date.format(new Date(`${value}T00:00:00Z`));
+      continue;
+    }
     if (typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)) {
       out[key] = clock(at(value));
       continue;
