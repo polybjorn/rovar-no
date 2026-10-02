@@ -125,3 +125,10 @@ Contact them at
 [{{havhotellEmail}}](mailto:{{havhotellEmail}}),
 on [Facebook]({{havhotellFacebookUrl}})
 or call {{havhotellPhone}}.
+
+### Nærbutikken Røvær
+
+The island's own shop has groceries, post, parcel pickup and fishing
+tackle. It is staffed part of the day and open for self-service the
+rest of the day and night. Opening hours are at
+[Nærbutikken Røvær]({{narbutikkenUrl}}).

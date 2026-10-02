@@ -117,3 +117,10 @@ Finn og kontakt dem på
 [{{havhotellEmail}}](mailto:{{havhotellEmail}}),
 [Facebook]({{havhotellFacebookUrl}})
 eller ring dem på {{havhotellPhone}}.
+
+### Nærbutikken Røvær
+
+Øyas egen butikk har dagligvarer, post, pakkeutlevering og fiskeutstyr.
+Den er betjent deler av dagen og åpen med selvbetjening resten av
+døgnet. Åpningstider finner du hos
+[Nærbutikken Røvær]({{narbutikkenUrl}}).

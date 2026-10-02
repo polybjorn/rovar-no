@@ -36,6 +36,9 @@ export const facts = {
   havhotellEmail: 'kontakt@rovarhavhotell.no',
   havhotellPhone: '52 71 58 00',
 
+  // Nærbutikken Røvær
+  narbutikkenUrl: 'https://narbutikken.no/finn-butikk/narbutikken-rovar',
+
   // Leirskolen
   campSchoolEmail: 'espen.martens@haugesund.kommune.no',
   campSchoolPhone: '992 52 179',

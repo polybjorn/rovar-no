@@ -133,3 +133,10 @@ Kontakt unter
 [{{havhotellEmail}}](mailto:{{havhotellEmail}}),
 auf [Facebook]({{havhotellFacebookUrl}})
 oder telefonisch unter {{havhotellPhone}}.
+
+### Nærbutikken Røvær
+
+Der inseleigene Laden bietet Lebensmittel, Post, Paketausgabe und
+Angelzubehör. Er ist einen Teil des Tages besetzt und rund um die Uhr
+mit Selbstbedienung geöffnet. Die Öffnungszeiten finden Sie bei
+[Nærbutikken Røvær]({{narbutikkenUrl}}).
