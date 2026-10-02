@@ -747,13 +747,18 @@ img.section-img {
 
 /* Hours, prices and the like as label and value, the labels in a column of
    their own so the values line up down the list. Each item is a row of the
-   list's grid (subgrid), so one long label sets the column for all. */
+   list's grid (subgrid), so one long label sets the column for all. A card
+   like the info boxes, with a rule between rows, so it reads as a table of
+   facts and not as more of the text around it. */
 .section ul.fact-list {
   list-style: none;
-  padding-left: 0;
   display: grid;
   grid-template-columns: fit-content(40%) 1fr;
-  gap: 0.3rem 1rem;
+  column-gap: 1rem;
+  padding: 0.35rem 1.1rem;
+  background: var(--color-foam);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
 }
 
 .fact-list li {
@@ -761,6 +766,11 @@ img.section-img {
   grid-template-columns: subgrid;
   grid-column: 1 / -1;
   margin: 0;
+  padding: 0.45rem 0;
+}
+
+.fact-list li + li {
+  border-top: 1px solid var(--color-border);
 }
 
 .fact-list strong {
