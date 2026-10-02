@@ -1,7 +1,8 @@
 // The subscription feed: every departure Entur has published, in both
 // directions, as one calendar per language. Built as a static file like every
 // other page, so the deploy is the refresh - a scheduled run of the Pages
-// workflow is what keeps it current.
+// workflow is what keeps it current. Unlinked since the picker landed, and
+// retired from FEED_RETIRE_DATE in departures-core.js (#88).
 //
 // The assembly is all in departures-core.js (test/departures.test.mjs); this
 // file is the network and the wiring, the same split the departure board uses.
@@ -18,6 +19,8 @@ import {
   summaryEvents,
   expiryEvent,
   icsCalendar,
+  feedRetired,
+  retiredEvent,
 } from '../scripts/departures-core.js';
 import { allRoutes, pathFor } from '../i18n/routes.js';
 import { ui } from '../i18n/ui.js';
@@ -82,12 +85,24 @@ async function fetchStop(stopId) {
 let departures;
 
 export async function GET({ props, site }) {
-  departures ??= Promise.all([fetchStop(ROVAR_STOP), fetchStop(HAUGESUND_STOP)]);
-  const [rovar, haugesund] = await departures;
-
   const lang = props.locale;
   const t = ui(lang).ferry;
   const page = site ? new URL(pathFor('ferry', lang), site).href : undefined;
+  const name = props.summary ? t.feedSummaryName : t.feedName;
+
+  // Past the retirement date the feed is one closing note and no timetable,
+  // and Entur is not asked at all: an empty answer from it must no longer be
+  // able to fail a build that publishes nothing of its data.
+  if (feedRetired(builtAt)) {
+    const body = icsCalendar(
+      [retiredEvent({ strings: t.board, stamp: builtAt, url: page })],
+      { name, ttlMinutes: FEED_TTL_MINUTES }
+    );
+    return new Response(body, { headers: { 'Content-Type': 'text/calendar; charset=utf-8' } });
+  }
+
+  departures ??= Promise.all([fetchStop(ROVAR_STOP), fetchStop(HAUGESUND_STOP)]);
+  const [rovar, haugesund] = await departures;
 
   const options = {
     strings: t.board,
@@ -109,7 +124,7 @@ export async function GET({ props, site }) {
   const end = expiryEvent(events, options);
 
   const body = icsCalendar(end ? [...shown, end] : shown, {
-    name: props.summary ? t.feedSummaryName : t.feedName,
+    name,
     ttlMinutes: FEED_TTL_MINUTES,
   });
 

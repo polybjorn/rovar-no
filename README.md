@@ -26,9 +26,9 @@ still work. Every other language uses English paths under its own prefix
 
 | Language | Prefix | Progress | Pages | UI strings |
 |---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 72/72 |
-| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [72/72](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [72/72](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 74/74 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [74/74](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [74/74](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
@@ -82,7 +82,8 @@ booking deadline. The Google link cannot carry one, and the feeds below never
 do, since a feed holds every booking boat and would ring every evening.
 
 The subscription feeds are still built, unlinked, so an existing subscription
-keeps working: `/rutebaten.ics` with every departure in both directions, one
+keeps working until they retire on `FEED_RETIRE_DATE` in
+`src/scripts/departures-core.js` (#88): `/rutebaten.ics` with every departure in both directions, one
 per language (`/en/ferry.ics`, `/de/ferry.ics`), and `/rutebaten-summary.ics`
 with one all-day line per day and direction. Picks, links and feeds all come
 from the same event builder in `src/scripts/departures-core.js`.
@@ -94,6 +95,14 @@ a deploy is what refreshes them, and `deploy.yml` runs daily on a schedule for
 that reason alone. If Entur answers with nothing the build fails rather than
 publishing an empty calendar, which would clear the departures out of every
 subscriber's calendar.
+
+From the retirement date each feed is built with one all-day note in place of
+the timetable, saying it has ended and pointing at the ferry page, and Entur is
+no longer asked. That empties a subscribed calendar rather than leaving it
+frozen on its last departures. Scheduled deploys keep running for a week past
+the date, so a dropped run still leaves one build that publishes the note, and
+then `scripts/feed-schedule-gate.mjs` turns them into no-ops; pushes always
+build.
 
 ## Tests
 

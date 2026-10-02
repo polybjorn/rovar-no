@@ -80,7 +80,9 @@
       "icsBookingAlarm": "Book the {{time}} boat by {{deadline}}: call {{kolumbusPhone}}.",
       "icsDay": "Ferry {{from}}-{{to}}: {{times}}",
       "icsTimetableEnd": "The timetable ends here",
-      "icsTimetableEndBody": "Kolumbus has published no departures after {{date}}. The calendar fills in again once new times are released - see rovar.no for current departures."
+      "icsTimetableEndBody": "Kolumbus has published no departures after {{date}}. The calendar fills in again once new times are released - see rovar.no for current departures.",
+      "icsFeedRetired": "This calendar has ended",
+      "icsFeedRetiredBody": "The timetable subscription has been retired and this calendar no longer updates. You can remove it. Pick departures and add them to your calendar from the ferry page on rovar.no."
     },
     "feedName": "Røvær-Haugesund ferry",
     "feedSummaryName": "Røvær-Haugesund ferry (daily overview)"
