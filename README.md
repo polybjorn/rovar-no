@@ -56,6 +56,10 @@ in the nav.
 npm install && npm run dev
 ```
 
+After editing `src/data/facts.js` or `src/data/season.js`, stop and restart
+`npm run dev`. A running dev server keeps serving content pages with the old
+values; a fresh start or `npm run build` picks the change up.
+
 Node 22.12 or newer, which is what Astro 7 asks for and what `engines` in
 `package.json` declares. That is the floor rather than the version the site is
 actually built with: `.nvmrc` holds that, currently 24, and both the forge gate
