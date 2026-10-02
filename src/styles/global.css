@@ -677,17 +677,31 @@ img.section-img {
 
 /* A place's own links on the explore page, each with an icon for what it
    opens, side by side and wrapping as the card has room, rather than one
-   down the left with the right of the card empty. Picked out by the Facebook link every such list has, so
-   a contact list that labels its lines in words ("E-post: ...") stays plain. */
+   down the left with the right of the card empty. The web links come first
+   and email and phone on a line of their own below. Picked out by the
+   Facebook link every such list has, so a contact list that labels its lines
+   in words ("E-post: ...") stays plain. */
 .section ul.contact-list:has(a[href*="facebook.com"]) {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 1.25rem;
+  column-gap: 1.25rem;
 }
 
+/* Spaced by margin rather than row-gap, so the zero-height break below adds
+   no gap of its own. */
 .contact-list:has(a[href*="facebook.com"]) li {
-  margin: 0;
+  margin: 0.175rem 0;
   overflow-wrap: anywhere;
+}
+
+.contact-list:has(a[href*="facebook.com"]) li:has(a[href^="mailto:"], a[href^="tel:"]) {
+  order: 2;
+}
+
+.contact-list:has(a[href*="facebook.com"]):has(a[href^="mailto:"], a[href^="tel:"])::after {
+  content: "";
+  flex-basis: 100%;
+  order: 1;
 }
 
 .contact-list:has(a[href*="facebook.com"]) a::before {
