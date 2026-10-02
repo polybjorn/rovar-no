@@ -81,7 +81,7 @@ Lachsgehegen.
   Erwachsenen begleitet werden, unter 18 Jahren brauchen sie eine
   schriftliche Erlaubnis der Erziehungsberechtigten.
 
-Anmeldung im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
+Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.
 
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
