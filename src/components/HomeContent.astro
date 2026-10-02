@@ -15,9 +15,9 @@ const heroBg = await getImage({ src: asset('hero'), format: 'webp', width: 1600 
 
 // The route overlay shares the map image's pixel grid (scripts/build-map.mjs
 // writes both), so a viewBox of the image size lines the two up at any width.
-// Solid lines for the usual sailing: Entur's path out through the southern
-// channel, and the northern approach the boat often takes instead. Dotted for
-// the occasional loop past Feøy and Kveitevik. The map names the places.
+// Solid lines for Røvær to Haugesund, by either the northern or the southern
+// channel. Dotted for the Feøy sailings and the turn into Kveitevik. The map
+// names the places.
 const { width: mapW, height: mapH } = mapRoutes;
 const toPoints = (r: number[][]) => r.map((p) => p.join(',')).join(' ');
 const mapLines = (mapRoutes.routes as number[][][]).map(toPoints);
@@ -66,7 +66,7 @@ const mapStops = Object.values(mapRoutes.stops as Record<string, number[]>).map(
         <svg viewBox="0 0 24 24" fill="currentColor" class="map-icon" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
         {data.mapLink}
       </a>
-      <span class="map-credit">© Kartverket</span>
+      <span class="map-credit">© Kartverket, Kystverket, Entur</span>
     </figcaption>
   </figure>
 </div>
