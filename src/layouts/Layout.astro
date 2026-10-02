@@ -13,7 +13,6 @@ import heroImg from '../assets/rovar-frontpage.jpg';
 import { locales, localeInfo, defaultLocale } from '../i18n/locales.js';
 import { pages, pathFor, resolveRoute, localesWithPage } from '../i18n/routes.js';
 import { ui } from '../i18n/ui.js';
-import Sentence from '../components/Sentence.astro';
 import { facts } from '../data/facts.js';
 import { footerLinkGroups } from '../data/footer.js';
 
@@ -117,15 +116,6 @@ const pageLocales = localesWithPage(page);
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-col">
-        <h2>{t.chrome.contactHeading}</h2>
-        <p>
-          <Sentence
-            text={t.chrome.footer}
-            links={{ emailLink: { href: `mailto:${facts.oytingEmail}`, label: facts.oytingEmail } }}
-          />
-        </p>
-      </div>
-      <div class="footer-col">
         <h2>{t.chrome.linksHeading}</h2>
         <div class="footer-links">
           {footerLinkGroups.map((group) => (
@@ -137,6 +127,10 @@ const pageLocales = localesWithPage(page);
           ))}
         </div>
       </div>
+      <p class="footer-contact">
+        <span>{t.chrome.contactHeading}: <a href={`mailto:${facts.oytingEmail}`}>{facts.oytingEmail}</a></span>
+        <span>{facts.postPlace}</span>
+      </p>
     </div>
   </footer>
 
