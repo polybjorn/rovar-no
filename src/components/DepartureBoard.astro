@@ -1598,7 +1598,7 @@ const longestDates = [...new Set(
     font-variant-numeric: tabular-nums;
   }
 
-  .cal-times :global(.cal-time > svg) {
+  .cal-times :global(.cal-leg > svg) {
     width: 0.9rem;
     height: 0.9rem;
     color: var(--color-text-light);
@@ -1613,47 +1613,35 @@ const longestDates = [...new Set(
     flex: none;
   }
 
-  .cal-times :global(.cal-time > .cal-via) {
+  /* As on the board: a via list too long for the row moves whole onto a line
+     of its own under the time, rather than being cut and panned on hover,
+     which a phone never does. Only a list wider than the row wraps inside. */
+  .cal-times :global(.cal-time > .cal-route) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
     flex: 1 1 0;
     min-width: 0;
-    overflow: hidden;
+    gap: 0 0.4rem;
+  }
+
+  .cal-times :global(.cal-leg) {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .cal-times :global(.cal-via) {
+    flex: 0 1 auto;
+    min-width: 0;
     font-size: 0.8rem;
     color: var(--color-text-light);
-    white-space: nowrap;
   }
 
-  .cal-times :global(.cal-via-text) {
-    display: inline-block;
-  }
-
-  /* --pan and --pan-time are measured in calendar-picker.js. */
-  .cal-times :global(.cal-via.is-long) {
-    mask-image: linear-gradient(to right, #000 80%, transparent);
-  }
-
-  .cal-times :global(.cal-time:hover .cal-via.is-long),
-  .cal-times :global(.cal-time:focus-visible .cal-via.is-long) {
-    mask-image: none;
-  }
-
-  .cal-times :global(.cal-time:hover .cal-via.is-long .cal-via-text),
-  .cal-times :global(.cal-time:focus-visible .cal-via.is-long .cal-via-text) {
-    animation: cal-via-pan var(--pan-time, 3s) ease-in-out infinite alternate;
-  }
-
+  /* Still panned by the board's .dep-via until #98 removes it there. */
   @keyframes cal-via-pan {
     0%, 15% { transform: none; }
     85%, 100% { transform: translateX(var(--pan, 0)); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .cal-times :global(.cal-time:hover .cal-via.is-long .cal-via-text),
-    .cal-times :global(.cal-time:focus-visible .cal-via.is-long .cal-via-text) {
-      animation: none;
-    }
-    .cal-times :global(.cal-time > .cal-via) {
-      white-space: normal;
-    }
   }
 
   .cal-times :global(.cal-time > .cal-booking) {
