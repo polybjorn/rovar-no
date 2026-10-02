@@ -678,8 +678,7 @@ img.section-img {
 /* A place's own links (a list of nothing but links, see rehype-structure),
    each with an icon for what it opens, side by side and wrapping as the
    card has room, rather than one down the left with the right of the card
-   empty. The web links come first and email and phone on a line of their
-   own below. */
+   empty. */
 .section ul.link-list {
   list-style: none;
   padding-left: 0;
@@ -690,23 +689,18 @@ img.section-img {
   column-gap: 1.25rem;
 }
 
-/* Spaced by margin rather than row-gap, so the zero-height break below adds
-   no gap of its own. */
 .link-list li {
   margin: 0.175rem 0;
   overflow-wrap: anywhere;
 }
 
-.link-list li:has(a[href^="mailto:"], a[href^="tel:"]) {
-  order: 2;
-}
-
-/* The break, when the list has both web links and email or phone. Written
-   without :has() inside :has(), which browsers reject, dropping the rule. */
-.link-list:has(a[href^="mailto:"], a[href^="tel:"]):has(a[href^="http"])::after {
-  content: "";
-  flex-basis: 100%;
-  order: 1;
+/* Email and phone in one item (rehype-structure), so they wrap onto the next
+   line together. Only a card too narrow for both splits them. */
+.link-list li.link-contact {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25rem;
+  row-gap: 0.35rem;
 }
 
 .link-list a::before {

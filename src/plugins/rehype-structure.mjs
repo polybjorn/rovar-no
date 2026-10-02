@@ -41,6 +41,25 @@ function linksOnly(node) {
   });
 }
 
+// Email and phone share one item, so the list wraps them together: never the
+// phone number alone on a line of its own under the email.
+const isContact = (li) => li.children.some((c) => isElement(c, 'a')
+  && /^(mailto|tel):/.test(String(c.properties?.href ?? '')));
+
+function groupContact(node) {
+  const contact = node.children.filter((c) => isElement(c, 'li') && isContact(c));
+  if (contact.length < 2) return;
+  const group = {
+    type: 'element',
+    tagName: 'li',
+    properties: { className: ['link-contact'] },
+    children: contact.flatMap((li) => li.children.filter((c) => isElement(c, 'a'))),
+  };
+  const at = node.children.indexOf(contact[0]);
+  node.children = node.children.filter((c) => !contact.includes(c));
+  node.children.splice(at, 0, group);
+}
+
 export function rehypeStructure() {
   return (tree) => {
     const out = [];
@@ -90,6 +109,7 @@ export function rehypeStructure() {
 
       if (isElement(node, 'ul') && linksOnly(node)) {
         node.properties.className = [...(node.properties.className ?? []), 'link-list'];
+        groupContact(node);
       }
 
       if (isElement(node, 'p') && !section) {
