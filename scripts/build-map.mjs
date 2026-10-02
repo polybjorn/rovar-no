@@ -1,14 +1,16 @@
 // Rebuilds the front-page map: stitches Kartverket topo tiles over a fixed
 // box into src/assets/kart-rovar.png, and writes the boat's lines, projected
-// onto that image, into src/data/map-routes.json. Røvær to Haugesund follows
-// Kystverket's fairway for the route; the Feøy and Kveitevik sailings follow
-// the paths Entur publishes for them.
+// onto that image, into src/data/map-routes.json. The northern line follows
+// Kystverket's fairway; the southern line and the Feøy sailings follow the
+// ferry routes Kartverket draws dashed on the map itself (N50); the turn into
+// Kveitevik and the last stretch through Smedasundet follow Entur's paths.
 //
 //   node scripts/build-map.mjs
 //
 // Run it again when Kolumbus changes the route. The image and the routes share
 // one projection, so regenerate both together rather than either alone.
 import fs from 'node:fs';
+import zlib from 'node:zlib';
 import sharp from 'sharp';
 import { ENTUR_API, ENTUR_CLIENT, HAUGESUND_STOP } from '../src/scripts/departures-core.js';
 
@@ -17,27 +19,30 @@ const ZOOM = 13;
 // Feøy and Kveitevik calls.
 const BOX = [5.05, 59.368, 5.3, 59.455];
 const TILE = 256;
-// Kystverket's secondary fairway (biled) for this route. Entur has only one
-// path per stop sequence, and for Røvær it runs out through the southern
-// channel and hooks east; the fairway also has the northern channel the boat
-// often takes, and a gentler southern leg. Open data under NLOD 2.0.
+// Kystverket's secondary fairway (biled) for this route, for the northern
+// channel the boat often takes, which neither Entur nor N50 has. Open data
+// under NLOD 2.0.
 const FAIRWAY = 'Haugesund - Røvær - Feøy';
 const FAIRWAY_URL = `https://services.kystverket.no/wfs.ashx?service=WFS&version=1.1.0&request=GetFeature&typeName=layer_552&srsName=EPSG:4326&bbox=${BOX[1]},${BOX[0]},${BOX[3]},${BOX[2]},EPSG:4326`;
 // The fairway is one line that doubles back on itself to cover every leg.
-// These are its vertex numbers: the Røvær quay at 6, up the northern channel
-// to the Haugesund approach at 15, Feøy at 26, and the leg north from Feøy
-// (28 to 32) towards the junction at 33. buildRoutes checks those land where
-// they should, so a redrawn fairway fails the run rather than the map.
+// The northern leg runs from vertex 6, at the Røvær quay, to 15, on the
+// Haugesund approach. Vertex 0 is where its southern leg ends west of
+// Storøya, which is also where N50's eastward passenger link from Røvær
+// ends. buildRoutes checks both, so a redrawn fairway fails the run rather
+// than the map.
 const NORTH_LEG = [6, 15];
-const FEOY_QUAY = 26;
-const FEOY_LEG = [28, 32];
-const JUNCTION = 33;
-// Entur's southern path dips south of Røvær and comes back north-east in a
-// sharp hook. Between the channel mouth and this far along its long eastward
-// leg, it is replaced by one curve that leaves the channel the way the
-// channel points and arrives along the leg.
-const CHANNEL_MOUTH = [59.4316, 5.0974];
-const SOUTH_REJOIN = 160;
+const SOUTH_END = 0;
+// How far along the shared approach the southern line rejoins it, in image
+// pixels past the point nearest where N50 stops.
+const REJOIN = 120;
+// Kartverket's N50 map data, ordered through Geonorge's download API for the
+// two municipalities the routes cross (Haugesund and Karmøy). Its passenger
+// ferry links are the dashed lines on the topo map. CC BY 4.0.
+const N50 = 'ea192681-d039-42ec-b1bc-f3ce04c189ac';
+const N50_AREAS = [
+  { code: '1106', type: 'kommune', name: 'Haugesund' },
+  { code: '1149', type: 'kommune', name: 'Karmøy' },
+];
 const TILE_URL = (z, x, y) =>
   `https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/${z}/${y}/${x}.png`;
 
@@ -127,6 +132,10 @@ function project(line, p) {
   return best;
 }
 
+// How close, in image pixels, a line's loose end must be to a drawn line to
+// be joined onto it.
+const SNAP = 25;
+
 // The part of line that leaves the lines already drawn: from the last point
 // still on one to the first point back on one, both snapped onto it so the
 // branch starts and ends on the line it shares rather than beside it.
@@ -136,18 +145,24 @@ function branch(line, bases, tol) {
   const first = off.indexOf(true);
   const last = off.lastIndexOf(true);
   if (first < 0) return [];
-  // An end that never rejoins base, like a line out to Feøy, stays where it is.
-  const head = first > 0 ? [onto(line[first - 1]).point] : [];
-  const tail = last < line.length - 1 ? [onto(line[last + 1]).point] : [];
-  return [...head, ...line.slice(first, last + 1), ...tail];
+  // An end that stops just short of a drawn line is joined onto it; one that
+  // never comes near, like a line out to Feøy, stays where it is.
+  const join = (i, j) => (i !== j ? [onto(line[i]).point] : onto(line[j]).d < SNAP ? [onto(line[j]).point] : []);
+  return [...join(first > 0 ? first - 1 : 0, first), ...line.slice(first, last + 1), ...join(last < line.length - 1 ? last + 1 : last, last)];
 }
 
 // Warn about any stretch of a line that runs over land on the map image.
 async function landCheck(lines) {
   const { data, info } = await sharp(IMAGE.pathname).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const sea = (x, y) => {
+    const i = (y * info.width + x) * 3;
+    return data[i + 2] >= 240 && data[i + 2] - data[i] >= 15;
+  };
+  // Sea within 2 pixels counts: the lines run along the map's own dashed
+  // ferry lines and through sounds a few pixels wide, neither of which is land.
   const land = ([x, y]) => {
-    const i = (Math.round(y) * info.width + Math.round(x)) * 3;
-    return !(data[i + 2] >= 240 && data[i + 2] - data[i] >= 15);
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (sea(Math.round(x) + dx, Math.round(y) + dy)) return false;
+    return true;
   };
   for (const [name, line] of Object.entries(lines)) {
     let run = 0;
@@ -194,6 +209,115 @@ async function fetchFairway() {
   return out;
 }
 
+// EUREF89 UTM zone 33 to latitude and longitude, which is what N50 comes in.
+function utm33(e, n) {
+  const a = 6378137;
+  const f = 1 / 298.257223563;
+  const k0 = 0.9996;
+  const e2 = f * (2 - f);
+  const ep2 = e2 / (1 - e2);
+  const x = e - 500000;
+  const mu = n / k0 / (a * (1 - e2 / 4 - (3 * e2 ** 2) / 64 - (5 * e2 ** 3) / 256));
+  const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+  const p = mu + ((3 * e1) / 2 - (27 * e1 ** 3) / 32) * Math.sin(2 * mu) + ((21 * e1 ** 2) / 16 - (55 * e1 ** 4) / 32) * Math.sin(4 * mu)
+    + ((151 * e1 ** 3) / 96) * Math.sin(6 * mu) + ((1097 * e1 ** 4) / 512) * Math.sin(8 * mu);
+  const c = ep2 * Math.cos(p) ** 2;
+  const t = Math.tan(p) ** 2;
+  const nu = a / Math.sqrt(1 - e2 * Math.sin(p) ** 2);
+  const rho = (a * (1 - e2)) / (1 - e2 * Math.sin(p) ** 2) ** 1.5;
+  const d = x / (nu * k0);
+  const lat = p - ((nu * Math.tan(p)) / rho) * (d ** 2 / 2 - ((5 + 3 * t + 10 * c - 4 * c ** 2 - 9 * ep2) * d ** 4) / 24
+    + ((61 + 90 * t + 298 * c + 45 * t ** 2 - 252 * ep2 - 3 * c ** 2) * d ** 6) / 720);
+  const lon = (d - ((1 + 2 * t + c) * d ** 3) / 6 + ((5 - 2 * c + 28 * t - 3 * c ** 2 + 8 * ep2 + 24 * t ** 2) * d ** 5) / 120) / Math.cos(p);
+  return [(lat * 180) / Math.PI, 15 + (lon * 180) / Math.PI];
+}
+
+// The one member of a zip whose name matches, inflated. Enough of the format
+// for Geonorge's downloads, so the script needs no unzip on the PATH.
+function unzipOne(buf, match) {
+  const eocd = buf.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  let at = buf.readUInt32LE(eocd + 16);
+  for (let i = 0; i < buf.readUInt16LE(eocd + 10); i++) {
+    const method = buf.readUInt16LE(at + 10);
+    const size = buf.readUInt32LE(at + 20);
+    const nameLen = buf.readUInt16LE(at + 28);
+    const extra = buf.readUInt16LE(at + 30);
+    const comment = buf.readUInt16LE(at + 32);
+    const local = buf.readUInt32LE(at + 42);
+    const name = buf.toString('utf8', at + 46, at + 46 + nameLen);
+    if (match.test(name)) {
+      const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+      const data = buf.subarray(start, start + size);
+      return method === 8 ? zlib.inflateRawSync(data) : data;
+    }
+    at += 46 + nameLen + extra + comment;
+  }
+  throw new Error(`no ${match} in the zip`);
+}
+
+// N50's passenger ferry links, as segments in image pixels.
+async function fetchFerryLinks() {
+  const order = await fetch('https://nedlasting.geonorge.no/api/order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: '',
+      orderLines: [{ metadataUuid: N50, areas: N50_AREAS, formats: [{ name: 'GML' }], projections: [{ code: '25833' }] }],
+    }),
+  }).then((r) => r.json());
+  const links = [];
+  for (const file of order.files) {
+    if (file.status !== 'ReadyForDownload') throw new Error(`N50 ${file.areaName} is ${file.status}`);
+    const zip = Buffer.from(await (await fetch(file.downloadUrl)).arrayBuffer());
+    const gml = unzipOne(zip, /N50Samferdsel_GML\.gml$/).toString('utf8');
+    for (const member of gml.split(/<gml:featureMember>|<wfs:member>/).slice(1)) {
+      if (!member.includes('<app:typeVeg>passasjerferje<')) continue;
+      const nums = member.match(/<gml:posList[^>]*>([^<]*)/)[1].trim().split(/\s+/).map(Number);
+      const line = [];
+      for (let i = 0; i < nums.length; i += 2) line.push(at(...utm33(nums[i], nums[i + 1])));
+      links.push(line);
+    }
+  }
+  return links;
+}
+
+// The shortest way through the ferry links from the end nearest a to the end
+// nearest b. Links meet at shared end points, which is how N50 joins them.
+function ferryPath(links, a, b) {
+  const key = ([x, y]) => `${Math.round(x)},${Math.round(y)}`;
+  const edges = new Map();
+  const add = (from, to, line) => edges.set(from, [...(edges.get(from) ?? []), { to, line }]);
+  const length = (line) => line.slice(1).reduce((sum, p, i) => sum + dist(line[i], p), 0);
+  for (const line of links) {
+    add(key(line[0]), key(line.at(-1)), line);
+    add(key(line.at(-1)), key(line[0]), [...line].reverse());
+  }
+  const ends = links.flatMap((l) => [l[0], l.at(-1)]);
+  const near = (p) => key(ends.reduce((best, q) => (dist(q, p) < dist(best, p) ? q : best)));
+  const [from, to] = [near(a), near(b)];
+  const cost = new Map([[from, 0]]);
+  const via = new Map();
+  const open = new Set([from]);
+  while (open.size) {
+    const here = [...open].reduce((best, k) => (cost.get(k) < cost.get(best) ? k : best));
+    open.delete(here);
+    if (here === to) break;
+    for (const { to: next, line } of edges.get(here) ?? []) {
+      const c = cost.get(here) + length(line);
+      if (c < (cost.get(next) ?? Infinity)) {
+        cost.set(next, c);
+        via.set(next, { from: here, line });
+        open.add(next);
+      }
+    }
+  }
+  if (!via.has(to)) throw new Error(`N50 has no ferry link path from ${from} to ${to}`);
+  const legs = [];
+  for (let k = to; k !== from; k = via.get(k).from) legs.unshift(via.get(k).line);
+  // Each leg starts on the point the one before it ended on.
+  return legs.flatMap((line, i) => (i ? line.slice(1) : line));
+}
+
 const slice = (line, [from, to]) =>
   from <= to ? line.slice(from, to + 1) : line.slice(to, from + 1).reverse();
 
@@ -234,58 +358,52 @@ async function buildRoutes() {
   const rovaer = quay(direct, 'Røvær');
   const feoyQuay = quay(feoy, 'Feøy');
 
-  // Røvær to Haugesund: the fairway legs, smoothed, then Entur's path
-  // through Smedasundet to the quay, which the fairway does not go into.
   const fairway = await fetchFairway();
   if (dist(fairway[NORTH_LEG[0]], rovaer) > 15) throw new Error('fairway vertex 6 is no longer at the Røvær quay');
-  if (dist(fairway[FEOY_QUAY], feoyQuay) > 25) throw new Error('fairway vertex 26 is no longer at the Feøy quay');
+  const links = await fetchFerryLinks();
 
-  // Southern: Entur's path for the direct sailing, turned round to run from
-  // Røvær, with the hook swapped for a curve.
+  // The approach both lines share: the fairway's northern leg, smoothed, then
+  // Entur's path through Smedasundet to the quay, which the fairway does not
+  // go into. Entur's paths here run from Haugesund; turn this one round.
   const inbound = [...direct.path].reverse();
-  const mouth = nearestIndex(inbound, at(...CHANNEL_MOUTH));
-  if (dist(inbound[mouth], at(...CHANNEL_MOUTH)) > 5) throw new Error("Entur's southern path no longer passes the channel mouth");
-  const leg = inbound.findIndex((p, i) => i > mouth && dist(inbound[i - 1], p) > 200);
-  if (leg < 0) throw new Error("Entur's southern path has no long eastward leg");
-  const unit = ([x0, y0], [x1, y1]) => [(x1 - x0) / dist([x0, y0], [x1, y1]), (y1 - y0) / dist([x0, y0], [x1, y1])];
-  const legDir = unit(inbound[leg - 1], inbound[leg]);
-  const p0 = inbound[mouth];
-  const p3 = [inbound[leg - 1][0] + legDir[0] * SOUTH_REJOIN, inbound[leg - 1][1] + legDir[1] * SOUTH_REJOIN];
-  const outDir = unit(inbound[mouth - 2], p0);
-  const reach = dist(p0, p3) / 3;
-  const p1 = [p0[0] + outDir[0] * reach, p0[1] + outDir[1] * reach];
-  const p2 = [p3[0] - legDir[0] * reach, p3[1] - legDir[1] * reach];
-  const curve = Array.from({ length: 24 }, (_, i) => {
-    const t = (i + 1) / 24;
-    const u = 1 - t;
-    return [0, 1].map((k) => u ** 3 * p0[k] + 3 * u * u * t * p1[k] + 3 * u * t * t * p2[k] + t ** 3 * p3[k]);
-  });
-  const south = [...inbound.slice(0, mouth + 1), ...curve, ...inbound.slice(leg)];
-
-  // Northern: the fairway up the channel and across, until it comes within a
-  // few pixels of the southern line, then the southern line's own points, so
-  // the shared approach to Smedasundet is one line rather than two side by
-  // side.
   const across = smooth(slice(fairway, NORTH_LEG));
-  const joins = across.findIndex((p, i) => i > across.length / 2 && project(south, p).d < 6);
-  if (joins < 0) throw new Error('the northern fairway leg never meets the southern line');
-  const meet = nearestIndex(south, across[joins]);
-  const north = [rovaer, ...across.slice(0, joins), ...south.slice(meet)];
+  const north = [rovaer, ...across, ...inbound.slice(nearestIndex(inbound, across.at(-1)) + 1)];
+
+  // Southern: Entur's path down Røvær's harbour channel, which N50 starts
+  // below, then N50's passenger links east to where they stop west of
+  // Storøya, then a curve onto the shared approach.
+  const ferry = ferryPath(links, rovaer, fairway[SOUTH_END]);
+  if (dist(ferry.at(-1), fairway[SOUTH_END]) > 25) throw new Error("N50's eastward link from Røvær no longer ends at fairway vertex 0");
+  const end = ferry.at(-1);
+  let rejoin = nearestIndex(north, end);
+  for (let run = 0; run < REJOIN && rejoin < north.length - 1; rejoin++) run += dist(north[rejoin], north[rejoin + 1]);
+  const unit = (a, b) => [(b[0] - a[0]) / dist(a, b), (b[1] - a[1]) / dist(a, b)];
+  const out = unit(ferry.at(-2), end);
+  const arrive = unit(north[rejoin], north[rejoin + 1]);
+  const reach = dist(end, north[rejoin]) / 3;
+  const c1 = [end[0] + out[0] * reach, end[1] + out[1] * reach];
+  const c2 = [north[rejoin][0] - arrive[0] * reach, north[rejoin][1] - arrive[1] * reach];
+  const curve = Array.from({ length: 16 }, (_, i) => {
+    const t = (i + 1) / 16;
+    const u = 1 - t;
+    return [0, 1].map((k) => u ** 3 * end[k] + 3 * u * u * t * c1[k] + 3 * u * t * t * c2[k] + t ** 3 * north[rejoin][k]);
+  });
+  const south = [...inbound.slice(0, nearestIndex(inbound, ferry[0])), ...ferry, ...curve, ...north.slice(rejoin + 1)];
 
   // The occasional sailings, dotted, each starting where it leaves a line
-  // already drawn: Haugesund to Feøy off the solid line in Smedasundet, the
-  // turn into Kveitevik off the Feøy line, and Feøy on to Røvær along the
-  // fairway from the Feøy line to the southern line.
-  const feoyLine = branch(feoy.path, [south], 5);
-  const spur = branch(kveitevik.path, [feoyLine, south], 5);
-  const fromFeoy = [
-    project(feoyLine, fairway[FEOY_LEG[0]]).point,
-    ...slice(fairway, FEOY_LEG),
-    project(south, fairway[JUNCTION]).point,
-  ];
-  const afterFeoy = smooth(fromFeoy);
+  // already drawn: Haugesund to Feøy and Røvær to Feøy along N50's links, and
+  // the turn into Kveitevik along Entur's path.
+  const feoyLine = branch([...ferryPath(links, haugesund, feoyQuay), feoyQuay], [south], 3);
+  const afterFeoy = branch([...ferryPath(links, rovaer, feoyQuay), feoyQuay], [south, feoyLine], 3);
+  // Entur's Kveitevik path starts where it leaves Entur's own Feøy path, so
+  // the two sources' small differences do not show as a second line, joined
+  // onto the N50 Feøy line there, and ends where it meets that line again on
+  // the way into Feøy.
+  const leaves = kveitevik.path.findIndex((p) => project(feoy.path, p).d > 1.5);
+  if (leaves < 1) throw new Error("Entur's Kveitevik path no longer starts along the Feøy path");
+  const spur = branch([project(feoyLine, kveitevik.path[leaves - 1]).point, ...kveitevik.path.slice(leaves)], [feoyLine], 4);
 
-  await landCheck({ north, south, 'Haugesund > Feøy': feoyLine, 'Kveitevik': spur, 'Feøy > Røvær': afterFeoy });
+  await landCheck({ north, south, 'Haugesund > Feøy': feoyLine, Kveitevik: spur, 'Røvær > Feøy': afterFeoy });
 
   const data = {
     width,

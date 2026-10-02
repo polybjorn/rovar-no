@@ -642,8 +642,8 @@ img.section-img {
 .map-credit {
   /* Above the link overlay, so the attribution stays selectable. */
   position: relative;
-  /* Kartverket's map is CC BY and the route lines are Kystverket's and
-     Entur's, under NLOD: the credit has to stay visible, so it is kept small
+  /* Kartverket's map and ferry lines are CC BY, and Kystverket's and Entur's
+     lines are NLOD: the credit has to stay visible, so it is kept small
      rather than hidden behind a hover no phone can perform. */
   font-size: 0.75rem;
   color: var(--color-text-light);
