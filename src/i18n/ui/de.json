@@ -66,7 +66,6 @@
       "pickDepartures": "Abfahrten",
       "pickEvery": "jeden {{day}}",
       "pickEveryWeekday": "werktags",
-      "pickNoDays": "keine Tage gewählt",
       "pickChooseDays": "Wähle oben die Wochentage.",
       "pickBooking": "Reservierungspflichtig: spätestens {{minutes}} Minuten vor Abfahrt unter {{kolumbusPhone}} buchen. Die Kalenderdatei erinnert dich eine Stunde vorher.",
       "pickRemove": "Entfernen",

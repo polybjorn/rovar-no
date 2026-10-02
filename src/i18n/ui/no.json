@@ -65,7 +65,6 @@
       "pickDepartures": "Avganger",
       "pickEvery": "hver {{day}}",
       "pickEveryWeekday": "hverdager",
-      "pickNoDays": "ingen dager valgt",
       "pickChooseDays": "Velg hvilke hverdager over.",
       "pickBooking": "Bestillingsrute: bestill senest {{minutes}} minutter før avgang på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
       "pickRemove": "Fjern",
