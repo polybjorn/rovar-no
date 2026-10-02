@@ -745,15 +745,16 @@ img.section-img {
   --icon-link: url("../assets/icons/menu.svg");
 }
 
-/* Hours, prices and the like as label and value, the labels in a column of
-   their own so the values line up down the list. Each item is a row of the
-   list's grid (subgrid), so one long label sets the column for all. A card
-   like the info boxes, with a rule between rows, so it reads as a table of
-   facts and not as more of the text around it. */
+/* Hours, prices and the like as label, value and, for hours, the dates they
+   apply (.fact-when), each in a column of its own so they line up down the
+   list. Each item is a row of the list's grid (subgrid), so one long label
+   sets the column for all. A card like the info boxes, with a rule between
+   rows, so it reads as a table of facts and not as more of the text around
+   it. */
 .section ul.fact-list {
   list-style: none;
   display: grid;
-  grid-template-columns: fit-content(40%) 1fr;
+  grid-template-columns: fit-content(40%) 1fr auto;
   column-gap: 1rem;
   padding: 0.35rem 1.1rem;
   background: var(--color-foam);
@@ -779,6 +780,34 @@ img.section-img {
 
 .fact-list strong {
   font-weight: 600;
+}
+
+.fact-value {
+  grid-column: 2 / -1;
+}
+
+.fact-value:has(+ .fact-when) {
+  grid-column: 2;
+}
+
+.fact-when {
+  color: var(--color-text-light);
+  text-align: right;
+}
+
+/* On a phone there is no room for three columns: the dates go under the
+   value, in the same row. */
+@media (max-width: 600px) {
+  .fact-value:has(+ .fact-when),
+  .fact-when {
+    grid-column: 2 / -1;
+    text-align: left;
+  }
+
+  /* A label that wraps would otherwise push the dates a line down. */
+  .fact-list li:has(.fact-when) > strong {
+    grid-row: span 2;
+  }
 }
 
 /* A link to another page of the site, set in running text ({{historyPage}}

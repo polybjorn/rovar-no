@@ -52,6 +52,23 @@ function labelled(node) {
   });
 }
 
+// A fact-list row as label, value and, when the row ends in emphasis, when it
+// applies: "**Hver dag:** kl. 11.00 _til 16. august_". Each part is a cell of
+// the list's grid, so times and dates each line up down the list.
+function factRow(li) {
+  const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+  const [label, ...rest] = real;
+  const last = rest.at(-1);
+  const when = rest.length > 1 && isElement(last, 'em') ? rest.pop() : null;
+  const at = li.children.indexOf(rest[0]);
+  const value = li.children.slice(at, when ? li.children.indexOf(when) : undefined);
+  li.children = [
+    label,
+    { type: 'element', tagName: 'span', properties: { className: ['fact-value'] }, children: value },
+    ...(when ? [{ ...when, tagName: 'span', properties: { className: ['fact-when'] } }] : []),
+  ];
+}
+
 export function rehypeStructure() {
   return (tree) => {
     const out = [];
@@ -105,6 +122,7 @@ export function rehypeStructure() {
 
       if (isElement(node, 'ul') && labelled(node)) {
         node.properties.className = [...(node.properties.className ?? []), 'fact-list'];
+        for (const li of node.children) if (isElement(li, 'li')) factRow(li);
       }
 
       if (isElement(node, 'p') && !section) {

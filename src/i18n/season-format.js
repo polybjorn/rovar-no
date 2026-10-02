@@ -10,6 +10,8 @@ const at = (hhmm) => {
 
 const cache = {};
 
+const isDate = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
 // Placeholder values for one language: {{end}}, {{sjohusSummer}} and friends,
 // as used in the content markdown.
 export function seasonStrings(code) {
@@ -38,9 +40,9 @@ export function seasonStrings(code) {
   const range = localeInfo(code).range ?? '{a} – {b}';
   for (const [key, value] of Object.entries(season)) {
     if (key in out) continue;
-    // A date also gives its year, {{hiltaOpensYear}}, for a season that is not
+    // A date also gives its year, {{endYear}}, for a season that is not
     // the page's own {{year}}.
-    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    if (isDate(value)) {
       out[key] = date.format(new Date(`${value}T00:00:00Z`));
       out[`${key}Year`] = value.slice(0, 4);
       continue;
@@ -50,7 +52,19 @@ export function seasonStrings(code) {
       continue;
     }
     if (!Array.isArray(value) || value.length !== 2) continue;
-    out[key] = range.replace('{a}', clock(at(value[0]))).replace('{b}', clock(at(value[1])));
+    // A pair of dates is a date range, and gives the year it ends in.
+    if (value.every(isDate)) {
+      const [a, b] = value.map((d) => date.format(new Date(`${d}T00:00:00Z`)));
+      out[key] = range.replace('{a}', a).replace('{b}', b);
+      out[`${key}Year`] = value[1].slice(0, 4);
+      continue;
+    }
+    // A clock range never breaks across lines: "12:30 bis" on one line and
+    // "20:00" on the next reads as two facts.
+    out[key] = range
+      .replace('{a}', clock(at(value[0])))
+      .replace('{b}', clock(at(value[1])))
+      .replaceAll(' ', '\u00a0');
   }
 
   cache[code] = out;

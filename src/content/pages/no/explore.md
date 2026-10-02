@@ -61,10 +61,9 @@ Det er GRATIS å besøke visningssenteret!
 
 Vi arrangerer visningstur i RIB ut til laksemerdene hver dag på sommeren.
 
-- **Avganger {{year}}:** kl. {{ribDepartures}}, hver dag frem til {{end}}
+- **Avganger:** hver dag kl. {{ribDepartures}} _til {{end}}_
 - **Varighet:** ca. 45 min, inkludert påkledning
-- **Voksne:** {{ribPriceAdult}}
-- **Barn:** {{ribPriceChild}}
+- **Pris:** {{ribPriceAdult}} voksne · {{ribPriceChild}} barn
 - **Alder:** fra 6 år. Fra 6 til 12 år må barn være i følge med en voksen,
   og under 18 år må de ha skriftlig tillatelse fra foresatte.
 
@@ -81,10 +80,8 @@ ulykken i 1899. [Les historien om huset.]({{historyPage}}#hiltahuset)
 Skjoldbladbua rett ved siden av Hiltahuset selger varer laget av lokale
 hender.
 
-- **Åpent {{hiltaOpensYear}}:** søndager og torsdager kl. {{hiltaHours}}, {{hiltaOpens}} til {{hiltaCloses}}
-- **Voksne:** {{hiltaPriceAdult}}
-- **Redusert:** {{hiltaPriceReduced}} for studenter og honnør
-- **Barn under 16:** gratis
+- **Søndag og torsdag:** kl. {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
+- **Pris:** {{hiltaPriceAdult}} voksne · {{hiltaPriceReduced}} studenter og honnør · gratis under 16
 
 Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 
@@ -99,8 +96,8 @@ Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
 søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
 
-* **Sommeren {{year}}:** hver dag kl. {{sjohusSummer}}, frem til {{end}}
-* **Etter {{end}}:** lørdag og søndag kl. {{sjohusAutumn}}, ut september
+* **Hver dag:** kl. {{sjohusSummer}} _til {{end}}_
+* **Lørdag og søndag:** kl. {{sjohusAutumn}} _{{autumn}}_
 
 - [Facebook]({{sjohusFacebookUrl}})
 
@@ -109,11 +106,13 @@ søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
 Røvær Havhotell har restaurant og åpent for overnatting på bestilling
 hele året, og har forskjellige arrangementer i løpet av året.
 
-Åpningstider i restauranten {{year}}:
+Åpningstider i restauranten:
 
-* **Søndag til onsdag:** kl. {{hotelSunWed}}, matservering kl. {{hotelSunWedFood}}, frem til {{end}}
-* **Torsdag til lørdag:** kl. {{hotelThuSat}}, matservering kl. {{hotelThuSatFood}}, frem til {{end}}
-* **Etter {{end}}:** lørdag og søndag kl. {{hotelAutumn}}, ut september
+* **Søndag til onsdag:** kl. {{hotelSunWed}}\
+  matservering kl. {{hotelSunWedFood}} _til {{end}}_
+* **Torsdag til lørdag:** kl. {{hotelThuSat}}\
+  matservering kl. {{hotelThuSatFood}} _til {{end}}_
+* **Lørdag og søndag:** kl. {{hotelAutumn}} _{{autumn}}_
 
 - [Facebook]({{havhotellFacebookUrl}})
 - [Nettside]({{havhotellUrl}})

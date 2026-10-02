@@ -74,10 +74,9 @@ Der Besuch des Zentrums ist KOSTENLOS!
 Im Sommer fährt täglich eine RIB-Bootstour hinaus zu den
 Lachsgehegen.
 
-- **Abfahrt {{year}}:** {{ribDepartures}} Uhr, täglich bis zum {{end}}
+- **Abfahrt:** täglich {{ribDepartures}} _bis zum {{end}}_
 - **Dauer:** etwa 45 Minuten, inklusive Anziehen der Ausrüstung
-- **Erwachsene:** {{ribPriceAdult}}
-- **Kinder:** {{ribPriceChild}}
+- **Preis:** {{ribPriceAdult}} Erwachsene · {{ribPriceChild}} Kinder
 - **Alter:** ab 6 Jahren. Kinder von 6 bis 12 Jahren müssen von einem
   Erwachsenen begleitet werden, unter 18 Jahren brauchen sie eine
   schriftliche Erlaubnis der Erziehungsberechtigten.
@@ -97,10 +96,8 @@ mit einer Ausstellung über das Unglück von 1899.
 „Skjoldbladbua“ ist der nächste Nachbar des Museums, ein
 Souvenirladen mit von lokalen Händen gefertigten Waren.
 
-- **Geöffnet {{hiltaOpensYear}}:** sonntags und donnerstags {{hiltaHours}} Uhr, vom {{hiltaOpens}} bis zum {{hiltaCloses}}
-- **Erwachsene:** {{hiltaPriceAdult}}
-- **Ermäßigt:** {{hiltaPriceReduced}} für Studenten und Senioren
-- **Kinder unter 16:** frei
+- **Sonntags und donnerstags:** {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
+- **Preis:** {{hiltaPriceAdult}} Erwachsene · {{hiltaPriceReduced}} Studenten und Senioren · Kinder unter 16 frei
 
 Außerhalb der Öffnungszeiten können Sie beim Haugalandmuseet eine Führung buchen.
 
@@ -117,8 +114,8 @@ Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
 werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
 auch für das traditionelle norwegische Gericht „Komle“ bekannt.
 
-* **Sommer {{year}}:** täglich {{sjohusSummer}} Uhr, bis zum {{end}}
-* **Nach dem {{end}}:** samstags und sonntags {{sjohusAutumn}} Uhr, bis Ende September
+* **Täglich:** {{sjohusSummer}} _bis zum {{end}}_
+* **Samstags und sonntags:** {{sjohusAutumn}} _{{autumn}}_
 
 - [Facebook]({{sjohusFacebookUrl}})
 
@@ -128,11 +125,13 @@ Das Røvær Havhotell hat ein Restaurant, bietet ganzjährig
 Übernachtungen auf Anfrage und veranstaltet über das Jahr verschiedene
 Events.
 
-Öffnungszeiten des Restaurants {{year}}:
+Öffnungszeiten des Restaurants:
 
-* **Sonntag bis Mittwoch:** {{hotelSunWed}} Uhr, Essensausgabe {{hotelSunWedFood}} Uhr, bis zum {{end}}
-* **Donnerstag bis Samstag:** {{hotelThuSat}} Uhr, Essensausgabe {{hotelThuSatFood}} Uhr, bis zum {{end}}
-* **Nach dem {{end}}:** samstags und sonntags {{hotelAutumn}} Uhr, bis Ende September
+* **Sonntag bis Mittwoch:** {{hotelSunWed}}\
+  Küche {{hotelSunWedFood}} _bis zum {{end}}_
+* **Donnerstag bis Samstag:** {{hotelThuSat}}\
+  Küche {{hotelThuSatFood}} _bis zum {{end}}_
+* **Samstags und sonntags:** {{hotelAutumn}} _{{autumn}}_
 
 - [Facebook]({{havhotellFacebookUrl}})
 - [Website]({{havhotellUrl}})
