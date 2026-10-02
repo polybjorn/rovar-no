@@ -25,14 +25,19 @@ const FAIRWAY = 'Haugesund - Røvær - Feøy';
 const FAIRWAY_URL = `https://services.kystverket.no/wfs.ashx?service=WFS&version=1.1.0&request=GetFeature&typeName=layer_552&srsName=EPSG:4326&bbox=${BOX[1]},${BOX[0]},${BOX[3]},${BOX[2]},EPSG:4326`;
 // The fairway is one line that doubles back on itself to cover every leg.
 // These are its vertex numbers: the Røvær quay at 6, up the northern channel
-// to the Haugesund approach at 15, down the southern channel to the junction
-// at 2 and east to 0, and from Feøy at 26 north to that junction at 33.
-// buildRoutes checks the ends land where they should, so a redrawn fairway
-// fails the run rather than the map.
+// to the Haugesund approach at 15, Feøy at 26, and the leg north from Feøy
+// (28 to 32) towards the junction at 33. buildRoutes checks those land where
+// they should, so a redrawn fairway fails the run rather than the map.
 const NORTH_LEG = [6, 15];
-const SOUTH_LEG = [6, 0];
-const FEOY_LEG = [26, 33];
-const JUNCTION = 2;
+const FEOY_QUAY = 26;
+const FEOY_LEG = [28, 32];
+const JUNCTION = 33;
+// Entur's southern path dips south of Røvær and comes back north-east in a
+// sharp hook. Between the channel mouth and this far along its long eastward
+// leg, it is replaced by one curve that leaves the channel the way the
+// channel points and arrives along the leg.
+const CHANNEL_MOUTH = [59.4316, 5.0974];
+const SOUTH_REJOIN = 160;
 const TILE_URL = (z, x, y) =>
   `https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/${z}/${y}/${x}.png`;
 
@@ -105,7 +110,61 @@ const at = (lat, lon) => [round(px(lon) - left), round(py(lat) - top)];
 
 const dist = ([x0, y0], [x1, y1]) => Math.hypot(x1 - x0, y1 - y0);
 const nearestIndex = (line, p) => line.reduce((best, q, i) => (dist(q, p) < dist(line[best], p) ? i : best), 0);
-const distToLine = (line, p) => Math.min(...line.map((q) => dist(q, p)));
+
+// The closest point to p on a polyline, and how far away it is.
+function project(line, p) {
+  let best = { point: line[0], d: dist(line[0], p) };
+  for (let i = 1; i < line.length; i++) {
+    const [x0, y0] = line[i - 1];
+    const [x1, y1] = line[i];
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const t = Math.max(0, Math.min(1, ((p[0] - x0) * dx + (p[1] - y0) * dy) / (dx * dx + dy * dy || 1)));
+    const q = [x0 + t * dx, y0 + t * dy];
+    const d = dist(q, p);
+    if (d < best.d) best = { point: q, d };
+  }
+  return best;
+}
+
+// The part of line that leaves the lines already drawn: from the last point
+// still on one to the first point back on one, both snapped onto it so the
+// branch starts and ends on the line it shares rather than beside it.
+function branch(line, bases, tol) {
+  const onto = (p) => bases.map((b) => project(b, p)).reduce((a, b) => (b.d < a.d ? b : a));
+  const off = line.map((p) => onto(p).d > tol);
+  const first = off.indexOf(true);
+  const last = off.lastIndexOf(true);
+  if (first < 0) return [];
+  // An end that never rejoins base, like a line out to Feøy, stays where it is.
+  const head = first > 0 ? [onto(line[first - 1]).point] : [];
+  const tail = last < line.length - 1 ? [onto(line[last + 1]).point] : [];
+  return [...head, ...line.slice(first, last + 1), ...tail];
+}
+
+// Warn about any stretch of a line that runs over land on the map image.
+async function landCheck(lines) {
+  const { data, info } = await sharp(IMAGE.pathname).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const land = ([x, y]) => {
+    const i = (Math.round(y) * info.width + Math.round(x)) * 3;
+    return !(data[i + 2] >= 240 && data[i + 2] - data[i] >= 15);
+  };
+  for (const [name, line] of Object.entries(lines)) {
+    let run = 0;
+    const hits = [];
+    for (let i = 1; i < line.length; i++) {
+      const n = Math.ceil(dist(line[i - 1], line[i]));
+      for (let k = 0; k < n; k++) {
+        const p = [line[i - 1][0] + ((line[i][0] - line[i - 1][0]) * k) / n, line[i - 1][1] + ((line[i][1] - line[i - 1][1]) * k) / n];
+        // Quays sit on the shore, so the last few pixels at either end are land.
+        const nearEnd = Math.min(dist(p, line[0]), dist(p, line.at(-1))) < 12;
+        run = land(p) && !nearEnd ? run + 1 : 0;
+        if (run === 4) hits.push(p.map(Math.round).join(','));
+      }
+    }
+    if (hits.length) console.warn(`${name} crosses land near ${hits.join('; ')}`);
+  }
+}
 
 // Chaikin corner cutting: the fairway is straight legs with sharp corners at
 // each vertex, which a boat does not sail. Keeps both ends where they are.
@@ -179,22 +238,54 @@ async function buildRoutes() {
   // through Smedasundet to the quay, which the fairway does not go into.
   const fairway = await fetchFairway();
   if (dist(fairway[NORTH_LEG[0]], rovaer) > 15) throw new Error('fairway vertex 6 is no longer at the Røvær quay');
-  // Entur's paths here run from Haugesund; turn this one round to match.
-  const inbound = [...direct.path].reverse();
-  const sound = inbound.slice(nearestIndex(inbound, fairway[NORTH_LEG[1]]));
-  const toQuay = (leg) => [rovaer, ...smooth(leg), ...sound.slice(1)];
-  const north = toQuay(slice(fairway, NORTH_LEG));
-  const south = toQuay([...slice(fairway, SOUTH_LEG), fairway[NORTH_LEG[1]]]);
+  if (dist(fairway[FEOY_QUAY], feoyQuay) > 25) throw new Error('fairway vertex 26 is no longer at the Feøy quay');
 
-  // The occasional sailings, dotted: Haugesund to Feøy, Feøy on to Røvær,
-  // and the turn into Kveitevik where it leaves the Feøy line.
-  // Feøy on to Røvær follows the fairway to its junction with the southern
-  // leg and up the channel, so it branches off the solid line where the
-  // fairway does rather than where Entur's path happens to wander.
-  if (dist(fairway[FEOY_LEG[0]], feoyQuay) > 25) throw new Error('fairway vertex 26 is no longer at the Feøy quay');
-  if (dist(fairway[FEOY_LEG[1]], fairway[JUNCTION]) > 2) throw new Error('fairway vertex 33 is no longer the southern junction');
-  const afterFeoy = [feoyQuay, ...smooth([...slice(fairway, FEOY_LEG), ...slice(fairway, [JUNCTION, NORTH_LEG[0]])]), rovaer];
-  const spur = kveitevik.path.filter((p) => distToLine(feoy.path, p) > 4);
+  // Southern: Entur's path for the direct sailing, turned round to run from
+  // Røvær, with the hook swapped for a curve.
+  const inbound = [...direct.path].reverse();
+  const mouth = nearestIndex(inbound, at(...CHANNEL_MOUTH));
+  if (dist(inbound[mouth], at(...CHANNEL_MOUTH)) > 5) throw new Error("Entur's southern path no longer passes the channel mouth");
+  const leg = inbound.findIndex((p, i) => i > mouth && dist(inbound[i - 1], p) > 200);
+  if (leg < 0) throw new Error("Entur's southern path has no long eastward leg");
+  const unit = ([x0, y0], [x1, y1]) => [(x1 - x0) / dist([x0, y0], [x1, y1]), (y1 - y0) / dist([x0, y0], [x1, y1])];
+  const legDir = unit(inbound[leg - 1], inbound[leg]);
+  const p0 = inbound[mouth];
+  const p3 = [inbound[leg - 1][0] + legDir[0] * SOUTH_REJOIN, inbound[leg - 1][1] + legDir[1] * SOUTH_REJOIN];
+  const outDir = unit(inbound[mouth - 2], p0);
+  const reach = dist(p0, p3) / 3;
+  const p1 = [p0[0] + outDir[0] * reach, p0[1] + outDir[1] * reach];
+  const p2 = [p3[0] - legDir[0] * reach, p3[1] - legDir[1] * reach];
+  const curve = Array.from({ length: 24 }, (_, i) => {
+    const t = (i + 1) / 24;
+    const u = 1 - t;
+    return [0, 1].map((k) => u ** 3 * p0[k] + 3 * u * u * t * p1[k] + 3 * u * t * t * p2[k] + t ** 3 * p3[k]);
+  });
+  const south = [...inbound.slice(0, mouth + 1), ...curve, ...inbound.slice(leg)];
+
+  // Northern: the fairway up the channel and across, until it comes within a
+  // few pixels of the southern line, then the southern line's own points, so
+  // the shared approach to Smedasundet is one line rather than two side by
+  // side.
+  const across = smooth(slice(fairway, NORTH_LEG));
+  const joins = across.findIndex((p, i) => i > across.length / 2 && project(south, p).d < 6);
+  if (joins < 0) throw new Error('the northern fairway leg never meets the southern line');
+  const meet = nearestIndex(south, across[joins]);
+  const north = [rovaer, ...across.slice(0, joins), ...south.slice(meet)];
+
+  // The occasional sailings, dotted, each starting where it leaves a line
+  // already drawn: Haugesund to Feøy off the solid line in Smedasundet, the
+  // turn into Kveitevik off the Feøy line, and Feøy on to Røvær along the
+  // fairway from the Feøy line to the southern line.
+  const feoyLine = branch(feoy.path, [south], 5);
+  const spur = branch(kveitevik.path, [feoyLine, south], 5);
+  const fromFeoy = [
+    project(feoyLine, fairway[FEOY_LEG[0]]).point,
+    ...slice(fairway, FEOY_LEG),
+    project(south, fairway[JUNCTION]).point,
+  ];
+  const afterFeoy = smooth(fromFeoy);
+
+  await landCheck({ north, south, 'Haugesund > Feøy': feoyLine, 'Kveitevik': spur, 'Feøy > Røvær': afterFeoy });
 
   const data = {
     width,
@@ -203,7 +294,7 @@ async function buildRoutes() {
     zoom: ZOOM,
     sailings: Object.fromEntries([...patterns.entries()].sort((a, b) => b[1].n - a[1].n).map(([k, v]) => [k, v.n])),
     routes: [north, south].map(tidy),
-    alternatives: [feoy.path, afterFeoy, spur].map(tidy),
+    alternatives: [feoyLine, afterFeoy, spur].map(tidy),
     stops: { Røvær: rovaer, Haugesund: haugesund },
   };
   fs.writeFileSync(ROUTES, JSON.stringify(data, null, 1) + '\n');
