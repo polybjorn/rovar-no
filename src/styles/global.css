@@ -577,6 +577,94 @@ img.section-img {
   color: var(--color-ocean);
 }
 
+/* Boat routes and stops drawn over the map image. Lines keep their width
+   whatever the map is scaled to, and the markers are fixed-size HTML placed by
+   percentage, so neither shrinks to a hairline on a phone. */
+.map-frame {
+  position: relative;
+}
+
+.map-routes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.map-routes polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-route-casing {
+  stroke: var(--color-foam);
+  stroke-width: 7;
+}
+
+.map-route-line {
+  stroke: var(--color-ocean-dark);
+  stroke-width: 3.5;
+}
+
+.map-route-loop .map-route-casing {
+  stroke-width: 5;
+  opacity: 0.8;
+}
+
+.map-route-loop .map-route-line {
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+}
+
+.map-stop {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2.5px solid var(--color-ocean-dark);
+  border-radius: 50%;
+  background: var(--color-foam);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.map-stop-home {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--color-foam);
+  background: var(--color-kelp);
+  box-shadow: 0 0 0 6px rgba(46, 125, 91, 0.3), 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.map-stop-label {
+  position: absolute;
+  left: 50%;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-foam);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  color: var(--color-ocean-dark);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.map-stop-label-above {
+  bottom: calc(100% + 10px);
+}
+
+/* Haugesund sits near the right edge: hang its label to the left of the dot
+   so a phone-width map does not cut it off. */
+.map-stop-label-below {
+  top: calc(100% + 8px);
+  left: auto;
+  right: -4px;
+  transform: none;
+}
+
 /* The link covers the whole figure, so the map itself is what you click. */
 .map-link::after {
   content: '';
