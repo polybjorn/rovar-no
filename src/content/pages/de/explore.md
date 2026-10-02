@@ -65,7 +65,7 @@ spannende Themen wie Aquakultur, Geschichte, Umwelt und
 Naturverhältnisse. Es gibt Bildschirme zur Vertiefung, Spiele und
 Aktivitäten.
 
-- **Preis:** kostenlos
+* **Preis:** kostenlos
 
 - [Website]({{havbrukUrl}})
 
