@@ -701,7 +701,9 @@ img.section-img {
   order: 2;
 }
 
-.link-list:has(a[href^="mailto:"], a[href^="tel:"]):has(li:not(:has(a[href^="mailto:"], a[href^="tel:"])))::after {
+/* The break, when the list has both web links and email or phone. Written
+   without :has() inside :has(), which browsers reject, dropping the rule. */
+.link-list:has(a[href^="mailto:"], a[href^="tel:"]):has(a[href^="http"])::after {
   content: "";
   flex-basis: 100%;
   order: 1;
