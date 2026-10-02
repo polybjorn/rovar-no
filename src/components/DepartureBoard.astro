@@ -686,6 +686,7 @@ const longestDates = [...new Set(
 
   .dep-direction :global(.dep-route) {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     gap: 0.15rem 0.3rem;
     min-width: 0;
@@ -731,44 +732,23 @@ const longestDates = [...new Set(
     flex: none;
   }
 
-  /* One line per departure, always, as in the picker: a via list too long
-     for the row is cut with a fade and pans to its end while the row is
-     hovered or has focus. --pan and --pan-time are measured in departures.js. */
+  /* Time, arrow and arrival stay on one line together; only the via list
+     below may move to a line of its own. */
+  .dep-direction :global(.dep-leg) {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+  }
+
+  /* A via list too long for the row moves whole onto a line of its own under
+     the time, rather than being cut. The stops after a cut, Feøy among them,
+     were only shown by panning on hover, which a phone never does and a
+     reader seldom tries. Only a list wider than the row wraps inside. */
   .dep-direction :global(.dep-route > .dep-via) {
-    flex: 1 1 0;
+    flex: 0 1 auto;
     min-width: 0;
-    overflow: hidden;
     font-size: 0.85rem;
     color: var(--color-text);
-    white-space: nowrap;
-  }
-
-  .dep-direction :global(.dep-via-text) {
-    display: inline-block;
-  }
-
-  .dep-direction :global(.dep-via.is-long) {
-    mask-image: linear-gradient(to right, #000 80%, transparent);
-  }
-
-  .dep-direction :global(li:hover .dep-via.is-long),
-  .dep-direction :global(li:focus-within .dep-via.is-long) {
-    mask-image: none;
-  }
-
-  .dep-direction :global(li:hover .dep-via.is-long .dep-via-text),
-  .dep-direction :global(li:focus-within .dep-via.is-long .dep-via-text) {
-    animation: cal-via-pan var(--pan-time, 3s) ease-in-out infinite alternate;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .dep-direction :global(li:hover .dep-via.is-long .dep-via-text),
-    .dep-direction :global(li:focus-within .dep-via.is-long .dep-via-text) {
-      animation: none;
-    }
-    .dep-direction :global(.dep-route > .dep-via) {
-      white-space: normal;
-    }
   }
 
   .dep-direction :global(.dep-info) {
