@@ -131,7 +131,5 @@ or call {{havhotellPhone}}.
 The island's own shop has groceries, post, parcel pickup and fishing
 tackle, and is open every day from {{narbutikkenOpens}} until midnight.
 
-They post updates regularly on [Facebook]({{narbutikkenFacebookUrl}}).
-See also [their website]({{narbutikkenUrl}}), email
-[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
-or call {{narbutikkenPhone}}.
+[Facebook]({{narbutikkenFacebookUrl}}) · [Website]({{narbutikkenUrl}}) ·
+[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}}) · {{narbutikkenPhone}}

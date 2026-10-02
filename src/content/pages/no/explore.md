@@ -123,7 +123,5 @@ eller ring dem på {{havhotellPhone}}.
 Øyas egen butikk har dagligvarer, post, pakkeutlevering og fiskeutstyr,
 og er åpen hver dag fra {{narbutikkenOpens}} til midnatt.
 
-De legger jevnlig ut nytt på [Facebook]({{narbutikkenFacebookUrl}}).
-Se også [nettsiden deres]({{narbutikkenUrl}}), send en e-post til
-[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
-eller ring dem på {{narbutikkenPhone}}.
+[Facebook]({{narbutikkenFacebookUrl}}) · [Nettside]({{narbutikkenUrl}}) ·
+[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}}) · {{narbutikkenPhone}}
