@@ -228,6 +228,9 @@ const longestDates = [...new Set(
     column-gap: 2rem;
     align-items: start;
     padding-top: 1rem;
+    /* The calendar button ends the page, so it needs less than the 4rem
+       other pages leave under their last paragraph. */
+    padding-bottom: 2.5rem;
   }
 
   .dep-intro {
@@ -919,20 +922,28 @@ const longestDates = [...new Set(
   }
 
   /* Legend and credit on the left, the calendar button on the right, centred
-     on the two lines of text beside it. */
+     on the two lines of text beside it. When the button would make the text
+     wrap, it drops under the text instead, centred as on a phone: flex wraps
+     an item to a new line before it shrinks one. Both items grow, the text
+     9999 times faster, so beside the text the button keeps its own width and
+     stays on the right, and alone on its line it spans the row and centres. */
   .dep-foot {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem 1.5rem;
+    gap: 1.25rem 1.5rem;
   }
 
   .dep-foot-text {
+    flex: 9999 1 auto;
     min-width: 0;
   }
 
   .dep-pick {
-    flex: none;
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: center;
   }
 
   .dep-pick-start {
@@ -1817,10 +1828,6 @@ const longestDates = [...new Set(
     .dep-foot {
       flex-direction: column;
       align-items: stretch;
-    }
-    .dep-pick {
-      margin-top: 0.75rem;
-      text-align: center;
     }
     .dep-credit {
       line-height: 1.5;
