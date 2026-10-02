@@ -675,9 +675,21 @@ img.section-img {
   color: var(--color-text-light);
 }
 
-/* A place's own links on the explore page, one to a line with an icon for
-   what each one opens. Picked out by the Facebook link every such list has, so
+/* A place's own links on the explore page, each with an icon for what it
+   opens, side by side and wrapping as the card has room, rather than one
+   down the left with the right of the card empty. Picked out by the Facebook link every such list has, so
    a contact list that labels its lines in words ("E-post: ...") stays plain. */
+.section ul.contact-list:has(a[href*="facebook.com"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+}
+
+.contact-list:has(a[href*="facebook.com"]) li {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .contact-list:has(a[href*="facebook.com"]) a::before {
   content: "";
   display: inline-block;
