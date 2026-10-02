@@ -796,12 +796,29 @@ img.section-img {
 }
 
 /* An hours row whose dates are over, and the line under a list whose rows
-   all are (scripts/past-hours.js). Tinted rather than struck through: a
-   line through "12.00 – 20.00" hides the dash, and the old hours are
-   still a fair hint of what next season may look like. */
-.fact-list li.past .fact-value,
-.fact-list li.past .fact-when {
-  color: color-mix(in srgb, var(--color-urgent) 55%, var(--color-text-light));
+   all are (scripts/past-hours.js). A light red row rather than struck
+   through or coloured text: a line through "12.00 – 20.00" hides the
+   dash, and the old hours stay as readable as the rest, a fair hint of what
+   next season may look like. The tint runs to the card's edges: sideways
+   by a shadow over the list's side padding, and the list's top and bottom
+   padding moves into its first and last rows. */
+.fact-list li.past {
+  --past-tint: color-mix(in srgb, var(--color-urgent) 8%, var(--color-foam));
+  background: var(--past-tint);
+  box-shadow: -1.1rem 0 0 var(--past-tint), 1.1rem 0 0 var(--past-tint);
+}
+
+.section ul.fact-list:has(li.past) {
+  padding-block: 0;
+  overflow: clip;
+}
+
+.fact-list:has(li.past) li:first-child {
+  padding-top: 0.8rem;
+}
+
+.fact-list:has(li.past) li:last-child {
+  padding-bottom: 0.8rem;
 }
 
 .fact-past-note {
