@@ -106,15 +106,14 @@ søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
 
 ### Røvær Havhotell
 
-Restauranten på Røvær Havhotell har åpent hele sommeren frem til
-{{end}}. Søndag til onsdag er det åpent kl. {{hotelSunWed}} med
-matservering kl. {{hotelSunWedFood}}. Torsdag til lørdag er det åpent
-kl. {{hotelThuSat}} med matservering kl. {{hotelThuSatFood}}. (Etter
-{{end}} er det åpent i restauranten hver lørdag og søndag
-kl. {{hotelAutumn}} ut september.)
+Røvær Havhotell har restaurant og åpent for overnatting på bestilling
+hele året, og har forskjellige arrangementer i løpet av året.
 
-Røvær Havhotell har åpent for overnatting på bestilling hele året,
-og har forskjellige arrangementer i løpet av året.
+Åpningstider i restauranten {{year}}:
+
+* **Søndag til onsdag:** kl. {{hotelSunWed}}, matservering kl. {{hotelSunWedFood}}, frem til {{end}}
+* **Torsdag til lørdag:** kl. {{hotelThuSat}}, matservering kl. {{hotelThuSatFood}}, frem til {{end}}
+* **Etter {{end}}:** lørdag og søndag kl. {{hotelAutumn}}, ut september
 
 - [Facebook]({{havhotellFacebookUrl}})
 - [Nettside]({{havhotellUrl}})

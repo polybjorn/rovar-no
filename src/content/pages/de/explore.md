@@ -124,15 +124,15 @@ auch für das traditionelle norwegische Gericht „Komle“ bekannt.
 
 ### Røvær Havhotell
 
-Das Restaurant im Røvær Havhotell ist den ganzen Sommer bis zum
-{{end}} geöffnet. Sonntag bis Mittwoch von {{hotelSunWed}} Uhr mit
-Essensausgabe von {{hotelSunWedFood}} Uhr. Donnerstag bis Samstag von
-{{hotelThuSat}} Uhr mit Essensausgabe von {{hotelThuSatFood}} Uhr. (Nach
-dem {{end}} ist das Restaurant samstags und sonntags von {{hotelAutumn}} Uhr
-geöffnet, bis Ende September.)
+Das Røvær Havhotell hat ein Restaurant, bietet ganzjährig
+Übernachtungen auf Anfrage und veranstaltet über das Jahr verschiedene
+Events.
 
-Das Røvær Havhotell bietet ganzjährig Übernachtungen auf Anfrage und
-veranstaltet über das Jahr verschiedene Events.
+Öffnungszeiten des Restaurants {{year}}:
+
+* **Sonntag bis Mittwoch:** {{hotelSunWed}} Uhr, Essensausgabe {{hotelSunWedFood}} Uhr, bis zum {{end}}
+* **Donnerstag bis Samstag:** {{hotelThuSat}} Uhr, Essensausgabe {{hotelThuSatFood}} Uhr, bis zum {{end}}
+* **Nach dem {{end}}:** samstags und sonntags {{hotelAutumn}} Uhr, bis Ende September
 
 - [Facebook]({{havhotellFacebookUrl}})
 - [Website]({{havhotellUrl}})

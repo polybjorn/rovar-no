@@ -120,14 +120,14 @@ traditional Norwegian dish “komle”.
 
 ### Røvær Havhotell
 
-The restaurant at Røvær Havhotell is open all summer until {{end}}.
-Sunday to Wednesday it is open {{hotelSunWed}} with food served
-{{hotelSunWedFood}}. Thursday to Saturday it is open {{hotelThuSat}} with
-food served {{hotelThuSatFood}}. (After {{end}} the restaurant is open
-every Saturday and Sunday {{hotelAutumn}} through September.)
+Røvær Havhotell has a restaurant, offers accommodation by arrangement
+all year round, and hosts various events throughout the year.
 
-Røvær Havhotell offers accommodation by arrangement all year round,
-and hosts various events throughout the year.
+Restaurant opening hours {{year}}:
+
+* **Sunday to Wednesday:** {{hotelSunWed}}, food served {{hotelSunWedFood}}, until {{end}}
+* **Thursday to Saturday:** {{hotelThuSat}}, food served {{hotelThuSatFood}}, until {{end}}
+* **After {{end}}:** Saturday and Sunday {{hotelAutumn}}, through September
 
 - [Facebook]({{havhotellFacebookUrl}})
 - [Website]({{havhotellUrl}})
