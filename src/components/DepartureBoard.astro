@@ -918,11 +918,24 @@ const longestDates = [...new Set(
     margin-top: 0.15rem;
   }
 
-  /* The calendar button sits under the legend and credit rather than beside
-     them, so the text gets the full width and the button never moves as the
-     text wraps. */
+  /* Legend and credit on the left, the calendar button on the right, centred
+     on the two lines of text beside it. When the button would make the text
+     wrap, it drops under the text instead: flex wraps an item to a new line
+     before it shrinks one. */
+  .dep-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+  }
+
+  .dep-foot-text {
+    min-width: 0;
+  }
+
   .dep-pick {
-    margin-top: 0.75rem;
+    flex: none;
   }
 
   .dep-pick-start {
@@ -1804,7 +1817,12 @@ const longestDates = [...new Set(
       display: inline-block;
       vertical-align: -0.15rem;
     }
+    .dep-foot {
+      flex-direction: column;
+      align-items: stretch;
+    }
     .dep-pick {
+      margin-top: 0.75rem;
       text-align: center;
     }
     .dep-credit {
