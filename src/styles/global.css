@@ -592,8 +592,7 @@ img.section-img {
   pointer-events: none;
 }
 
-.map-routes polyline,
-.map-leader {
+.map-routes polyline {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -610,6 +609,13 @@ img.section-img {
   stroke-width: 3.5;
 }
 
+/* Round caps on a zero-length dash draw a row of dots. */
+.map-route-alt {
+  stroke: var(--color-ocean-dark);
+  stroke-width: 3;
+  stroke-dasharray: 0 6;
+}
+
 .map-stop {
   position: absolute;
   width: 10px;
@@ -617,33 +623,6 @@ img.section-img {
   border: 2.5px solid var(--color-ocean-dark);
   border-radius: 50%;
   background: var(--color-foam);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-.map-stop-home {
-  width: 20px;
-  height: 20px;
-  border: 3px solid var(--color-foam);
-  background: var(--color-kelp);
-  box-shadow: 0 0 0 6px rgba(46, 125, 91, 0.3), 0 1px 4px rgba(0, 0, 0, 0.3);
-}
-
-.map-leader {
-  stroke: var(--color-ocean-dark);
-  stroke-width: 1.5;
-}
-
-.map-label {
-  position: absolute;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  background: var(--color-foam);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-  color: var(--color-ocean-dark);
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }

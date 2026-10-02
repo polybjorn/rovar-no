@@ -11,15 +11,10 @@ import sharp from 'sharp';
 import { ENTUR_API, ENTUR_CLIENT, ROVAR_STOP } from '../src/scripts/departures-core.js';
 
 const ZOOM = 13;
-// West, south, east, north: Røvær to Haugesund with sea round both.
-const BOX = [5.05, 59.405, 5.3, 59.458];
+// West, south, east, north: Røvær to Haugesund, and south far enough for the
+// Feøy and Kveitevik calls.
+const BOX = [5.05, 59.368, 5.3, 59.455];
 const TILE = 256;
-// Where the two end labels sit: out in open water, clear of the land they
-// name, with a leader line back to the quay.
-const LABELS = {
-  Røvær: [59.427, 5.072],
-  Haugesund: [59.4335, 5.236],
-};
 // Entur has one path per stop sequence, and for the direct sailing it leaves
 // Røvær through the southern channel. The boat often uses the northern one
 // instead, which no open source records, so it is drawn here by hand from the
@@ -37,10 +32,6 @@ const NORTH_APPROACH = [
   [59.43705, 5.14606],
   [59.43006, 5.17353],
 ];
-// A route starts where everything within this many image pixels of it is
-// sea, so it begins at Røvær's harbour mouth instead of running up a channel
-// narrower than the line and painting over the island either side.
-const OPEN_WATER = 10;
 const TILE_URL = (z, x, y) =>
   `https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/${z}/${y}/${x}.png`;
 
@@ -111,26 +102,6 @@ function decode(s) {
 const round = (n) => Math.round(n * 10) / 10;
 const at = (lat, lon) => [round(px(lon) - left), round(py(lat) - top)];
 
-// Kartverket's topo sea is a pale blue with blue well above red; land, roads
-// and labels all fail that.
-async function waterTest() {
-  const { data, info } = await sharp(IMAGE.pathname).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  const isWater = (x, y) => {
-    if (x < 0 || y < 0 || x >= info.width || y >= info.height) return true;
-    const i = (y * info.width + x) * 3;
-    return data[i + 2] >= 240 && data[i + 2] - data[i] >= 15;
-  };
-  return ([x, y]) => {
-    for (let dy = -OPEN_WATER; dy <= OPEN_WATER; dy++) {
-      for (let dx = -OPEN_WATER; dx <= OPEN_WATER; dx++) {
-        if (dx * dx + dy * dy > OPEN_WATER * OPEN_WATER) continue;
-        if (!isWater(Math.round(x + dx), Math.round(y + dy))) return false;
-      }
-    }
-    return true;
-  };
-}
-
 // The point on a polyline closest to p, so the hand-drawn approach ends on
 // Entur's path rather than a few pixels beside it.
 function nearestOn(line, [px0, py0]) {
@@ -149,24 +120,6 @@ function nearestOn(line, [px0, py0]) {
   return best.map(round);
 }
 
-// Drop the start of the path up to the first point in open water, stepping a
-// pixel at a time so the cut lands where the water opens rather than at the
-// next vertex Entur happened to give. Only the Røvær end: the approach to
-// Haugesund runs close to land all the way, and cutting it there leaves the
-// line well short of the town.
-function trimToOpenWater(points, open) {
-  for (let i = 1; i < points.length; i++) {
-    const [x0, y0] = points[i - 1];
-    const [x1, y1] = points[i];
-    const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0)));
-    for (let k = 0; k < n; k++) {
-      const p = [x0 + ((x1 - x0) * k) / n, y0 + ((y1 - y0) * k) / n];
-      if (open(p)) return [[round(p[0]), round(p[1])], ...points.slice(i)];
-    }
-  }
-  return points;
-}
-
 async function buildRoutes() {
   const query = `{ stopPlace(id: "${ROVAR_STOP}") { estimatedCalls(numberOfDepartures: 300, timeRange: 1209600) {
     serviceJourney { journeyPattern { pointsOnLink { points } quays { name latitude longitude } } } } } }`;
@@ -178,9 +131,11 @@ async function buildRoutes() {
   const json = await res.json();
   if (json.errors) throw new Error(JSON.stringify(json.errors));
 
-  // Draw only the stop sequence most sailings follow. The calls at
-  // Vibrandsøy, Feøy and Kveitevik are rare (the run prints the counts), and
-  // drawn alongside they read as a bus route that stops everywhere.
+  // The stop sequence most sailings follow is the main line. The loop past
+  // Feøy and Kveitevik is drawn too, dotted, as the alternative it is. The
+  // Vibrandsøy-only call is left out: its path is the main line's with a
+  // short detour in Smedasundet, too close to tell apart at this scale. The
+  // run prints how often each sequence sails.
   const counts = new Map();
   for (const call of json.data.stopPlace.estimatedCalls) {
     const p = call.serviceJourney.journeyPattern;
@@ -194,10 +149,12 @@ async function buildRoutes() {
   const ranked = [...counts.entries()].sort((a, b) => b[1].n - a[1].n);
   const { pattern } = ranked[0][1];
 
-  const open = await waterTest();
-  const south = trimToOpenWater(decode(pattern.pointsOnLink.points).map(([la, lo]) => at(la, lo)), open);
-  const north = trimToOpenWater(NORTH_APPROACH.map(([la, lo]) => at(la, lo)), open);
+  const path = (p) => decode(p.pointsOnLink.points).map(([la, lo]) => at(la, lo));
+  const south = path(pattern);
+  const north = NORTH_APPROACH.map(([la, lo]) => at(la, lo));
   north[north.length - 1] = nearestOn(south, north.at(-1));
+  const loop = ranked.find(([key]) => key.includes('Feøy'));
+  if (!loop) throw new Error('no sailing calls at Feøy in the next two weeks');
 
   const data = {
     width,
@@ -206,10 +163,10 @@ async function buildRoutes() {
     zoom: ZOOM,
     sailings: Object.fromEntries(ranked.map(([k, v]) => [k.replace(/ hurtigbåtkai/g, ''), v.n])),
     routes: [south, north],
+    alternatives: [path(loop[1].pattern)],
     stops: Object.fromEntries(
       [pattern.quays[0], pattern.quays.at(-1)].map((q) => [q.name.replace(/ hurtigbåtkai$/, ''), at(q.latitude, q.longitude)]),
     ),
-    labels: Object.fromEntries(Object.entries(LABELS).map(([name, [la, lo]]) => [name, at(la, lo)])),
   };
   fs.writeFileSync(ROUTES, JSON.stringify(data, null, 1) + '\n');
   return data;
