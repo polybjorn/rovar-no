@@ -63,7 +63,7 @@ spannende Themen wie Aquakultur, Geschichte, Umwelt und
 Naturverhältnisse. Es gibt Bildschirme zur Vertiefung, Spiele und
 Aktivitäten.
 
-Der Besuch des Zentrums ist KOSTENLOS!
+- **Preis:** kostenlos
 
 - [Website]({{havbrukUrl}})
 

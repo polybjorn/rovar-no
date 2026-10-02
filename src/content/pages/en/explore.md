@@ -61,7 +61,7 @@ exciting topics such as aquaculture, history, environment and natural
 conditions. There are screens for deeper learning, games and
 activities.
 
-Visiting the centre is FREE!
+- **Price:** free
 
 - [Website]({{havbrukUrl}})
 

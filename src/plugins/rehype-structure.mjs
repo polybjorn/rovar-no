@@ -154,6 +154,18 @@ export function rehypeStructure() {
 
     tree.children = out;
 
+    // A place under a heading of its own gets the card the food places get
+    // under theirs, from its hours or prices (its links, with neither) to the
+    // links that close it, so every place's links sit inside a card.
+    const hasClass = (node, name) => node.properties?.className?.includes(name);
+    for (const sec of out) {
+      if (!isElement(sec, 'div') || !hasClass(sec, 'section')) continue;
+      const kids = sec.children;
+      if (kids.some((c) => hasClass(c, 'info-box')) || !kids.some((c) => hasClass(c, 'link-list'))) continue;
+      const at = kids.findIndex((c) => hasClass(c, 'fact-list') || hasClass(c, 'link-list'));
+      sec.children = [...kids.slice(0, at), div('info-box', kids.slice(at))];
+    }
+
     // External links open in a new tab, as they did in the hand-written pages.
     visit(tree, 'element', (node) => {
       if (node.tagName !== 'a') return;
