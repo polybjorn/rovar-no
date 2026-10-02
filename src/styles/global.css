@@ -757,7 +757,8 @@ img.section-img {
   display: grid;
   grid-template-columns: fit-content(40%) auto 1fr;
   column-gap: 1.25rem;
-  padding: 0.35rem 1.1rem;
+  --fact-pad: 1.1rem;
+  padding: 0.35rem var(--fact-pad);
   background: var(--color-foam);
   border: 1px solid var(--color-border);
   border-radius: 10px;
@@ -795,17 +796,25 @@ img.section-img {
   color: var(--color-text-light);
 }
 
-/* On a phone there is no room for three columns: the dates go under the
-   value, in the same row. */
+/* On a phone the columns leave the values a thin strip, more so in a list
+   inside a card. So each row puts its label on a line of its own and the
+   value and dates side by side under it, the dates moving under the value
+   when they do not fit. */
 @media (max-width: 600px) {
-  .fact-value:has(+ .fact-when),
-  .fact-when {
-    grid-column: 2 / -1;
+  .section ul.fact-list {
+    display: block;
+    --fact-pad: 0.9rem;
   }
 
-  /* A label that wraps would otherwise push the dates a line down. */
-  .fact-list li:has(.fact-when) > strong {
-    grid-row: span 2;
+  .fact-list li {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.75rem;
+    padding: 0.55rem 0;
+  }
+
+  .fact-list li > strong {
+    flex-basis: 100%;
   }
 }
 
