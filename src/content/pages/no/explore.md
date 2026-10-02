@@ -84,18 +84,16 @@ Røvær. Det sies at Røværulykka preger Røværbuen den dag i dag.
 Skjoldbladbua rett ved siden av Hiltahuset selger varer laget av lokale
 hender.
 
-- **Åpent:** søndager kl. {{hiltaSunday}}, {{hiltaOpens}} til {{hiltaCloses}}
-- **Ellers:** etter avtale med Haugalandmuseet
+- **Åpent:** søndager og torsdager kl. {{hiltaHours}}, {{hiltaOpens}} til {{hiltaCloses}}
 - **Voksne:** {{hiltaPriceAdult}}
-- **Redusert:** {{hiltaPriceReduced}} for studenter (16-18 år) og honnør
+- **Redusert:** {{hiltaPriceReduced}} for studenter og honnør
 - **Barn under 16:** gratis
 
-Billetten gir også inngang til to av Haugalandmuseets andre museer innen
-48 timer.
+Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 
 - [{{hiltaEmail}}](mailto:{{hiltaEmail}})
 - [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
-- [Fjord Norway](https://www.fjordnorway.com/no/se-og-gjore/hiltahuset-pa-rovaer)
+- [Haugalandmuseet](https://haugalandmuseet.no/museum/hiltahuset/)
 
 ## Mat, drikke og overnatting
 

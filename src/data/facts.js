@@ -26,11 +26,11 @@ export const facts = {
   ribPriceAdult: '100 kr',
   ribPriceChild: '50 kr',
 
-  // Hiltahuset, run by Haugalandmuseet: prices and contact as Fjord Norway
-  // lists them (fjordnorway.com, 2026-10-02). The reduced price is for
-  // students 16-18 and seniors; under 16 is free.
-  hiltaPriceAdult: '100 kr',
-  hiltaPriceReduced: '70 kr',
+  // Hiltahuset, run by Haugalandmuseet: prices and contact from the museum's
+  // own page (haugalandmuseet.no/museum/hiltahuset, read 2026-10-02). The
+  // reduced price is for students and seniors; under 16 is free.
+  hiltaPriceAdult: '50 kr',
+  hiltaPriceReduced: '30 kr',
   hiltaEmail: 'post@haugalandmuseet.no',
   hiltaPhone: '52 70 93 60',
   // Røvær Sjøhus
