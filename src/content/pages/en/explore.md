@@ -61,8 +61,9 @@ exciting topics such as aquaculture, history, environment and natural
 conditions. There are screens for deeper learning, games and
 activities.
 
-Visiting the centre is FREE! Visit the website
-[here]({{havbrukUrl}}).
+Visiting the centre is FREE!
+
+- [Website]({{havbrukUrl}})
 
 ## RIB tour to the salmon pens
 
@@ -79,8 +80,10 @@ Price: {{ribPriceAdult}} for adults and {{ribPriceChild}} for children.
 - Children under 18 need written permission from a guardian.
 
 Sign up at Røvær Sjøhus (open daily {{sjohusSummer}} until {{end}}), by
-email to [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-or by phone on {{havbrukPhone}}. Payment at Røvær Sjøhus or by Vipps.
+email or by phone. Payment at Røvær Sjøhus or by Vipps.
+
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 

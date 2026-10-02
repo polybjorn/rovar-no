@@ -675,13 +675,16 @@ img.section-img {
   color: var(--color-text-light);
 }
 
-/* A place's own links on the explore page, each with an icon for what it
-   opens, side by side and wrapping as the card has room, rather than one
-   down the left with the right of the card empty. The web links come first
-   and email and phone on a line of their own below. Picked out by the
-   Facebook link every such list has, so a contact list that labels its lines
-   in words ("E-post: ...") stays plain. */
-.section ul.contact-list:has(a[href*="facebook.com"]) {
+/* A place's own links (a list of nothing but links, see rehype-structure),
+   each with an icon for what it opens, side by side and wrapping as the
+   card has room, rather than one down the left with the right of the card
+   empty. The web links come first and email and phone on a line of their
+   own below. */
+.section ul.link-list {
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-light);
   display: flex;
   flex-wrap: wrap;
   column-gap: 1.25rem;
@@ -689,22 +692,22 @@ img.section-img {
 
 /* Spaced by margin rather than row-gap, so the zero-height break below adds
    no gap of its own. */
-.contact-list:has(a[href*="facebook.com"]) li {
+.link-list li {
   margin: 0.175rem 0;
   overflow-wrap: anywhere;
 }
 
-.contact-list:has(a[href*="facebook.com"]) li:has(a[href^="mailto:"], a[href^="tel:"]) {
+.link-list li:has(a[href^="mailto:"], a[href^="tel:"]) {
   order: 2;
 }
 
-.contact-list:has(a[href*="facebook.com"]):has(a[href^="mailto:"], a[href^="tel:"])::after {
+.link-list:has(a[href^="mailto:"], a[href^="tel:"]):has(li:not(:has(a[href^="mailto:"], a[href^="tel:"])))::after {
   content: "";
   flex-basis: 100%;
   order: 1;
 }
 
-.contact-list:has(a[href*="facebook.com"]) a::before {
+.link-list a::before {
   content: "";
   display: inline-block;
   width: 1em;
@@ -722,23 +725,23 @@ img.section-img {
   mask-position: center;
 }
 
-.contact-list {
+.link-list {
   --icon-link: url("../assets/icons/globe.svg");
 }
 
-.contact-list a[href*="facebook.com"] {
+.link-list a[href*="facebook.com"] {
   --icon-link: url("../assets/icons/facebook.svg");
 }
 
-.contact-list a[href^="mailto:"] {
+.link-list a[href^="mailto:"] {
   --icon-link: url("../assets/icons/mail.svg");
 }
 
-.contact-list a[href^="tel:"] {
+.link-list a[href^="tel:"] {
   --icon-link: url("../assets/icons/phone.svg");
 }
 
-.contact-list a[href*="/meny"] {
+.link-list a[href*="/meny"] {
   --icon-link: url("../assets/icons/menu.svg");
 }
 

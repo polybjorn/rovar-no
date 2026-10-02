@@ -63,8 +63,9 @@ spannende Themen wie Aquakultur, Geschichte, Umwelt und
 Naturverhältnisse. Es gibt Bildschirme zur Vertiefung, Spiele und
 Aktivitäten.
 
-Der Besuch des Zentrums ist KOSTENLOS! Besuchen Sie die Website
-[hier]({{havbrukUrl}}).
+Der Besuch des Zentrums ist KOSTENLOS!
+
+- [Website]({{havbrukUrl}})
 
 ## RIB-Tour zu den Lachsgehegen
 
@@ -81,10 +82,11 @@ Preis: {{ribPriceAdult}} für Erwachsene und {{ribPriceChild}} für Kinder.
 - Kinder unter 18 Jahren benötigen eine schriftliche Erlaubnis der Erziehungsberechtigten.
 
 Anmeldung im Røvær Sjøhus (täglich {{sjohusSummer}} Uhr geöffnet, bis zum
-{{end}}), per E-Mail an
-[{{havbrukEmail}}](mailto:{{havbrukEmail}})
-oder telefonisch unter {{havbrukPhone}}. Bezahlung im Røvær Sjøhus oder per
+{{end}}), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.
+
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 

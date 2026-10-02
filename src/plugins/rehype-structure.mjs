@@ -8,6 +8,7 @@ import { visit } from 'unist-util-visit';
 //   ### heading inside a section        -> .info-box
 //   a lone image                        -> .section-img, unwrapped from its <p>
 //   a list inside an info box           -> .contact-list
+//   a list of nothing but links         -> .link-list
 //
 // Everything here is language-independent: it runs the same on all 15 content
 // folders.
@@ -27,6 +28,17 @@ function loneImage(node) {
   if (!isElement(node, 'p')) return null;
   const real = node.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
   return real.length === 1 && isElement(real[0], 'img') ? real[0] : null;
+}
+
+// A list whose every item is one link and nothing else: a place's web
+// address, email and phone. A line that labels its link in words ("E-post:
+// ...") keeps the list plain.
+function linksOnly(node) {
+  const items = node.children.filter((c) => isElement(c, 'li'));
+  return items.length > 0 && items.every((li) => {
+    const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+    return real.length === 1 && isElement(real[0], 'a');
+  });
 }
 
 export function rehypeStructure() {
@@ -74,6 +86,10 @@ export function rehypeStructure() {
 
       if (isElement(node, 'ul') && infoBox) {
         node.properties.className = [...(node.properties.className ?? []), 'contact-list'];
+      }
+
+      if (isElement(node, 'ul') && linksOnly(node)) {
+        node.properties.className = [...(node.properties.className ?? []), 'link-list'];
       }
 
       if (isElement(node, 'p') && !section) {

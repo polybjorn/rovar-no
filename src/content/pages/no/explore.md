@@ -51,8 +51,9 @@ Utstillingen er kompakt, og gir en enkel innføring i store og spennende
 tema som havbruk, historie, miljø og naturforhold. Det er skjermer for
 fordypning, spill og aktiviteter.
 
-Det er GRATIS å besøke visningssenteret! Besøk nettsiden
-[her]({{havbrukUrl}}).
+Det er GRATIS å besøke visningssenteret!
+
+- [Nettside]({{havbrukUrl}})
 
 ## Visningstur til laksemerd
 
@@ -69,8 +70,10 @@ Pris: {{ribPriceAdult}} for voksne og {{ribPriceChild}} for barn.
 - Barn under 18 år må ha skriftlig tillatelse fra foresatte.
 
 Påmelding på Røvær Sjøhus (åpent daglig {{sjohusSummer}} frem til
-{{end}}), [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-eller på telefon {{havbrukPhone}}. Betaling på Røvær Sjøhus eller på VIPPS.
+{{end}}), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
+
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Museumet Hiltahuset
 
