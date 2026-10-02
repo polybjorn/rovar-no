@@ -32,9 +32,24 @@
   /* Every bit of text on the dark blue surfaces uses this one white. */
   --color-on-dark: #ffffff;
   --color-border: #d5cfc5;
-  --max-width: 960px;
+  /* Content widths, named by what they hold rather than by pixel value, so
+     a width and a breakpoint that share a number stay independent. */
+  --width-site: 960px;  /* nav, footer and wide pages */
+  --width-page: 720px;  /* a page's text column */
+  --width-intro: 640px; /* the lead paragraph under a page title */
+  --width-hero: 520px;  /* the line under the front-page title */
   --nav-height: 3.5rem;
 }
+
+/* Breakpoints. var() does not work inside @media or @container, so these stay
+   literals; this list is the record, kept in step by hand.
+     700px  global.css: the nav collapses to the menu button
+     640px  DepartureBoard.astro: the phone layout of the ferry page
+            (641px as its min-width counterpart)
+     600px  global.css: the card grid goes to one column, the hero shrinks
+     560px  DepartureBoard.astro: the calendar stacks its two directions
+     520px  global.css: the footer link columns stack
+     25rem  DepartureBoard.astro, container query: short weekday names */
 
 *, *::before, *::after {
   margin: 0;
@@ -130,7 +145,7 @@ a:hover {
 }
 
 .nav-inner {
-  max-width: var(--max-width);
+  max-width: var(--width-site);
   margin: 0 auto;
   padding: 0 1.5rem;
   height: var(--nav-height);
@@ -393,13 +408,13 @@ span.lang-option[aria-current="true"] {
 /* Page layout */
 
 .page {
-  max-width: 720px;
+  max-width: var(--width-page);
   margin: 0 auto;
   padding: 2.5rem 1.5rem 4rem;
 }
 
 .page-wide {
-  max-width: var(--max-width);
+  max-width: var(--width-site);
 }
 
 .page-title {
@@ -414,7 +429,7 @@ span.lang-option[aria-current="true"] {
   font-size: 1.1rem;
   color: var(--color-text-light);
   margin-bottom: 2rem;
-  max-width: 640px;
+  max-width: var(--width-intro);
 }
 
 /* Sections */
@@ -532,7 +547,7 @@ img.section-img {
 
 .hero p {
   font-size: 1.15rem;
-  max-width: 520px;
+  max-width: var(--width-hero);
   margin: 0 auto;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
@@ -688,7 +703,7 @@ img.section-img {
    width, so the footer does not leave its right half empty, with the contact
    line closing the footer underneath them. */
 .footer-inner {
-  max-width: var(--max-width);
+  max-width: var(--width-site);
   margin: 0 auto;
   padding: 0 1.5rem;
   display: flex;
