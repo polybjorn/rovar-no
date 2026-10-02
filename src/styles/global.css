@@ -759,6 +759,10 @@ img.section-img {
   background: var(--color-foam);
   border: 1px solid var(--color-border);
   border-radius: 10px;
+  /* Inside an info box it is also a .contact-list, whose smaller, lighter
+     text is for a place's address lines, not for its hours and prices. */
+  font-size: inherit;
+  color: inherit;
 }
 
 .fact-list li {
