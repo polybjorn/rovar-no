@@ -730,3 +730,49 @@ export function expiryEvent(events, opts = {}) {
     url,
   };
 }
+
+// --- feed retirement --------------------------------------------------------
+
+// The subscription feeds lost their link when the picker landed (#89) and are
+// kept only so existing subscribers are not cut off mid-season (#88). From
+// this Oslo date the build publishes them with a single closing note in place
+// of the timetable, so a subscribed calendar empties instead of freezing on
+// the last departures it saw. Picked to fall just after the year end Kolumbus
+// publishes to, when a subscriber's calendar would be running out anyway.
+export const FEED_RETIRE_DATE = '2027-01-04';
+// Scheduled deploys keep running this long past the retirement, so a dropped
+// or disabled run still leaves one build that publishes the closing note.
+export const FEED_SCHEDULE_GRACE_DAYS = 7;
+
+export function feedRetired(now = new Date(), retireDate = FEED_RETIRE_DATE) {
+  return toOsloDate(now) >= retireDate;
+}
+
+// Whether a scheduled deploy still has a feed to refresh. Pushes always build;
+// this only answers for the daily run, which exists for the feeds alone.
+export function feedScheduleWanted(
+  now = new Date(),
+  retireDate = FEED_RETIRE_DATE,
+  graceDays = FEED_SCHEDULE_GRACE_DAYS
+) {
+  let last = retireDate;
+  for (let i = 0; i < graceDays; i++) last = nextOsloDay(last);
+  return toOsloDate(now) <= last;
+}
+
+// The one entry a retired feed carries, on the retirement date: what happened
+// and where the departures went. A fixed UID, so every later build replaces it
+// rather than adding another.
+export function retiredEvent(opts = {}) {
+  const { strings = {}, stamp = new Date(), url, retireDate = FEED_RETIRE_DATE } = opts;
+  return {
+    uid: `feed-retired@${ICS_DOMAIN}`,
+    stamp,
+    allDay: true,
+    date: retireDate,
+    transparent: true,
+    summary: strings.icsFeedRetired ?? 'This calendar has ended',
+    description: strings.icsFeedRetiredBody ?? '',
+    url,
+  };
+}
