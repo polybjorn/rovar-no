@@ -796,15 +796,12 @@ img.section-img {
 }
 
 /* An hours row whose dates are over, and the line under a list whose rows
-   all are (scripts/past-hours.js). Still readable, as a hint of what next
-   season may look like. */
-.fact-list li.past {
-  color: var(--color-text-light);
-}
-
+   all are (scripts/past-hours.js). Tinted rather than struck through: a
+   line through "12.00 – 20.00" hides the dash, and the old hours are
+   still a fair hint of what next season may look like. */
 .fact-list li.past .fact-value,
 .fact-list li.past .fact-when {
-  text-decoration: line-through;
+  color: color-mix(in srgb, var(--color-urgent) 55%, var(--color-text-light));
 }
 
 .fact-past-note {
