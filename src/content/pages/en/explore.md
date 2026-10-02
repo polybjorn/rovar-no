@@ -130,4 +130,7 @@ or call {{havhotellPhone}}.
 
 The island's own shop has groceries, post, parcel pickup and fishing
 tackle, and is open every day from {{narbutikkenOpens}} until midnight.
-More at [Nærbutikken Røvær]({{narbutikkenUrl}}).
+
+See [their website]({{narbutikkenUrl}}), email
+[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
+or call {{narbutikkenPhone}}.

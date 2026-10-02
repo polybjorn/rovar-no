@@ -121,5 +121,8 @@ eller ring dem på {{havhotellPhone}}.
 ### Nærbutikken Røvær
 
 Øyas egen butikk har dagligvarer, post, pakkeutlevering og fiskeutstyr,
-og er åpen hver dag fra {{narbutikkenOpens}} til midnatt. Les mer hos
-[Nærbutikken Røvær]({{narbutikkenUrl}}).
+og er åpen hver dag fra {{narbutikkenOpens}} til midnatt.
+
+Se [nettsiden deres]({{narbutikkenUrl}}), send en e-post til
+[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
+eller ring dem på {{narbutikkenPhone}}.

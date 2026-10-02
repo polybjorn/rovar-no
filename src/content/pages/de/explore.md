@@ -138,4 +138,8 @@ oder telefonisch unter {{havhotellPhone}}.
 
 Der inseleigene Laden bietet Lebensmittel, Post, Paketausgabe und
 Angelzubehör und ist täglich von {{narbutikkenOpens}} Uhr bis Mitternacht
-geöffnet. Mehr bei [Nærbutikken Røvær]({{narbutikkenUrl}}).
+geöffnet.
+
+Mehr auf [ihrer Website]({{narbutikkenUrl}}), Kontakt unter
+[{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
+oder telefonisch unter {{narbutikkenPhone}}.

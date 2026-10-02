@@ -39,6 +39,8 @@ export const facts = {
   // Nærbutikken Røvær
   narbutikkenUrl: 'https://narbutikken.no/finn-butikk/narbutikken-rovar',
   narbutikkenOpens: '05:45',
+  narbutikkenEmail: 'narbutikken.rovaer@narbutikken.no',
+  narbutikkenPhone: '52 71 80 23',
 
   // Leirskolen
   campSchoolEmail: 'espen.martens@haugesund.kommune.no',
