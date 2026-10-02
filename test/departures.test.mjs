@@ -806,6 +806,20 @@ test('the chosen weekdays narrow a weekday pick, and leave a weekend pick alone'
   assert.deepEqual(out.map((e) => e.uid), [saturday.uid, timetable[3].uid, timetable[4].uid]);
 });
 
+test('weekday picks that carry their own weekdays repeat on those alone', () => {
+  // Tuesday 10:30 to Haugesund, Wednesday 08:40 to Rovar (#102).
+  const out1030 = { ...ev('2026-10-06T08:30:00Z'), weekdays: [1] };
+  const in0840 = { ...ev('2026-10-07T06:40:00Z', 'to-rovar'), weekdays: [2] };
+  const timetable = [
+    ev('2026-10-06T08:30:00Z'), // Tuesday 10:30 out: kept
+    ev('2026-10-06T06:40:00Z', 'to-rovar'), // Tuesday 08:40 in: not its day
+    ev('2026-10-07T08:30:00Z'), // Wednesday 10:30 out: not its day
+    ev('2026-10-07T06:40:00Z', 'to-rovar'), // Wednesday 08:40 in: kept
+  ];
+  const out = weeklyEvents([out1030, in0840], timetable, '2026-10-01', [0, 1, 2, 3, 4]);
+  assert.deepEqual(out.map((e) => e.uid), [timetable[0].uid, timetable[3].uid]);
+});
+
 test('Saturday and Sunday picks each keep their own day', () => {
   const saturday = ev('2026-10-03T20:45:00Z'); // Saturday 22:45
   const timetable = [

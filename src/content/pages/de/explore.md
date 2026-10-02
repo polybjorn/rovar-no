@@ -63,8 +63,9 @@ spannende Themen wie Aquakultur, Geschichte, Umwelt und
 Naturverhältnisse. Es gibt Bildschirme zur Vertiefung, Spiele und
 Aktivitäten.
 
-Der Besuch des Zentrums ist KOSTENLOS! Besuchen Sie die Website
-[hier]({{havbrukUrl}}).
+Der Besuch des Zentrums ist KOSTENLOS!
+
+- [Website]({{havbrukUrl}})
 
 ## RIB-Tour zu den Lachsgehegen
 
@@ -81,10 +82,11 @@ Preis: {{ribPriceAdult}} für Erwachsene und {{ribPriceChild}} für Kinder.
 - Kinder unter 18 Jahren benötigen eine schriftliche Erlaubnis der Erziehungsberechtigten.
 
 Anmeldung im Røvær Sjøhus (täglich {{sjohusSummer}} Uhr geöffnet, bis zum
-{{end}}), per E-Mail an
-[{{havbrukEmail}}](mailto:{{havbrukEmail}})
-oder telefonisch unter {{havbrukPhone}}. Bezahlung im Røvær Sjøhus oder per
+{{end}}), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.
+
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 
@@ -109,8 +111,7 @@ bekannt.
 Nach dem {{end}} ist samstags und sonntags von {{sjohusAutumn}} Uhr
 geöffnet, bis Ende September.
 
-Mehr Informationen bei
-[Røvær Sjøhus auf Facebook]({{sjohusFacebookUrl}}).
+- [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
@@ -121,15 +122,22 @@ Essensausgabe von {{hotelSunWedFood}} Uhr. Donnerstag bis Samstag von
 dem {{end}} ist das Restaurant samstags und sonntags von {{hotelAutumn}} Uhr
 geöffnet, bis Ende September.)
 
-Die Speisekarte finden Sie
-[hier]({{havhotellMenuUrl}}).
-
 Das Røvær Havhotell bietet ganzjährig Übernachtungen auf Anfrage und
-veranstaltet über das Jahr verschiedene Events. Das Programm finden
-Sie auf
-[ihrer Website]({{havhotellUrl}}).
+veranstaltet über das Jahr verschiedene Events.
 
-Kontakt unter
-[{{havhotellEmail}}](mailto:{{havhotellEmail}}),
-auf [Facebook]({{havhotellFacebookUrl}})
-oder telefonisch unter {{havhotellPhone}}.
+- [Facebook]({{havhotellFacebookUrl}})
+- [Website]({{havhotellUrl}})
+- [Speisekarte]({{havhotellMenuUrl}})
+- [{{havhotellEmail}}](mailto:{{havhotellEmail}})
+- [{{havhotellPhone}}](tel:{{havhotellPhoneTel}})
+
+### Nærbutikken Røvær
+
+Der inseleigene Laden bietet Lebensmittel, Post, Paketausgabe und
+Angelzubehör und ist täglich von {{narbutikkenOpens}} Uhr bis Mitternacht
+geöffnet.
+
+- [Facebook]({{narbutikkenFacebookUrl}})
+- [Website]({{narbutikkenUrl}})
+- [{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
+- [{{narbutikkenPhone}}](tel:{{narbutikkenPhoneTel}})

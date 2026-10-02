@@ -61,8 +61,9 @@ exciting topics such as aquaculture, history, environment and natural
 conditions. There are screens for deeper learning, games and
 activities.
 
-Visiting the centre is FREE! Visit the website
-[here]({{havbrukUrl}}).
+Visiting the centre is FREE!
+
+- [Website]({{havbrukUrl}})
 
 ## RIB tour to the salmon pens
 
@@ -79,8 +80,10 @@ Price: {{ribPriceAdult}} for adults and {{ribPriceChild}} for children.
 - Children under 18 need written permission from a guardian.
 
 Sign up at Røvær Sjøhus (open daily {{sjohusSummer}} until {{end}}), by
-email to [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-or by phone on {{havbrukPhone}}. Payment at Røvær Sjøhus or by Vipps.
+email or by phone. Payment at Røvær Sjøhus or by Vipps.
+
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 
@@ -103,8 +106,7 @@ traditional Norwegian dish “komle”.
 
 After {{end}} it is open Saturday and Sunday {{sjohusAutumn}} through September.
 
-For more information, see
-[Røvær Sjøhus on Facebook]({{sjohusFacebookUrl}}).
+- [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
@@ -114,14 +116,21 @@ Sunday to Wednesday it is open {{hotelSunWed}} with food served
 food served {{hotelThuSatFood}}. (After {{end}} the restaurant is open
 every Saturday and Sunday {{hotelAutumn}} through September.)
 
-The menu is available
-[here]({{havhotellMenuUrl}}).
-
 Røvær Havhotell offers accommodation by arrangement all year round,
-and hosts various events throughout the year. See the programme on
-[their website]({{havhotellUrl}}).
+and hosts various events throughout the year.
 
-Contact them at
-[{{havhotellEmail}}](mailto:{{havhotellEmail}}),
-on [Facebook]({{havhotellFacebookUrl}})
-or call {{havhotellPhone}}.
+- [Facebook]({{havhotellFacebookUrl}})
+- [Website]({{havhotellUrl}})
+- [Menu]({{havhotellMenuUrl}})
+- [{{havhotellEmail}}](mailto:{{havhotellEmail}})
+- [{{havhotellPhone}}](tel:{{havhotellPhoneTel}})
+
+### Nærbutikken Røvær
+
+The island's own shop has groceries, post, parcel pickup and fishing
+tackle, and is open every day from {{narbutikkenOpens}} until midnight.
+
+- [Facebook]({{narbutikkenFacebookUrl}})
+- [Website]({{narbutikkenUrl}})
+- [{{narbutikkenEmail}}](mailto:{{narbutikkenEmail}})
+- [{{narbutikkenPhone}}](tel:{{narbutikkenPhoneTel}})

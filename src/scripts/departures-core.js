@@ -614,8 +614,8 @@ export function dayKind(weekday) {
 }
 
 // A pick repeated every week, on the days of its own kind: a pick from a
-// weekday's board repeats on the chosen weekdays, a Saturday pick on
-// Saturdays. The repeat is a match, not a copy - the same direction leaving at
+// weekday's board repeats on its own weekdays if it carries them (a pick's
+// `weekdays`), else on the chosen ones, a Saturday pick on Saturdays. The repeat is a match, not a copy - the same direction leaving at
 // the same Oslo clock time - so a day where that boat does not run, a holiday
 // say, is simply left out. Everything is counted from `from` on.
 export function weeklyEvents(picks, events, from, weekdays = WEEKDAYS) {
@@ -624,7 +624,9 @@ export function weeklyEvents(picks, events, from, weekdays = WEEKDAYS) {
   const templates = picks.map((pick) => ({
     direction: pick.direction,
     minutes: osloMinutes(pick.start),
-    days: dayKind(weekdayOf(pick)) === 'weekday' ? chosen : new Set([weekdayOf(pick)]),
+    days: dayKind(weekdayOf(pick)) !== 'weekday'
+      ? new Set([weekdayOf(pick)])
+      : pick.weekdays ? new Set(pick.weekdays) : chosen,
   }));
   return events
     .filter((event) => {

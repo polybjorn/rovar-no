@@ -26,9 +26,9 @@ still work. Every other language uses English paths under its own prefix
 
 | Language | Prefix | Progress | Pages | UI strings |
 |---|---|---|---|---|
-| Norsk | none (root) | `██████████` 100% | 5/5 | 75/75 |
-| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [75/75](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
-| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [75/75](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+| Norsk | none (root) | `██████████` 100% | 5/5 | 74/74 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [74/74](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [74/74](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
 
 `█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
