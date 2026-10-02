@@ -77,6 +77,11 @@ test('Norwegian writes the clock with a period, English with a colon', () => {
   assert.match(seasonStrings('en').sjohusSummer, /11:00/);
 });
 
+test('a single time is formatted like the ends of a range', () => {
+  assert.equal(seasonStrings('no').narbutikkenOpens, '05.45');
+  assert.equal(seasonStrings('en').narbutikkenOpens, '05:45');
+});
+
 test('German uses its own range template, not an en dash', () => {
   const de = seasonStrings('de').sjohusSummer;
   assert.match(de, /bis/);

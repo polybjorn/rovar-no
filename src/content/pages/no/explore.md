@@ -94,8 +94,7 @@ is og søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
 
 Etter {{end}} er det åpent lørdag og søndag kl. {{sjohusAutumn}} ut september.
 
-For mer info, sjekk ut
-[Røvær Sjøhus på Facebook]({{sjohusFacebookUrl}}).
+[Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
@@ -106,17 +105,12 @@ kl. {{hotelThuSat}} med matservering kl. {{hotelThuSatFood}}. (Etter
 {{end}} er det åpent i restauranten hver lørdag og søndag
 kl. {{hotelAutumn}} ut september.)
 
-Menyen finner du
-[her]({{havhotellMenuUrl}}).
+Røvær Havhotell har åpent for overnatting på bestilling hele året,
+og har forskjellige arrangementer i løpet av året.
 
-Røvær Havhotell har åpent for overnatting på bestilling hele året.
-De har forskjellige arrangementer i løpet av året. Sjekk ut programmet
-på [deres hjemmeside]({{havhotellUrl}}).
-
-Finn og kontakt dem på
-[{{havhotellEmail}}](mailto:{{havhotellEmail}}),
-[Facebook]({{havhotellFacebookUrl}})
-eller ring dem på {{havhotellPhone}}.
+[Facebook]({{havhotellFacebookUrl}}) · [Nettside]({{havhotellUrl}}) ·
+[Meny]({{havhotellMenuUrl}}) ·
+[{{havhotellEmail}}](mailto:{{havhotellEmail}}) · {{havhotellPhone}}
 
 ### Nærbutikken Røvær
 

@@ -37,7 +37,12 @@ export function seasonStrings(code) {
   // a second "Uhr" of its own.
   const range = localeInfo(code).range ?? '{a} – {b}';
   for (const [key, value] of Object.entries(season)) {
-    if (key in out || !Array.isArray(value) || value.length !== 2) continue;
+    if (key in out) continue;
+    if (typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)) {
+      out[key] = clock(at(value));
+      continue;
+    }
+    if (!Array.isArray(value) || value.length !== 2) continue;
     out[key] = range.replace('{a}', clock(at(value[0]))).replace('{b}', clock(at(value[1])));
   }
 

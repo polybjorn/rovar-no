@@ -103,8 +103,7 @@ traditional Norwegian dish “komle”.
 
 After {{end}} it is open Saturday and Sunday {{sjohusAutumn}} through September.
 
-For more information, see
-[Røvær Sjøhus on Facebook]({{sjohusFacebookUrl}}).
+[Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
@@ -114,17 +113,12 @@ Sunday to Wednesday it is open {{hotelSunWed}} with food served
 food served {{hotelThuSatFood}}. (After {{end}} the restaurant is open
 every Saturday and Sunday {{hotelAutumn}} through September.)
 
-The menu is available
-[here]({{havhotellMenuUrl}}).
-
 Røvær Havhotell offers accommodation by arrangement all year round,
-and hosts various events throughout the year. See the programme on
-[their website]({{havhotellUrl}}).
+and hosts various events throughout the year.
 
-Contact them at
-[{{havhotellEmail}}](mailto:{{havhotellEmail}}),
-on [Facebook]({{havhotellFacebookUrl}})
-or call {{havhotellPhone}}.
+[Facebook]({{havhotellFacebookUrl}}) · [Website]({{havhotellUrl}}) ·
+[Menu]({{havhotellMenuUrl}}) ·
+[{{havhotellEmail}}](mailto:{{havhotellEmail}}) · {{havhotellPhone}}
 
 ### Nærbutikken Røvær
 

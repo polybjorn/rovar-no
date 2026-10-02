@@ -109,8 +109,7 @@ bekannt.
 Nach dem {{end}} ist samstags und sonntags von {{sjohusAutumn}} Uhr
 geöffnet, bis Ende September.
 
-Mehr Informationen bei
-[Røvær Sjøhus auf Facebook]({{sjohusFacebookUrl}}).
+[Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
@@ -121,18 +120,12 @@ Essensausgabe von {{hotelSunWedFood}} Uhr. Donnerstag bis Samstag von
 dem {{end}} ist das Restaurant samstags und sonntags von {{hotelAutumn}} Uhr
 geöffnet, bis Ende September.)
 
-Die Speisekarte finden Sie
-[hier]({{havhotellMenuUrl}}).
-
 Das Røvær Havhotell bietet ganzjährig Übernachtungen auf Anfrage und
-veranstaltet über das Jahr verschiedene Events. Das Programm finden
-Sie auf
-[ihrer Website]({{havhotellUrl}}).
+veranstaltet über das Jahr verschiedene Events.
 
-Kontakt unter
-[{{havhotellEmail}}](mailto:{{havhotellEmail}}),
-auf [Facebook]({{havhotellFacebookUrl}})
-oder telefonisch unter {{havhotellPhone}}.
+[Facebook]({{havhotellFacebookUrl}}) · [Website]({{havhotellUrl}}) ·
+[Speisekarte]({{havhotellMenuUrl}}) ·
+[{{havhotellEmail}}](mailto:{{havhotellEmail}}) · {{havhotellPhone}}
 
 ### Nærbutikken Røvær
 

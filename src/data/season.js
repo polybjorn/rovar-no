@@ -4,7 +4,8 @@
 // are retyped per language.
 //
 // Content files refer to these as {{placeholders}}, e.g. "frem til {{end}}".
-// Dates are ISO, times are 24-hour "HH:MM" in Europe/Oslo. Ranges are pairs.
+// Dates are ISO, times are 24-hour "HH:MM" in Europe/Oslo. Ranges are pairs,
+// a single time is a string.
 
 export const season = {
   year: 2026,
@@ -17,4 +18,7 @@ export const season = {
   hotelThuSat: ['12:00', '21:00'],
   hotelThuSatFood: ['12:30', '20:00'],
   hotelAutumn: ['12:00', '16:30'],
+  // Nærbutikken Røvær, every day until midnight. Not seasonal, but a clock
+  // time on the same page, so it is written the same way as the others.
+  narbutikkenOpens: '05:45',
 };
