@@ -46,7 +46,9 @@ const state = {
 
 // Picks by key: a one-off pick is its event's UID, a weekly pick its kind of
 // day, direction and clock time - the same boat every week, whichever week's
-// row it was ticked on.
+// row it was ticked on. A weekday pick keeps the weekdays ticked when it was
+// made, in its key too, so the next pick can go on other days and changing
+// the ticks afterwards leaves it as it was.
 const picks = new Map();
 
 // The whole published timetable, fetched when the dialog first opens: about
@@ -79,8 +81,11 @@ const dateOf = (event) => {
 };
 const weekdayOf = (date) => osloWeekday(`${date}T12:00:00Z`);
 const today = () => toOsloDate(new Date());
+const isWeekdayEvent = (event) => dayKind(weekdayOf(dateOf(event))) === 'weekday';
+const tickedDays = () => [...state.weekdays].sort();
 const weeklyKey = (event) =>
-  `weekly ${dayKind(weekdayOf(dateOf(event)))} ${event.direction} ${osloMinutes(event.start)}`;
+  `weekly ${dayKind(weekdayOf(dateOf(event)))} ${event.direction} ${osloMinutes(event.start)}` +
+  (isWeekdayEvent(event) ? ` ${tickedDays().join(',')}` : '');
 const keyOf = (event) => (state.freq === 'weekly' ? weeklyKey(event) : event.uid);
 
 async function fetchStop(stopId) {
@@ -143,10 +148,9 @@ function result() {
   const values = [...picks.values()];
   return collectEvents(
     values.filter((p) => p.freq === 'once').map((p) => p.event),
-    values.filter((p) => p.freq === 'weekly').map((p) => p.event),
+    values.filter((p) => p.freq === 'weekly').map((p) => ({ ...p.event, weekdays: p.weekdays })),
     timetable,
-    today(),
-    [...state.weekdays]
+    today()
   );
 }
 
@@ -240,33 +244,22 @@ function renderTimes() {
     if (mine.length) rememberRows(list.dataset.list, mine.length);
     list.innerHTML = mine.length ? mine.map((e) => row(e, now)).join('') : note(S.empty);
   }
-  requestAnimationFrame(measureVia);
-}
-
-// A via list wider than its row gets the distance and time to pan to its end,
-// at an even reading pace whatever its length.
-function measureVia() {
-  byId('cal-times')?.querySelectorAll('.cal-via').forEach((box) => {
-    const over = box.firstElementChild.scrollWidth - box.clientWidth;
-    box.classList.toggle('is-long', over > 0);
-    box.style.setProperty('--pan', `${-over}px`);
-    box.style.setProperty('--pan-time', `${(1.5 + over / 30).toFixed(1)}s`);
-  });
 }
 
 function row(e, now) {
   // A boat that has sailed cannot be taken once, but a weekly pick only
-  // borrows the row for its clock time, so there it stays pickable.
-  const gone = state.freq === 'once' && e.start <= now;
+  // borrows the row for its clock time, so there it stays pickable. A weekday
+  // pick takes the ticked weekdays with it, so with none ticked it waits.
+  const gone = state.freq === 'once'
+    ? e.start <= now
+    : isWeekdayEvent(e) && !state.weekdays.size;
   const on = picks.has(keyOf(e));
   const via = e.via?.length
-    ? `<span class="cal-via"><span class="cal-via-text">via ${esc(e.via.join(', '))}</span></span>`
+    ? `<span class="cal-via">via ${esc(e.via.join(', '))}</span>`
     : '';
   return `<li><button type="button" class="cal-time" data-uid="${esc(e.uid)}" aria-pressed="${on}"${gone ? ' disabled' : ''}>
     <span class="cal-check" aria-hidden="true"></span>
-    <span class="cal-dep">${esc(fmt(e.start))}</span>
-    ${e.end ? `${icon.arrow}<span class="cal-arr">${esc(fmt(e.end))}</span>` : ''}
-    ${via}
+    <span class="cal-route"><span class="cal-leg"><span class="cal-dep">${esc(fmt(e.start))}</span>${e.end ? `${icon.arrow}<span class="cal-arr">${esc(fmt(e.end))}</span>` : ''}</span>${via}</span>
     ${e.isBooking ? `<span class="cal-booking" role="img" aria-label="${esc(S.bookLabel)}">${icon.phone}</span>` : ''}
   </button></li>`;
 }
@@ -278,16 +271,13 @@ function chipWhen(pick) {
       weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Oslo',
     });
   }
-  const kind = dayKind(weekdayOf(dateOf(event)));
-  if (kind !== 'weekday') {
+  if (!isWeekdayEvent(event)) {
     return fill(S.pickEvery, {
       day: event.start.toLocaleDateString(S.locale, { weekday: 'long', timeZone: 'Europe/Oslo' }),
     });
   }
-  if (!state.weekdays.size) return S.pickNoDays;
-  if (state.weekdays.size === WEEKDAYS.length) return S.pickEveryWeekday;
-  return [...state.weekdays]
-    .sort()
+  if (pick.weekdays.length === WEEKDAYS.length) return S.pickEveryWeekday;
+  return pick.weekdays
     .map((i) => new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(S.locale, { weekday: 'short', timeZone: 'UTC' }))
     .join(', ');
 }
@@ -314,10 +304,9 @@ function renderFooter() {
   const events = result();
   const summary = byId('cal-summary');
   if (summary) {
-    // The chips already show what is picked, so the line speaks only when a
-    // pick would come to nothing: a Hverdager pick with no weekday chosen.
-    const needDays = !state.weekdays.size &&
-      values.some(([, p]) => p.freq === 'weekly' && dayKind(weekdayOf(dateOf(p.event))) === 'weekday');
+    // The chips already show what is picked, so the line speaks only to say
+    // why the Hverdager rows cannot be ticked: no weekday is chosen.
+    const needDays = state.freq === 'weekly' && state.kind === 'weekday' && !state.weekdays.size;
     summary.hidden = !needDays;
     summary.textContent = needDays ? S.pickChooseDays : '';
   }
@@ -488,7 +477,6 @@ dialog?.querySelectorAll('.cal-scroll').forEach((el) => {
 
 addEventListener('resize', () => {
   if (!dialog?.open) return;
-  measureVia();
   updateDateNav();
   sizeDialog(false);
 });
@@ -530,7 +518,7 @@ onPick('cal-times', 'uid', (uid) => {
   if (!event) return;
   const key = keyOf(event);
   if (picks.has(key)) picks.delete(key);
-  else picks.set(key, { freq: state.freq, event });
+  else picks.set(key, { freq: state.freq, event, weekdays: tickedDays() });
 });
 onPick('cal-chosen', 'key', (key) => { picks.delete(key); });
 

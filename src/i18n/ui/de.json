@@ -11,8 +11,6 @@
     "skipLink": "Zum Inhalt springen",
     "menuLabel": "Menü",
     "langLabel": "Sprache wählen",
-    "contactHeading": "Kontakt",
-    "footer": "Möchten Sie mit jemandem auf Røvær in Kontakt treten? Schreiben Sie an {{emailLink}} – wir helfen Ihnen so gut wir können.",
     "linksHeading": "Nützliche Links",
     "links": {
       "havhotell": "Røvær Havhotell",
@@ -33,7 +31,8 @@
     "prevDay": "Vorheriger Tag",
     "nextDay": "Nächster Tag",
     "boatAlt": "Das Schnellboot Fjordled (Kolumbus)",
-    "legend": "Kann Vorausbuchung erfordern. Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
+    "legend": "Kann Vorausbuchung erfordern.",
+    "booking": "Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
     "credit": "Echtzeitdaten von {{enturLink}}, jede Minute aktualisiert.",
     "kolumbus": {
       "label": "Fahrpläne bei Kolumbus",
@@ -69,7 +68,6 @@
       "pickDepartures": "Abfahrten",
       "pickEvery": "jeden {{day}}",
       "pickEveryWeekday": "werktags",
-      "pickNoDays": "keine Tage gewählt",
       "pickChooseDays": "Wähle oben die Wochentage.",
       "pickBooking": "Reservierungspflichtig: spätestens {{minutes}} Minuten vor Abfahrt unter {{kolumbusPhone}} buchen. Die Kalenderdatei erinnert dich eine Stunde vorher.",
       "pickRemove": "Entfernen",

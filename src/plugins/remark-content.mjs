@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { visit } from 'unist-util-visit';
 import { media } from '../data/media.js';
 import { facts } from '../data/facts.js';
@@ -5,8 +6,17 @@ import { seasonStrings, lastDayIn } from '../i18n/season-format.js';
 import { phoneStrings } from '../i18n/phone-format.js';
 import { pages } from '../i18n/pages.js';
 import { pageLinks } from '../i18n/routes-core.js';
+import { locales } from '../i18n/locales.js';
 
 const pageByKey = Object.fromEntries(pages.map((p) => [p.key, p]));
+
+// A hash of every value the placeholders can resolve to, for astro.config.mjs.
+// Astro caches rendered markdown by the markdown alone, so a changed fact or
+// season date needs a changed config to reach the pages.
+export function contentDigest() {
+  const values = locales.map(({ code }) => [code, seasonStrings(code), phoneStrings(code)]);
+  return createHash('sha256').update(JSON.stringify([facts, media, values])).digest('hex');
+}
 
 const localeOf = (file) => file?.path?.match(/[/\\]pages[/\\]([^/\\]+)[/\\]/)?.[1];
 const pageOf = (file) => file?.path?.match(/[/\\]pages[/\\][^/\\]+[/\\]([^/\\]+)\.md$/)?.[1];

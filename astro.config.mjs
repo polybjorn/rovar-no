@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import { locales, defaultLocale } from './src/i18n/locales.js';
-import { remarkContent } from './src/plugins/remark-content.mjs';
+import { remarkContent, contentDigest } from './src/plugins/remark-content.mjs';
 import { rehypeStructure } from './src/plugins/rehype-structure.mjs';
 
 // Preview deployment on GitHub Pages. At launch: site back to
@@ -40,7 +40,10 @@ export default defineConfig({
     smartypants: false,
     // Content files use {{season}} placeholders and photo keys, and get their
     // page structure from heading levels. See src/plugins/.
-    remarkPlugins: [remarkContent],
+    // The plugin ignores the digest. Astro hashes this config and clears its
+    // content cache when the hash changes, and without it an edit to facts.js
+    // or season.js leaves cached pages showing the old value.
+    remarkPlugins: [[remarkContent, { digest: contentDigest() }]],
     rehypePlugins: [rehypeStructure],
   },
   // Astro 7 changed the default to 'jsx', which strips whitespace between

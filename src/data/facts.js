@@ -16,6 +16,7 @@
 
 export const facts = {
   oytingEmail: 'rovaroyting@rovar.no',
+  postPlace: '5549 Røvær',
 
   // Røvær Havbrukssenter
   havbrukUrl: 'https://rovarhavbrukssenter.no/',

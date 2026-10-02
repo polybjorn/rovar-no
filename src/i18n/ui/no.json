@@ -10,8 +10,6 @@
     "skipLink": "Hopp til innhold",
     "menuLabel": "Meny",
     "langLabel": "Velg språk",
-    "contactHeading": "Kontakt",
-    "footer": "Har du lyst til å komme i kontakt med noen på Røvær? Send en e-post til {{emailLink}} – så skal vi hjelpe deg så godt vi kan.",
     "linksHeading": "Nyttige lenker",
     "links": {
       "havhotell": "Røvær Havhotell",
@@ -32,7 +30,8 @@
     "prevDay": "Forrige dag",
     "nextDay": "Neste dag",
     "boatAlt": "Hurtigbåten Fjordled (Kolumbus)",
-    "legend": "Kan kreve forhåndsbestilling. Bestill via {{bookingSiteLink}} eller ring {{kolumbusPhone}}.",
+    "legend": "Kan kreve forhåndsbestilling.",
+    "booking": "Bestill via {{bookingSiteLink}} eller ring {{kolumbusPhone}}.",
     "credit": "Sanntidsdata fra {{enturLink}}, oppdateres hvert minutt.",
     "kolumbus": {
       "label": "Se rutetider hos Kolumbus",
@@ -68,7 +67,6 @@
       "pickDepartures": "Avganger",
       "pickEvery": "hver {{day}}",
       "pickEveryWeekday": "hverdager",
-      "pickNoDays": "ingen dager valgt",
       "pickChooseDays": "Velg hvilke hverdager over.",
       "pickBooking": "Bestillingsrute: bestill senest {{minutes}} minutter før avgang på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
       "pickRemove": "Fjern",
