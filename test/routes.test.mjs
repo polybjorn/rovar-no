@@ -12,6 +12,7 @@ import {
   resolveRoute,
   allRoutes,
   localeFromPath,
+  pageLinks,
 } from '../src/i18n/routes-core.js';
 import { pages } from '../src/i18n/pages.js';
 import { localeCodes, defaultLocale } from '../src/i18n/locales.js';
@@ -139,4 +140,14 @@ test('the language is read the same way with no base path', () => {
 test('the root language is never matched as a prefix of its own', () => {
   // Norwegian is served without a prefix, so /no/ is not one of its URLs.
   assert.equal(localeFromPath(`/${defaultLocale}/home/`), defaultLocale);
+});
+
+test('links between pages are relative, so they work under any base', () => {
+  assert.equal(pageLinks(pageByKey, 'no', 'explore').historyPage, '../rovaers-historie/');
+  assert.equal(pageLinks(pageByKey, 'en', 'history').explorePage, '../explore/');
+  assert.equal(pageLinks(pageByKey, 'en', 'explore').campSchoolPage, '../camp-school/');
+  // From a front page, one level up from the others.
+  assert.equal(pageLinks(pageByKey, 'no', 'home').historyPage, 'rovaers-historie/');
+  assert.equal(pageLinks(pageByKey, 'de', 'home').explorePage, 'explore/');
+  assert.equal(pageLinks(pageByKey, 'en', 'explore').homePage, '../');
 });

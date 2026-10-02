@@ -91,9 +91,11 @@ Vipps.
 
 ## Hiltahuset Museum
 
-Unser Museum, das Hiltahuset, kann nach Vereinbarung für Besucher
-geöffnet werden – ein kundiger Führer erzählt Ihnen die Geschichte
-unserer Insel. „Skjoldbladbua“ ist der nächste Nachbar des Museums, ein
+Das Hiltahuset ist das älteste Haus auf Røvær und das Museum der Insel,
+mit einer Ausstellung über das Unglück von 1899.
+[Lesen Sie die Geschichte des Hauses.]({{historyPage}}#hiltahuset)
+
+„Skjoldbladbua“ ist der nächste Nachbar des Museums, ein
 Souvenirladen mit von lokalen Händen gefertigten Waren.
 
 - **Geöffnet:** sonntags und donnerstags {{hiltaHours}} Uhr, vom {{hiltaOpens}} bis zum {{hiltaCloses}}

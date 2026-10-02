@@ -87,8 +87,10 @@ email or by phone. Payment at Røvær Sjøhus or by Vipps.
 
 ## Hiltahuset Museum
 
-Our museum, Hiltahuset, can be opened for visitors after appointment –
-a skillful guide will fill you in on the story of our island.
+Hiltahuset is the oldest house on Røvær and the island's museum, with an
+exhibition about the accident in 1899.
+[Read the story of the house.]({{historyPage}}#hiltahuset)
+
 “Skjoldbladbua” is the museum's nearest neighbour and is a souvenir
 shop with items handcrafted by local hands.
 

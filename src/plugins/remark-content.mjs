@@ -3,12 +3,18 @@ import { media } from '../data/media.js';
 import { facts } from '../data/facts.js';
 import { seasonStrings } from '../i18n/season-format.js';
 import { phoneStrings } from '../i18n/phone-format.js';
+import { pages } from '../i18n/pages.js';
+import { pageLinks } from '../i18n/routes-core.js';
+
+const pageByKey = Object.fromEntries(pages.map((p) => [p.key, p]));
 
 const localeOf = (file) => file?.path?.match(/[/\\]pages[/\\]([^/\\]+)[/\\]/)?.[1];
+const pageOf = (file) => file?.path?.match(/[/\\]pages[/\\][^/\\]+[/\\]([^/\\]+)\.md$/)?.[1];
 
 // Turns the conveniences content files rely on into real markdown:
 //
 //   {{end}}, {{havbrukPhone}} -> seasonal value or shared fact
+//   {{historyPage}}           -> link to another page in the same language
 //   ![Alt](sykkel)            -> ![Alt](../../../assets/Sykkel-500x334.jpg)
 //
 // All of it is language-independent, so a translator copies a file, rewrites
@@ -16,8 +22,14 @@ const localeOf = (file) => file?.path?.match(/[/\\]pages[/\\]([^/\\]+)[/\\]/)?.[
 export function remarkContent() {
   return (tree, file) => {
     const locale = localeOf(file);
+    const page = pageOf(file);
     const values = locale
-      ? { ...facts, ...seasonStrings(locale), ...phoneStrings(locale) }
+      ? {
+          ...facts,
+          ...seasonStrings(locale),
+          ...phoneStrings(locale),
+          ...(page in pageByKey ? pageLinks(pageByKey, locale, page) : {}),
+        }
       : { ...facts };
 
     const fill = (value, node) =>

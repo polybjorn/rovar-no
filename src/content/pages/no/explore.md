@@ -76,10 +76,8 @@ Påmelding på Røvær Sjøhus (åpent daglig {{sjohusSummer}} frem til
 
 ## Museumet Hiltahuset
 
-Museumet Hiltahuset kan som regel åpnes og fortelles om av en dyktig
-guide. Der står utstilling om Røværulykka i 1899 hvor 30 lokale liv
-gikk tapt da et gravfølge etter endt gravlegging skulle returnere til
-Røvær. Det sies at Røværulykka preger Røværbuen den dag i dag.
+Hiltahuset er Røværs eldste hus og øyas museum, med en utstilling om
+ulykken i 1899. [Les historien om huset.]({{historyPage}}#hiltahuset)
 
 Skjoldbladbua rett ved siden av Hiltahuset selger varer laget av lokale
 hender.
