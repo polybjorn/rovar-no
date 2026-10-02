@@ -158,8 +158,8 @@ function render(containerId, calls, fresh) {
           <span class="dep-leg"><span class="dep-time">${esc(time)}</span>${arrHtml}</span>${viaHtml}
         </div>
         <div class="dep-info">
-          ${noticeHtml}${durationHtml}${countdown}
-        </div>
+          ${noticeHtml}${durationHtml}
+        </div>${countdown}
       </div>
       ${detailHtml}
     </li>`;
@@ -228,7 +228,7 @@ function render(containerId, calls, fresh) {
         const now = build(item.html).querySelector('.dep-countdown');
         const tick = li.querySelector('.dep-countdown');
         if (tick && now) tick.replaceWith(now);
-        else if (now) li.querySelector('.dep-info')?.appendChild(now);
+        else if (now) li.querySelector('.dep-row')?.appendChild(now);
         else tick?.remove();
         return;
       }

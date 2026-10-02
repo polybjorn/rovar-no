@@ -607,6 +607,7 @@ const longestDates = [...new Set(
 
   .dep-direction :global(.dep-row) {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 0.75rem;
@@ -760,10 +761,12 @@ const longestDates = [...new Set(
     flex-shrink: 0;
   }
 
-  /* Own line under the duration, so the row never grows sideways with it. */
+  /* A line of its own across the foot of the row, so it never widens the
+     duration column: a via list beside the times keeps the room up to the
+     duration, and one that wraps sits above the countdown, never beside it. */
   .dep-direction :global(.dep-countdown) {
     flex-basis: 100%;
-    margin: -0.15rem 0 0;
+    margin: -0.4rem 0 0;
     text-align: right;
     font-weight: 600;
   }
