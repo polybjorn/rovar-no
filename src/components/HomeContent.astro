@@ -7,10 +7,24 @@ interface Props {
 import { Image, getImage } from 'astro:assets';
 import { asset } from '../data/media.js';
 import { homeCards, mapUrl } from '../data/home.js';
+import mapRoutes from '../data/map-routes.json';
 import { resolveRoute } from '../i18n/routes.js';
 
 const { lang, data } = Astro.props;
 const heroBg = await getImage({ src: asset('hero'), format: 'webp', width: 1600 });
+
+// The route overlay shares the map image's pixel grid (scripts/build-map.mjs
+// writes both), so a viewBox of the image size lines the two up at any width.
+// Solid lines for Røvær to Haugesund, by either the northern or the southern
+// channel. Dotted for the Feøy sailings and the turn into Kveitevik. The map
+// names the places.
+const { width: mapW, height: mapH } = mapRoutes;
+const toPoints = (r: number[][]) => r.map((p) => p.join(',')).join(' ');
+const mapLines = (mapRoutes.routes as number[][][]).map(toPoints);
+const mapAlternatives = (mapRoutes.alternatives as number[][][]).map(toPoints);
+const mapStops = Object.values(mapRoutes.stops as Record<string, number[]>).map(
+  ([x, y]) => `left: ${(x / mapW) * 100}%; top: ${(y / mapH) * 100}%;`,
+);
 ---
 
 <div class="hero" style={`background-image: url('${heroBg.src}');`}>
@@ -38,13 +52,21 @@ const heroBg = await getImage({ src: asset('hero'), format: 'webp', width: 1600 
   </div>
 
   <figure class="map">
-    <Image src={asset('kart')} alt={data.mapAlt} width={1600} widths={[800, 1200, 1600]} sizes="(max-width: 960px) 100vw, 912px" layout="none" loading="lazy" />
+    <div class="map-frame">
+      <Image src={asset('kart')} alt={data.mapAlt} width={mapW} widths={[800, 1200, mapW]} sizes="(max-width: 960px) 100vw, 912px" layout="none" loading="lazy" />
+      <svg class="map-routes" viewBox={`0 0 ${mapW} ${mapH}`} preserveAspectRatio="none" aria-hidden="true">
+        {mapAlternatives.map((points) => <polyline class="map-route-alt" points={points} />)}
+        {mapLines.map((points) => <polyline class="map-route-casing" points={points} />)}
+        {mapLines.map((points) => <polyline class="map-route-line" points={points} />)}
+      </svg>
+      {mapStops.map((style) => <span class="map-stop" style={style} aria-hidden="true"></span>)}
+    </div>
     <figcaption class="map-bar">
       <a class="map-link" href={mapUrl} target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="currentColor" class="map-icon" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
         {data.mapLink}
       </a>
-      <span class="map-credit">© Kartverket</span>
+      <span class="map-credit">© Kartverket, Kystverket, Entur</span>
     </figcaption>
   </figure>
 </div>

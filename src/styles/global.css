@@ -577,6 +577,56 @@ img.section-img {
   color: var(--color-ocean);
 }
 
+/* Boat routes and stops drawn over the map image. Lines keep their width
+   whatever the map is scaled to, and the markers are fixed-size HTML placed by
+   percentage, so neither shrinks to a hairline on a phone. */
+.map-frame {
+  position: relative;
+}
+
+.map-routes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.map-routes polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-route-casing {
+  stroke: var(--color-foam);
+  stroke-width: 7;
+}
+
+.map-route-line {
+  stroke: var(--color-ocean-dark);
+  stroke-width: 3.5;
+}
+
+/* Round caps on a zero-length dash draw a row of dots. */
+.map-route-alt {
+  stroke: var(--color-ocean-dark);
+  stroke-width: 3;
+  stroke-dasharray: 0 6;
+}
+
+.map-stop {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2.5px solid var(--color-ocean-dark);
+  border-radius: 50%;
+  background: var(--color-foam);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
 /* The link covers the whole figure, so the map itself is what you click. */
 .map-link::after {
   content: '';
@@ -592,8 +642,9 @@ img.section-img {
 .map-credit {
   /* Above the link overlay, so the attribution stays selectable. */
   position: relative;
-  /* Kartverket's data is CC BY: the credit has to stay visible, so it is kept
-     small rather than hidden behind a hover no phone can perform. */
+  /* Kartverket's map and ferry lines are CC BY, and Kystverket's and Entur's
+     lines are NLOD: the credit has to stay visible, so it is kept small
+     rather than hidden behind a hover no phone can perform. */
   font-size: 0.75rem;
   color: var(--color-text-light);
 }

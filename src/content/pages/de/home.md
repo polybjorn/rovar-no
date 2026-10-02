@@ -23,5 +23,5 @@ cards:
     text: "Von der Steinzeit zur Fischergemeinschaft"
     alt: "Suggevågen, unser Hafen, bei Sonnenuntergang"
 mapLink: "Røvær auf der Karte ansehen"
-mapAlt: "Karte mit Røvær westlich von Haugesund"
+mapAlt: "Karte der Schnellbootrouten zwischen Røvær und Haugesund"
 ---
