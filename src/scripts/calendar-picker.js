@@ -240,18 +240,6 @@ function renderTimes() {
     if (mine.length) rememberRows(list.dataset.list, mine.length);
     list.innerHTML = mine.length ? mine.map((e) => row(e, now)).join('') : note(S.empty);
   }
-  requestAnimationFrame(measureVia);
-}
-
-// A via list wider than its row gets the distance and time to pan to its end,
-// at an even reading pace whatever its length.
-function measureVia() {
-  byId('cal-times')?.querySelectorAll('.cal-via').forEach((box) => {
-    const over = box.firstElementChild.scrollWidth - box.clientWidth;
-    box.classList.toggle('is-long', over > 0);
-    box.style.setProperty('--pan', `${-over}px`);
-    box.style.setProperty('--pan-time', `${(1.5 + over / 30).toFixed(1)}s`);
-  });
 }
 
 function row(e, now) {
@@ -260,13 +248,11 @@ function row(e, now) {
   const gone = state.freq === 'once' && e.start <= now;
   const on = picks.has(keyOf(e));
   const via = e.via?.length
-    ? `<span class="cal-via"><span class="cal-via-text">via ${esc(e.via.join(', '))}</span></span>`
+    ? `<span class="cal-via">via ${esc(e.via.join(', '))}</span>`
     : '';
   return `<li><button type="button" class="cal-time" data-uid="${esc(e.uid)}" aria-pressed="${on}"${gone ? ' disabled' : ''}>
     <span class="cal-check" aria-hidden="true"></span>
-    <span class="cal-dep">${esc(fmt(e.start))}</span>
-    ${e.end ? `${icon.arrow}<span class="cal-arr">${esc(fmt(e.end))}</span>` : ''}
-    ${via}
+    <span class="cal-route"><span class="cal-leg"><span class="cal-dep">${esc(fmt(e.start))}</span>${e.end ? `${icon.arrow}<span class="cal-arr">${esc(fmt(e.end))}</span>` : ''}</span>${via}</span>
     ${e.isBooking ? `<span class="cal-booking" role="img" aria-label="${esc(S.bookLabel)}">${icon.phone}</span>` : ''}
   </button></li>`;
 }
@@ -488,7 +474,6 @@ dialog?.querySelectorAll('.cal-scroll').forEach((el) => {
 
 addEventListener('resize', () => {
   if (!dialog?.open) return;
-  measureVia();
   updateDateNav();
   sizeDialog(false);
 });

@@ -30,7 +30,8 @@
     "prevDay": "Vorheriger Tag",
     "nextDay": "Nächster Tag",
     "boatAlt": "Das Schnellboot Fjordled (Kolumbus)",
-    "legend": "Kann Vorausbuchung erfordern. Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
+    "legend": "Kann Vorausbuchung erfordern.",
+    "booking": "Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
     "credit": "Echtzeitdaten von {{enturLink}}, jede Minute aktualisiert.",
     "kolumbus": {
       "label": "Fahrpläne bei Kolumbus",

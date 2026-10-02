@@ -29,7 +29,8 @@
     "prevDay": "Forrige dag",
     "nextDay": "Neste dag",
     "boatAlt": "Hurtigbåten Fjordled (Kolumbus)",
-    "legend": "Kan kreve forhåndsbestilling. Bestill via {{bookingSiteLink}} eller ring {{kolumbusPhone}}.",
+    "legend": "Kan kreve forhåndsbestilling.",
+    "booking": "Bestill via {{bookingSiteLink}} eller ring {{kolumbusPhone}}.",
     "credit": "Sanntidsdata fra {{enturLink}}, oppdateres hvert minutt.",
     "kolumbus": {
       "label": "Se rutetider hos Kolumbus",
