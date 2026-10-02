@@ -53,6 +53,10 @@ import {
   summaryEvents,
   nextOsloDay,
   expiryEvent,
+  FEED_RETIRE_DATE,
+  feedRetired,
+  feedScheduleWanted,
+  retiredEvent,
 } from '../src/scripts/departures-core.js';
 
 // A summer and a winter instant, chosen so the UTC date and the Oslo date
@@ -1178,4 +1182,41 @@ test('the marker names the date it expires and never claims the day as busy', ()
   const lines = icsEvent(marker);
   assert.ok(lines.includes('TRANSP:TRANSPARENT'));
   assert.ok(lines.includes('DTSTART;VALUE=DATE:20260716'));
+});
+
+// --- feed retirement ----------------------------------------------------------
+
+test('the feed retires on the Oslo date, not the UTC one', () => {
+  // 23:30 UTC on the 3rd is already the 4th in Oslo.
+  assert.equal(feedRetired(new Date('2027-01-03T22:30:00Z'), '2027-01-04'), false);
+  assert.equal(feedRetired(new Date('2027-01-03T23:30:00Z'), '2027-01-04'), true);
+  assert.equal(feedRetired(new Date('2027-03-01T12:00:00Z'), '2027-01-04'), true);
+});
+
+test('the retirement date is a real date, later than the day it was set (#88)', () => {
+  assert.match(FEED_RETIRE_DATE, /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(new Date(`${FEED_RETIRE_DATE}T12:00:00Z`).toISOString().slice(0, 10), FEED_RETIRE_DATE);
+  assert.ok(FEED_RETIRE_DATE > '2026-10-02');
+});
+
+test('scheduled deploys run through the grace week and stop after it', () => {
+  const at = (iso) => feedScheduleWanted(new Date(iso), '2027-01-04', 7);
+  assert.equal(at('2026-12-01T03:17:00Z'), true);
+  assert.equal(at('2027-01-04T03:17:00Z'), true);
+  assert.equal(at('2027-01-11T03:17:00Z'), true);
+  assert.equal(at('2027-01-12T03:17:00Z'), false);
+});
+
+test('a retired feed carries one transparent note on the retirement date', () => {
+  const note = retiredEvent({
+    stamp: ICS_STAMP,
+    retireDate: '2027-01-04',
+    url: 'https://rovar.no/rutebaten/',
+    strings: { icsFeedRetired: 'Avsluttet', icsFeedRetiredBody: 'Fjern kalenderen.' },
+  });
+  assert.equal(note.uid, 'feed-retired@rovar.no');
+  assert.equal(note.summary, 'Avsluttet');
+  const lines = icsEvent(note);
+  assert.ok(lines.includes('TRANSP:TRANSPARENT'));
+  assert.ok(lines.includes('DTSTART;VALUE=DATE:20270104'));
 });

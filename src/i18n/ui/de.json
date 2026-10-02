@@ -81,7 +81,9 @@
       "icsBookingAlarm": "Boot um {{time}} bis {{deadline}} buchen: {{kolumbusPhone}} anrufen.",
       "icsDay": "Fähre {{from}}-{{to}}: {{times}}",
       "icsTimetableEnd": "Hier endet der Fahrplan",
-      "icsTimetableEndBody": "Kolumbus hat keine Abfahrten nach {{date}} veröffentlicht. Der Kalender füllt sich wieder, sobald neue Zeiten erscheinen - aktuelle Abfahrten auf rovar.no."
+      "icsTimetableEndBody": "Kolumbus hat keine Abfahrten nach {{date}} veröffentlicht. Der Kalender füllt sich wieder, sobald neue Zeiten erscheinen - aktuelle Abfahrten auf rovar.no.",
+      "icsFeedRetired": "Dieser Kalender wurde eingestellt",
+      "icsFeedRetiredBody": "Das Fahrplan-Abo wurde eingestellt, dieser Kalender wird nicht mehr aktualisiert. Sie können ihn entfernen. Abfahrten auswählen und in den eigenen Kalender übernehmen geht auf der Fährseite von rovar.no."
     },
     "feedName": "Fähre Røvær-Haugesund",
     "feedSummaryName": "Fähre Røvær-Haugesund (Tagesübersicht)"
