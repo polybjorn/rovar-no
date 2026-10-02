@@ -920,8 +920,10 @@ const longestDates = [...new Set(
 
   /* Legend and credit on the left, the calendar button on the right, centred
      on the two lines of text beside it. When the button would make the text
-     wrap, it drops under the text instead: flex wraps an item to a new line
-     before it shrinks one. */
+     wrap, it drops under the text instead, centred as on a phone: flex wraps
+     an item to a new line before it shrinks one. Both items grow, the text
+     9999 times faster, so beside the text the button keeps its own width and
+     stays on the right, and alone on its line it spans the row and centres. */
   .dep-foot {
     display: flex;
     flex-wrap: wrap;
@@ -931,11 +933,14 @@ const longestDates = [...new Set(
   }
 
   .dep-foot-text {
+    flex: 9999 1 auto;
     min-width: 0;
   }
 
   .dep-pick {
-    flex: none;
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: center;
   }
 
   .dep-pick-start {
