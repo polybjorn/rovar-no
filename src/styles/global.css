@@ -795,6 +795,23 @@ img.section-img {
   text-align: right;
 }
 
+/* An hours row whose dates are over, and the line under a list whose rows
+   all are (scripts/past-hours.js). Still readable, as a hint of what next
+   season may look like. */
+.fact-list li.past {
+  color: var(--color-text-light);
+}
+
+.fact-list li.past .fact-value,
+.fact-list li.past .fact-when {
+  text-decoration: line-through;
+}
+
+.fact-past-note {
+  margin-top: 0.6rem;
+  font-weight: 600;
+}
+
 /* On a phone there is no room for three columns: the dates go under the
    value, in the same row. */
 @media (max-width: 600px) {

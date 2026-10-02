@@ -1,7 +1,7 @@
 import { visit } from 'unist-util-visit';
 import { media } from '../data/media.js';
 import { facts } from '../data/facts.js';
-import { seasonStrings } from '../i18n/season-format.js';
+import { seasonStrings, lastDayIn } from '../i18n/season-format.js';
 import { phoneStrings } from '../i18n/phone-format.js';
 import { pages } from '../i18n/pages.js';
 import { pageLinks } from '../i18n/routes-core.js';
@@ -38,6 +38,19 @@ export function remarkContent() {
         file.message(`Unknown placeholder {{${key}}}`, node);
         return whole;
       });
+
+    // A list row that names a seasonal date carries the last day it covers,
+    // so the page can strike it through once that day is past
+    // (scripts/past-hours.js). Read before the placeholders are filled in.
+    visit(tree, 'listItem', (node) => {
+      const text = [];
+      visit(node, 'text', (t) => {
+        text.push(t.value);
+      });
+      const until = lastDayIn(text.join(' '));
+      if (!until) return;
+      node.data = { ...node.data, hProperties: { ...node.data?.hProperties, dataUntil: until } };
+    });
 
     visit(tree, 'text', (node) => {
       node.value = fill(node.value, node);

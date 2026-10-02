@@ -20,7 +20,8 @@
       "kolumbus": "Billetter til rutebåten (Kolumbus)",
       "avis": "Røvær i Haugesunds Avis",
       "github": "Kildekode (GitHub)"
-    }
+    },
+    "pastHoursNote": "Tidene for neste sesong er ikke klare ennå."
   },
   "notFound": {
     "title": "Siden finnes ikke",

@@ -20,7 +20,8 @@
       "kolumbus": "Express boat tickets (Kolumbus)",
       "avis": "Røvær in Haugesunds Avis",
       "github": "Source code (GitHub)"
-    }
+    },
+    "pastHoursNote": "Next season's hours are not out yet."
   },
   "notFound": {
     "title": "Page not found",

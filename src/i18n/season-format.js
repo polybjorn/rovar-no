@@ -12,6 +12,28 @@ const cache = {};
 
 const isDate = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
 
+// The last day each dated placeholder covers, as ISO: {{end}} -> '2026-08-16',
+// {{autumn}} -> '2026-09-30'. A list row that names one is out of date once
+// that day is past (remark-content, scripts/past-hours.js).
+export const seasonLastDay = Object.fromEntries(
+  Object.entries(season).flatMap(([key, value]) => {
+    if (isDate(value)) return [[key, value]];
+    if (Array.isArray(value) && value.length === 2 && value.every(isDate)) return [[key, value[1]]];
+    return [];
+  })
+);
+
+// The last day the seasonal dates in a piece of text cover, as ISO, or
+// undefined when it names none: "kl. {{sjohusAutumn}} _{{autumn}}_" -> the
+// last day of {{autumn}}.
+export function lastDayIn(text) {
+  return [...text.matchAll(/\{\{(\w+)\}\}/g)]
+    .map(([, key]) => seasonLastDay[key])
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+}
+
 // Placeholder values for one language: {{end}}, {{sjohusSummer}} and friends,
 // as used in the content markdown.
 export function seasonStrings(code) {
