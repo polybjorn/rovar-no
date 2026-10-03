@@ -674,9 +674,23 @@ img.section-img {
   margin-bottom: 1.5rem;
 }
 
-.info-box h3 {
+/* A place under a ### heading (rehype-structure): heading, picture and
+   description as running text, then its card. */
+.place {
+  margin-top: 2rem;
+}
+
+.section-title + .place {
+  margin-top: 0;
+}
+
+/* The section title's colour, a step smaller, so a place reads as part of
+   its section rather than as a heading of another kind. */
+.place h3 {
+  font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 0.35rem;
+  color: var(--color-ocean);
+  margin-bottom: 0.5rem;
 }
 
 /* Contact */
@@ -775,10 +789,30 @@ img.section-img {
   background: var(--color-foam);
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  /* Inside an info box it is also a .contact-list, whose smaller, lighter
+  /* Inside a .place it is also a .contact-list, whose smaller, lighter
      text is for a place's address lines, not for its hours and prices. */
   font-size: inherit;
   color: inherit;
+}
+
+/* In a place's card the list drops its own box, so the card is the only
+   frame: one level of card, not one inside another. */
+.section .info-box ul.fact-list {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  --fact-pad: 0.75rem;
+}
+
+.section .info-box ul.fact-list:has(li.past) {
+  overflow: visible;
+}
+
+/* The card's padding is its margin: the last line's own bottom margin would
+   double it. */
+.info-box > :last-child {
+  margin-bottom: 0;
 }
 
 .fact-list li {
@@ -833,6 +867,55 @@ img.section-img {
 
 .fact-list:has(li.past) li:last-child {
   padding-bottom: 0.8rem;
+}
+
+/* In a card there is no list box to clip the tint to, and a flat shadow
+   into the card's padding read as a red slab with square corners breaking
+   out of the text. So there the past rows get a panel of their own, drawn
+   behind the row and a little wider than the text, rounded and bordered
+   like the card around it. Consecutive past rows share one panel. */
+.info-box .fact-list li.past {
+  box-shadow: none;
+  background: none;
+  position: relative;
+  isolation: isolate;
+}
+
+.info-box .fact-list li.past::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(-1 * var(--fact-pad));
+  z-index: -1;
+  background: var(--past-tint);
+  border: 1px solid color-mix(in srgb, var(--color-urgent) 25%, var(--color-foam));
+  border-block-width: 0;
+}
+
+.info-box .fact-list li.past:not(li.past + li.past)::before {
+  border-top-width: 1px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.info-box .fact-list li.past:not(:has(+ li.past))::before {
+  border-bottom-width: 1px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* The panel's own border is the rule against the rows around it, and
+   between two past rows the rule is drawn across the panel's full width. */
+.info-box .fact-list li.past + li:not(.past),
+.info-box .fact-list li:not(.past) + li.past {
+  border-top-color: transparent;
+}
+
+.info-box .fact-list li.past + li.past {
+  border-top-width: 0;
+}
+
+.info-box .fact-list li.past + li.past::before {
+  border-top: 1px solid var(--color-border);
 }
 
 .fact-past-note {

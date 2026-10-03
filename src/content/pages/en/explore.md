@@ -48,7 +48,23 @@ tables, if you brought your own food – that is as long as you clean up
 after yourselves and leave the area in a good state. There is also a
 football court close by.
 
-## Røvær Aquaculture Centre
+## Røvær Sjøhus and Aquaculture Centre
+
+### Røvær Sjøhus
+
+Røvær Sjøhus has tourist information and sells coffee, soft drinks,
+ice cream and sweets. All lunch and dinner service is at Røvær
+Havhotell this year. Røvær Sjøhus is also known for serving the
+traditional Norwegian dish “komle”.
+
+* **Every day:** {{sjohusSummer}} _until {{end}}_
+* **Saturday and Sunday:** {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
+
+### The aquaculture centre
 
 ![From the exhibition at Røvær Havbrukssenter](havbruk)
 
@@ -59,13 +75,13 @@ salmon.
 The exhibition is compact and gives a simple introduction to big and
 exciting topics such as aquaculture, history, environment and natural
 conditions. There are screens for deeper learning, games and
-activities.
-
-* **Price:** free
+activities. Entry to the exhibition is free.
 
 - [Website]({{havbrukUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
-## RIB tour to the salmon pens
+### RIB tour to the salmon pens
 
 ![A guide talks to the guests in the RIB alongside the salmon pen](laksemerd)
 
@@ -76,15 +92,11 @@ pens.
 - **Duration:** about 45 minutes, including getting dressed for the trip
 - **Price:** {{ribPriceAdult}} adults\
   {{ribPriceChild}} children
-- **Age:** 6 and up
-
-Children under 12 must come with an adult, and anyone under 18 needs written
-permission from a guardian.
+- **Age:** 6 and up\
+  under 12: with an adult\
+  under 18: written permission from a guardian
 
 Sign up for the trip at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone. Payment at Røvær Sjøhus or by Vipps.
-
-- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 
@@ -107,18 +119,6 @@ Outside these hours, you can book a guided tour with Haugalandmuseet.
 - [Website](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
 
 ## Food, drinks and accommodation
-
-### Røvær Sjøhus
-
-Røvær Sjøhus has tourist information and sells coffee, soft drinks,
-ice cream and sweets. All lunch and dinner service is at Røvær
-Havhotell this year. Røvær Sjøhus is also known for serving the
-traditional Norwegian dish “komle”.
-
-* **Every day:** {{sjohusSummer}} _until {{end}}_
-* **Saturday and Sunday:** {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 

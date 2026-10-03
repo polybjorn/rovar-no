@@ -5,9 +5,10 @@ import { visit } from 'unist-util-visit';
 //
 //   paragraphs before the first heading -> .page-intro
 //   ## heading and what follows         -> .section, heading gets .section-title
-//   ### heading inside a section        -> .info-box
+//   ### heading inside a section        -> .place, a place of its own
+//   a place's hours, prices and contact -> .info-box, the card (see below)
 //   a lone image                        -> .section-img, unwrapped from its <p>
-//   a list inside an info box           -> .contact-list
+//   a list inside a .place              -> .contact-list
 //   a list of nothing but links         -> .link-list
 //   a list of "**Label:** value" lines  -> .fact-list
 //
@@ -92,17 +93,17 @@ export function rehypeStructure() {
   return (tree) => {
     const out = [];
     let section = null;
-    let infoBox = null;
+    let place = null;
     let seenImage = false;
 
     const push = (node) => {
-      const parent = infoBox ?? section;
+      const parent = place ?? section;
       if (parent) parent.children.push(node);
       else out.push(node);
     };
     const openSection = () => {
       section = div('section', []);
-      infoBox = null;
+      place = null;
       out.push(section);
     };
 
@@ -117,8 +118,8 @@ export function rehypeStructure() {
       }
 
       if (isElement(node, 'h3') && section) {
-        infoBox = div('info-box', [node]);
-        section.children.push(infoBox);
+        place = div('place', [node]);
+        section.children.push(place);
         continue;
       }
 
@@ -131,7 +132,7 @@ export function rehypeStructure() {
         continue;
       }
 
-      if (isElement(node, 'ul') && infoBox) {
+      if (isElement(node, 'ul') && place) {
         node.properties.className = [...(node.properties.className ?? []), 'contact-list'];
       }
 
@@ -154,16 +155,27 @@ export function rehypeStructure() {
 
     tree.children = out;
 
-    // A place under a heading of its own gets the card the food places get
-    // under theirs, from its hours or prices (its links, with neither) to the
-    // links that close it, so every place's links sit inside a card.
+    // A card holds a place's practical details and nothing else: from its
+    // first list of hours, prices, links or contact lines to the end of the
+    // place, with the heading, picture and description left above it. A
+    // place is a ### block, or a ## section with none. A line introducing
+    // the first list ("Åpningstider i restauranten:") goes in with it.
     const hasClass = (node, name) => node.properties?.className?.includes(name);
+    const practical = (node) => isElement(node, 'ul')
+      && ['fact-list', 'link-list', 'contact-list'].some((name) => hasClass(node, name));
+    const textOf = (node) => node.type === 'text' ? node.value : (node.children ?? []).map(textOf).join('');
+    const card = (block) => {
+      const kids = block.children;
+      let at = kids.findIndex(practical);
+      if (at < 0) return;
+      if (at > 0 && isElement(kids[at - 1], 'p') && textOf(kids[at - 1]).trim().endsWith(':')) at -= 1;
+      block.children = [...kids.slice(0, at), div('info-box', kids.slice(at))];
+    };
     for (const sec of out) {
       if (!isElement(sec, 'div') || !hasClass(sec, 'section')) continue;
-      const kids = sec.children;
-      if (kids.some((c) => hasClass(c, 'info-box')) || !kids.some((c) => hasClass(c, 'link-list'))) continue;
-      const at = kids.findIndex((c) => hasClass(c, 'fact-list') || hasClass(c, 'link-list'));
-      sec.children = [...kids.slice(0, at), div('info-box', kids.slice(at))];
+      const places = sec.children.filter((c) => hasClass(c, 'place'));
+      if (places.length) places.forEach(card);
+      else card(sec);
     }
 
     // External links open in a new tab, as they did in the hand-written pages.

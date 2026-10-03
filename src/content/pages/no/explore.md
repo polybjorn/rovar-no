@@ -40,7 +40,21 @@ Ved Skolen og Barnehagen er det en ny og fin lekeplass og mulighet for å
 spise medbrakt mat om man rydder opp og forlater området i fin stand til
 nestemann. Det er også en fotballbinge like ved.
 
-## Røvær Havbrukssenter
+## Røvær Sjøhus og Havbrukssenter
+
+### Røvær Sjøhus
+
+På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
+søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
+
+* **Hver dag:** kl. {{sjohusSummer}} _til {{end}}_
+* **Lørdag og søndag:** kl. {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
+
+### Havbrukssenteret
 
 ![Bilde fra utstillingen på Røvær havbrukssenter](havbruk)
 
@@ -49,13 +63,13 @@ vi har utviklet oss til å bli en verdensledende produsent av laks.
 
 Utstillingen er kompakt, og gir en enkel innføring i store og spennende
 tema som havbruk, historie, miljø og naturforhold. Det er skjermer for
-fordypning, spill og aktiviteter.
-
-* **Pris:** gratis
+fordypning, spill og aktiviteter. Det er gratis å besøke utstillingen.
 
 - [Nettside]({{havbrukUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
-## Visningstur til laksemerd
+### Visningstur til laksemerd
 
 ![Guide forteller til gjestene i RIB-en ved laksemerden](laksemerd)
 
@@ -65,15 +79,11 @@ Vi arrangerer visningstur i RIB ut til laksemerdene hver dag på sommeren.
 - **Varighet:** ca. 45 min, inkludert påkledning
 - **Pris:** {{ribPriceAdult}} voksne\
   {{ribPriceChild}} barn
-- **Alder:** fra 6 år
-
-Barn under 12 år må ha med en voksen, og alle under 18 år trenger skriftlig
-tillatelse fra foresatte.
+- **Alder:** fra 6 år\
+  under 12 år: sammen med en voksen\
+  under 18 år: skriftlig tillatelse fra foresatte
 
 Påmelding til turen gjøres på [Røvær Sjøhus](#røvær-sjøhus), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
-
-- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Museumet Hiltahuset
 
@@ -95,16 +105,6 @@ Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 - [Nettside](https://haugalandmuseet.no/museum/hiltahuset/)
 
 ## Mat, drikke og overnatting
-
-### Røvær Sjøhus
-
-På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
-søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
-
-* **Hver dag:** kl. {{sjohusSummer}} _til {{end}}_
-* **Lørdag og søndag:** kl. {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 

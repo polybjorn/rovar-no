@@ -50,7 +50,23 @@ Spielplatz für Kinder. Mitgebrachtes Essen können Sie an den Bänken und
 Tischen verzehren – solange Sie aufräumen und den Ort in gutem Zustand
 hinterlassen. Gleich daneben gibt es auch einen kleinen Fußballplatz.
 
-## Røvær Havbrukssenter (Aquakulturzentrum)
+## Røvær Sjøhus und Havbrukssenter
+
+### Røvær Sjøhus
+
+Im Røvær Sjøhus gibt es Touristeninformation und Verkauf von Kaffee,
+Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
+werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
+auch für das traditionelle norwegische Gericht „Komle“ bekannt.
+
+* **Täglich:** {{sjohusSummer}} _bis zum {{end}}_
+* **Samstags und sonntags:** {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
+
+### Das Aquakulturzentrum
 
 ![Aus der Ausstellung im Røvær Havbrukssenter](havbruk)
 
@@ -61,13 +77,13 @@ Lachsproduzenten entwickelt haben.
 Die Ausstellung ist kompakt und gibt eine einfache Einführung in große,
 spannende Themen wie Aquakultur, Geschichte, Umwelt und
 Naturverhältnisse. Es gibt Bildschirme zur Vertiefung, Spiele und
-Aktivitäten.
-
-* **Preis:** kostenlos
+Aktivitäten. Der Eintritt zur Ausstellung ist frei.
 
 - [Website]({{havbrukUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
-## RIB-Tour zu den Lachsgehegen
+### RIB-Tour zu den Lachsgehegen
 
 ![Ein Guide spricht zu den Gästen im RIB am Lachsgehege](laksemerd)
 
@@ -78,16 +94,12 @@ Lachsgehegen.
 - **Dauer:** etwa 45 Minuten, inklusive Anziehen der Ausrüstung
 - **Preis:** {{ribPriceAdult}} Erwachsene\
   {{ribPriceChild}} Kinder
-- **Alter:** ab 6 Jahren
-
-Kinder unter 12 Jahren müssen von einem Erwachsenen begleitet werden, unter
-18 Jahren braucht es eine schriftliche Erlaubnis der Erziehungsberechtigten.
+- **Alter:** ab 6 Jahren\
+  unter 12: in Begleitung eines Erwachsenen\
+  unter 18: schriftliche Erlaubnis der Erziehungsberechtigten
 
 Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.
-
-- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 
@@ -110,18 +122,6 @@ Außerhalb der Öffnungszeiten können Sie beim Haugalandmuseet eine Führung bu
 - [Website](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
 
 ## Essen, Trinken und Unterkunft
-
-### Røvær Sjøhus
-
-Im Røvær Sjøhus gibt es Touristeninformation und Verkauf von Kaffee,
-Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
-werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
-auch für das traditionelle norwegische Gericht „Komle“ bekannt.
-
-* **Täglich:** {{sjohusSummer}} _bis zum {{end}}_
-* **Samstags und sonntags:** {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
