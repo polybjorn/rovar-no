@@ -60,7 +60,10 @@ export function hoursIn(text) {
 }
 
 // One clock time as the language writes it: '13:30' -> '13.30' in Norwegian.
+// '24:00' stays 24:00, a closing time at midnight, where Intl would wrap it
+// to 00:00.
 export function formatClock(code, hhmm) {
+  if (hhmm === '24:00') return formatClock(code, '00:00').replace(/^0+/, '24');
   const time = new Intl.DateTimeFormat(localeInfo(code).intl, {
     hour: '2-digit',
     minute: '2-digit',

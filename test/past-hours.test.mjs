@@ -127,3 +127,11 @@ test('before its season a place opens on its first day; after it, never', () => 
   assert.equal(hoursStatus(hilta, '2027-08-29', at('16:00')), null);
   assert.equal(hoursStatus(sjohus, '2026-10-01', at('12:00')), null);
 });
+
+test('a row with no dates holds all year, and is open until midnight', () => {
+  const shop = [{ days: [0, 1, 2, 3, 4, 5, 6], open: '05:45', close: '24:00' }];
+  assert.equal(hoursStatus(shop, '2026-12-24', at('23:59')).state, 'open');
+  assert.deepEqual(brief(hoursStatus(shop, '2026-12-24', at('03:00'))),
+    { state: 'opens', date: '2026-12-24', inDays: 0, open: '05:45', close: '24:00' });
+  assert.equal(hoursStatus(shop, '2031-02-01', at('12:00')).state, 'open');
+});

@@ -50,8 +50,7 @@ function update() {
       p.className = 'fact-past-note';
       p.textContent = note;
     } else {
-      const hours = rows
-        .filter((row) => row.dataset.days)
+      const hours = [...list.querySelectorAll(':scope > li[data-days]')]
         .map(({ dataset: d }) => ({
           days: d.days.split(',').map(Number),
           from: d.from,

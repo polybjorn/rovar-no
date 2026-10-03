@@ -54,7 +54,7 @@ export function remarkContent() {
     // so the page can strike it through once that day is past
     // (scripts/past-hours.js). Read before the placeholders are filled in.
     //
-    // One that also names opening hours is an hours row, and carries its
+    // One that names opening hours, dated or all year, is an hours row, and carries its
     // days, first day and hours too, so the page can say whether the place
     // is open now. Its days come from its label, and a label that cannot be
     // read fails the build: guessing would show a wrong status.
@@ -65,10 +65,10 @@ export function remarkContent() {
       });
       const joined = text.join(' ');
       const until = lastDayIn(joined);
-      if (!until) return;
-      const props = { dataUntil: until };
-
       const hours = locale && hoursIn(joined);
+      if (!until && !hours) return;
+      const props = until ? { dataUntil: until } : {};
+
       if (hours) {
         const strong = node.children[0]?.children?.find((c) => c.type === 'strong');
         const label = strong?.children?.map((c) => c.value ?? '').join('') ?? '';

@@ -24,7 +24,8 @@ export const weekdayOf = (iso) => new Date(`${iso}T00:00:00Z`).getUTCDay();
 
 // Whether a list of hours rows is open at a moment in Oslo, and if not, when
 // it next opens. Rows are { days, from, until, open, close }: weekdays with
-// Sunday 0, an optional first day, the last day, and 'HH:MM' hours. `now` is
+// Sunday 0, an optional first and last day, and 'HH:MM' hours. A row with no
+// last day holds all year, and closing at '24:00' is midnight. `now` is
 // minutes since Oslo midnight on `today`.
 //
 //   { state: 'open', row }                 open now, until row.close
@@ -35,7 +36,7 @@ export const weekdayOf = (iso) => new Date(`${iso}T00:00:00Z`).getUTCDay();
 // says so itself, so the status claims no more than the card does.
 export function hoursStatus(rows, today, now) {
   const applies = (row, date) =>
-    (!row.from || row.from <= date) && date <= row.until && row.days.includes(weekdayOf(date));
+    (!row.from || row.from <= date) && (!row.until || date <= row.until) && row.days.includes(weekdayOf(date));
 
   const openNow = rows.filter(
     (row) => applies(row, today) && minutes(row.open) <= now && now < minutes(row.close)
@@ -45,7 +46,8 @@ export function hoursStatus(rows, today, now) {
     return { state: 'open', row };
   }
 
-  const last = rows.map((row) => row.until).sort().at(-1);
+  // A week ahead finds the next opening of a row that holds all year.
+  const last = rows.every((row) => row.until) ? rows.map((row) => row.until).sort().at(-1) : addDays(today, 7);
   for (let inDays = 0, date = today; last && date <= last; inDays += 1, date = addDays(today, inDays)) {
     const later = rows.filter((row) => applies(row, date) && (inDays > 0 || minutes(row.open) > now));
     if (later.length) {

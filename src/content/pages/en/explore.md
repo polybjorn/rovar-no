@@ -143,7 +143,9 @@ Restaurant opening hours:
 ### Nærbutikken Røvær
 
 The island's own shop has groceries, post, parcel pickup and fishing
-tackle, and is open every day from {{narbutikkenOpens}} until midnight.
+tackle.
+
+- **Every day:** {{narbutikkenHours}}
 
 - [Facebook]({{narbutikkenFacebookUrl}})
 - [Website]({{narbutikkenUrl}})

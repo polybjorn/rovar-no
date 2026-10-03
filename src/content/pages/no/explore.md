@@ -128,8 +128,9 @@ hele året, og har forskjellige arrangementer i løpet av året.
 
 ### Nærbutikken Røvær
 
-Øyas egen butikk har dagligvarer, post, pakkeutlevering og fiskeutstyr,
-og er åpen hver dag fra {{narbutikkenOpens}} til midnatt.
+Øyas egen butikk har dagligvarer, post, pakkeutlevering og fiskeutstyr.
+
+- **Hver dag:** kl. {{narbutikkenHours}}
 
 - [Facebook]({{narbutikkenFacebookUrl}})
 - [Nettside]({{narbutikkenUrl}})
