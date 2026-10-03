@@ -57,8 +57,9 @@ under, and whether it is current, over or stale.
 Over is normal: the page strikes those rows through and tells the reader to
 follow the place online or get in touch. Stale means a date still holds last
 year's season from 1 March, when it is time to ask the places for this year's
-hours. The weekly link check runs it too and fails on stale, so the reminder
-arrives without anyone remembering to look. Where each place publishes its
+hours. The weekly link check runs it too, and on the first stale run it
+files an issue here, so the reminder arrives without anyone remembering to
+look. Where each place publishes its
 hours is noted next to its entries in `season.js`.
 
 A date entered for next year (Hiltahuset's, say) is shown as soon as it is

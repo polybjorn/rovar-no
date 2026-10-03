@@ -3,8 +3,9 @@
 // Lists every season date in src/data/season.js with whether it is still
 // running, over, or stale, and fails when one is stale: last year's dates
 // with a new season coming (scripts/season-check-core.mjs says when that
-// starts). Run weekly from .forgejo/workflows/link-check.yml, so the failing
-// job is the reminder to ask the places for this year's hours.
+// starts). Run weekly from .forgejo/workflows/link-check.yml, which files an
+// issue on the first stale run as the reminder to ask the places for this
+// year's hours.
 
 import { readdirSync, readFileSync } from 'node:fs';
 
@@ -40,5 +41,46 @@ const stale = rows.filter((r) => r.state === 'stale');
 if (stale.length) {
   console.error(`\nseason:check: ${stale.map((r) => r.key).join(', ')} still hold last year's dates.`);
   console.error('Update src/data/season.js with this year\'s hours (README, "Updating dates and hours").');
+  await fileIssue(stale);
   process.exit(1);
+}
+
+// The failing job is a push that the next green run on the repo clears, so the
+// reminder that lasts is an issue. One open at a time, found by its marker, so
+// a weekly run against the same stale dates does not file a second. Needs API
+// and ISSUE_TOKEN (the Actions token; FORGE_PR_TOKEN is 403 on /issues, #54).
+// Not fatal: the job has already failed with the finding printed above.
+async function fileIssue(stale) {
+  const api = process.env.API;
+  const token = process.env.ISSUE_TOKEN;
+  if (!api || !token) return;
+  const MARK = '<!-- season-check -->';
+  const headers = { Authorization: `token ${token}`, 'Content-Type': 'application/json' };
+  try {
+    const open = await fetch(`${api}/issues?state=open&type=issues&limit=50`, { headers });
+    if (!open.ok) throw new Error(`GET /issues: ${open.status}`);
+    const existing = (await open.json()).find((i) => i.body?.includes(MARK));
+    if (existing) {
+      console.error(`already open as #${existing.number}`);
+      return;
+    }
+    const list = stale.map((r) => `- \`${r.key}\` (until ${r.lastDay}): ${[...(places[r.key] ?? [])].join(', ')}`);
+    const body = [
+      `Last year's season dates are still on the site, and this year's season is coming. Ask the places for this year's hours and update \`src/data/season.js\`; where each one publishes is noted at the top of that file.`,
+      '',
+      ...list,
+      '',
+      'The PR that updates them closes this. `npm run season:check` shows what is left.',
+      MARK,
+    ].join('\n');
+    const res = await fetch(`${api}/issues`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ title: 'Update the season dates for this year', body }),
+    });
+    if (!res.ok) throw new Error(`POST /issues: ${res.status}`);
+    console.error(`filed #${(await res.json()).number}`);
+  } catch (err) {
+    console.error(`could not file the reminder issue (${err.message}); the finding is above`);
+  }
 }
