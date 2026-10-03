@@ -146,8 +146,9 @@ Events.
 ### Nærbutikken Røvær
 
 Der inseleigene Laden bietet Lebensmittel, Post, Paketausgabe und
-Angelzubehör und ist täglich von {{narbutikkenOpens}} Uhr bis Mitternacht
-geöffnet.
+Angelzubehör.
+
+* **Täglich:** {{narbutikkenHours}}
 
 - [Facebook]({{narbutikkenFacebookUrl}})
 - [Website]({{narbutikkenUrl}})

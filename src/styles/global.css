@@ -804,6 +804,29 @@ img.section-img {
   --fact-pad: 0.75rem;
 }
 
+/* In a wide card the table is only as wide as its rows and sits in the
+   middle, like the links under it, rather than hugging the left with the
+   card's right half empty. The rows stay left-aligned inside it, so labels,
+   times and dates still line up. The card's lines of text centre with it
+   and the links, so the card reads as one centred column; a place's
+   description stays above the card, left-aligned. On a phone the table fills
+   the card again, or a one-row table floats in the middle. */
+.section .info-box ul.fact-list {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+@media (max-width: 600px) {
+  .section .info-box ul.fact-list {
+    width: auto;
+  }
+}
+
+.info-box > p {
+  text-align: center;
+}
+
 .section .info-box ul.fact-list:has(li.past) {
   overflow: visible;
 }
@@ -920,6 +943,30 @@ img.section-img {
 .fact-past-note {
   margin-top: 0.6rem;
   color: var(--color-text-light);
+}
+
+/* In season, whether the place is open now (scripts/past-hours.js). The words
+   carry it in the text colour; the dot only marks it, green when open, since
+   the kelp green is short of body-text contrast on sand. Red stays for a
+   season that is over. */
+.fact-status {
+  margin-top: 0.6rem;
+  color: var(--color-text-light);
+}
+
+.fact-status::before {
+  content: '';
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-right: 0.45em;
+  border-radius: 50%;
+  vertical-align: 0.08em;
+  background: var(--color-text-light);
+}
+
+.fact-status[data-state='open']::before {
+  background: var(--color-kelp);
 }
 
 /* On a phone the columns leave the values a thin strip, more so in a list

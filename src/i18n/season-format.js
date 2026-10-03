@@ -23,6 +23,58 @@ export const seasonLastDay = Object.fromEntries(
   })
 );
 
+// The first day each date-range placeholder covers: {{autumn}} -> '2026-08-17'.
+// A single date such as {{end}} has none, since "til {{end}}" says when a
+// row stops and not when it starts.
+export const seasonFirstDay = Object.fromEntries(
+  Object.entries(season).flatMap(([key, value]) =>
+    Array.isArray(value) && value.length === 2 && value.every(isDate) ? [[key, value[0]]] : []
+  )
+);
+
+const isClock = (v) => typeof v === 'string' && /^\d{2}:\d{2}$/.test(v);
+
+// Placeholders that are opening hours, a pair of clock times: {{sjohusSummer}}
+// -> ['11:00', '16:00']. {{ribDepartures}} is a pair too, but of departures,
+// and is formatted as a list below, so it is not one.
+export const seasonClockRanges = Object.fromEntries(
+  Object.entries(season).filter(
+    ([key, value]) => key !== 'ribDepartures' && Array.isArray(value) && value.length === 2 && value.every(isClock)
+  )
+);
+
+// The first day, by the same rule as lastDayIn, or undefined when no
+// placeholder in the text gives one.
+export function firstDayIn(text) {
+  return [...text.matchAll(/\{\{(\w+)\}\}/g)]
+    .map(([, key]) => seasonFirstDay[key])
+    .filter(Boolean)
+    .sort()
+    .at(0);
+}
+
+// The opening hours a piece of text names first, as ['HH:MM', 'HH:MM'], or
+// undefined. A restaurant row names its kitchen hours second.
+export function hoursIn(text) {
+  return [...text.matchAll(/\{\{(\w+)\}\}/g)].map(([, key]) => seasonClockRanges[key]).find(Boolean);
+}
+
+// One clock time as the language writes it: '13:30' -> '13.30' in Norwegian.
+// '24:00' stays 24:00, a closing time at midnight, where Intl would wrap it
+// to 00:00.
+export function formatClock(code, hhmm) {
+  if (hhmm === '24:00') return formatClock(code, '00:00').replace(/^0+/, '24');
+  const time = new Intl.DateTimeFormat(localeInfo(code).intl, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+  });
+  const sep = localeInfo(code).timeSep;
+  const out = time.format(at(hhmm));
+  return sep ? out.replace(':', sep) : out;
+}
+
 // The last day the seasonal dates in a piece of text cover, as ISO, or
 // undefined when it names none: "kl. {{sjohusAutumn}} _{{autumn}}_" -> the
 // last day of {{autumn}}.
@@ -41,20 +93,13 @@ export function seasonStrings(code) {
 
   const intl = localeInfo(code).intl;
   const date = new Intl.DateTimeFormat(intl, { day: 'numeric', month: 'long', timeZone: 'UTC' });
-  const time = new Intl.DateTimeFormat(intl, {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'UTC',
-  });
   const list = new Intl.ListFormat(intl, { style: 'long', type: 'conjunction' });
   // Norwegian writes the clock with a period; ICU has moved to a colon.
-  const sep = localeInfo(code).timeSep;
-  const clock = (t) => (sep ? time.format(t).replace(':', sep) : time.format(t));
+  const clock = (hhmm) => formatClock(code, hhmm);
 
   const out = { year: String(season.year) };
   out.end = date.format(new Date(`${season.end}T00:00:00Z`));
-  out.ribDepartures = list.format(season.ribDepartures.map((t) => clock(at(t))));
+  out.ribDepartures = list.format(season.ribDepartures.map(clock));
 
   // Joined with the language's own template rather than Intl's formatRange:
   // German ranges read "von 11:00 bis 16:00 Uhr", and formatRange would append
@@ -69,8 +114,8 @@ export function seasonStrings(code) {
       out[`${key}Year`] = value.slice(0, 4);
       continue;
     }
-    if (typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)) {
-      out[key] = clock(at(value));
+    if (isClock(value)) {
+      out[key] = clock(value);
       continue;
     }
     if (!Array.isArray(value) || value.length !== 2) continue;
@@ -84,8 +129,8 @@ export function seasonStrings(code) {
     // A clock range never breaks across lines: "12:30 bis" on one line and
     // "20:00" on the next reads as two facts.
     out[key] = range
-      .replace('{a}', clock(at(value[0])))
-      .replace('{b}', clock(at(value[1])))
+      .replace('{a}', clock(value[0]))
+      .replace('{b}', clock(value[1]))
       .replaceAll(' ', '\u00a0');
   }
 

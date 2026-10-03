@@ -31,7 +31,8 @@ export const season = {
   // the museum's dates for summer 2027 (haugalandmuseet.no, 2026-10-02).
   hiltaSeason: ['2027-06-20', '2027-08-29'],
   hiltaHours: ['13:30', '15:30'],
-  // Nærbutikken Røvær, every day until midnight. Not seasonal, but a clock
-  // time on the same page, so it is written the same way as the others.
-  narbutikkenOpens: '05:45',
+  // Nærbutikken Røvær, every day all year. Not seasonal, but hours on the
+  // same page, so written the same way as the others. 24:00 is midnight as a
+  // closing time, so it sorts after the opening.
+  narbutikkenHours: ['05:45', '24:00'],
 };
