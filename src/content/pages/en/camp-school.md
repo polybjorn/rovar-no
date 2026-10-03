@@ -43,5 +43,5 @@ for one class at a time.
 If you have questions about the practical side of a camp school
 stay, just get in touch with Espen Martens.
 
-- Email: [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
-- Phone: {{campSchoolPhone}}
+- [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
+- [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})
