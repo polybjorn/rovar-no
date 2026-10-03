@@ -79,7 +79,7 @@
       "pickEvery": "jeden {{day}}",
       "pickEveryWeekday": "werktags",
       "pickChooseDays": "Wähle oben die Wochentage.",
-      "pickBooking": "Reservierungspflichtig: spätestens {{minutes}} Minuten vor Abfahrt unter {{kolumbusPhone}} buchen. Die Kalenderdatei erinnert dich eine Stunde vorher.",
+      "pickBooking": "Reservierungspflichtig: spätestens {{minutes}} Minuten vor Abfahrt unter {{kolumbusPhone}} buchen. Die Kalenderdatei erinnert Sie eine Stunde vorher.",
       "pickRemove": "Entfernen",
       "pickLoading": "Fahrplan wird geladen...",
       "pickSave": "Zum Kalender hinzufügen",
