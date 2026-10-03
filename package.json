@@ -14,6 +14,7 @@
     "i18n:new": "node scripts/i18n-new.mjs",
     "i18n:verify": "node scripts/i18n-check.mjs --check",
     "links:check": "node scripts/link-check.mjs",
+    "season:check": "node scripts/season-check.mjs",
     "pins:check": "node scripts/node-pins-check.mjs",
     "merges:check": "node scripts/check-merged-prs.mjs",
   "sweep:check": "node scripts/check-sweep-freshness.mjs",

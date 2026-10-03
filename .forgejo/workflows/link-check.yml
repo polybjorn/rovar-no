@@ -63,3 +63,14 @@ jobs:
         timeout-minutes: 5
       - run: npm run build
       - run: npm run links:check
+      # Dates going out of date is the same kind of failure as links dying: the
+      # site falls behind without anyone changing it. Runs even when a link
+      # failed, since the two are unrelated. A stale date also files one issue
+      # (scripts/season-check.mjs): the red job alone is cleared by the next
+      # green run on the repo, so it is not a reminder that lasts.
+      - name: Season dates
+        if: always()
+        env:
+          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
+          ISSUE_TOKEN: ${{ github.token }}
+        run: npm run season:check

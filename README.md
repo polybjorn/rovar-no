@@ -44,6 +44,27 @@ above. A page nobody has translated yet is not built for that language and
 does not appear in the language menu. Missing UI strings fall back one by one,
 so a half-finished language still renders.
 
+## Updating dates and hours
+
+Every date and opening time on the site is in `src/data/season.js`, and
+every price, phone number and email in `src/data/facts.js`. Each is written
+once and formatted for every language at build time, so a new season is an
+edit to those two files and nothing in `src/content`.
+
+`npm run season:check` lists each season date, the places it is printed
+under, and whether it is current, over or stale.
+
+Over is normal: the page strikes those rows through and tells the reader to
+follow the place online or get in touch. Stale means a date still holds last
+year's season from 1 March, when it is time to ask the places for this year's
+hours. The weekly link check runs it too, and on the first stale run it
+files an issue here, so the reminder arrives without anyone remembering to
+look. Where each place publishes its
+hours is noted next to its entries in `season.js`.
+
+A date entered for next year (Hiltahuset's, say) is shown as soon as it is
+there, so update a place as soon as it publishes rather than all at once.
+
 ## Tech
 
 [Astro](https://astro.build) builds the site to plain HTML files, the styling
