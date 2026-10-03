@@ -35,11 +35,9 @@ Elevene bor i 6-8-manns rom på Sjøhuset, et renovert sildesalteri fra
 1892. Her er det liggeplass til 32, slik at det i praksis er plass til
 én klasse om gangen.
 
-## Kontakt
-
 ### Espen Martens
 
-Ta kontakt om dere har spørsmål om det praktiske ved oppholdet.
+Ta kontakt om dere har spørsmål.
 
 - [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
 - [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})

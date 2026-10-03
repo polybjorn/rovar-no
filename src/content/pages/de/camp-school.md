@@ -39,11 +39,9 @@ Schüler wohnen in Zimmern für 6 bis 8 Personen im Sjøhuset, einer
 renovierten Heringssalzerei von 1892. Es gibt 32 Schlafplätze, sodass
 in der Praxis jeweils eine Klasse Platz findet.
 
-## Kontakt
-
 ### Espen Martens
 
-Melden Sie sich bei Fragen zum Praktischen rund um den Aufenthalt.
+Melden Sie sich bei Fragen.
 
 - [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
 - [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})
