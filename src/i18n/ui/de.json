@@ -26,7 +26,10 @@
       "openNowPlain": "Jetzt geöffnet.",
       "opensToday": "Jetzt geschlossen. Öffnet heute um {{time}} Uhr.",
       "opensTomorrow": "Heute geschlossen. Öffnet morgen wieder um {{time}} Uhr.",
-      "opensOn": "Jetzt geschlossen. Öffnet am {{day}} um {{time}} Uhr."
+      "opensOn": "Jetzt geschlossen. Öffnet am {{day}} um {{time}} Uhr.",
+      "departsToday": "Nächste Abfahrt um {{time}} Uhr.",
+      "departsTomorrow": "Nächste Abfahrt morgen um {{time}} Uhr.",
+      "departsOn": "Nächste Abfahrt am {{day}} um {{time}} Uhr."
     }
   },
   "notFound": {

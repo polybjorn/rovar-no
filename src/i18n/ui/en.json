@@ -25,7 +25,10 @@
       "openNowPlain": "Open now.",
       "opensToday": "Closed now. Opens today at {{time}}.",
       "opensTomorrow": "Closed for today. Opens again tomorrow at {{time}}.",
-      "opensOn": "Closed now. Opens {{day}} at {{time}}."
+      "opensOn": "Closed now. Opens {{day}} at {{time}}.",
+      "departsToday": "Next departure at {{time}}.",
+      "departsTomorrow": "Next departure tomorrow at {{time}}.",
+      "departsOn": "Next departure {{day}} at {{time}}."
     }
   },
   "notFound": {

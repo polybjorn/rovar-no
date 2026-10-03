@@ -57,3 +57,15 @@ export function hoursStatus(rows, today, now) {
   }
   return null;
 }
+
+// When the next departure from a list of departure rows leaves, as
+// hoursStatus's 'opens' with the row's time in row.open, or null when none is
+// left. Rows are { days, from, until, times, texts }, texts being the times
+// as the page prints them. Each time is a moment, not a range, so a boat is
+// never "open"; one leaving this minute is gone.
+export function nextDeparture(rows, today, now) {
+  const slots = rows.flatMap(({ times, texts = [], ...row }) =>
+    times.map((time, i) => ({ ...row, open: time, close: time, openText: texts[i] }))
+  );
+  return hoursStatus(slots, today, now);
+}

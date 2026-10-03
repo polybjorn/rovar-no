@@ -2,7 +2,8 @@ import { createHash } from 'node:crypto';
 import { visit } from 'unist-util-visit';
 import { media } from '../data/media.js';
 import { facts } from '../data/facts.js';
-import { seasonStrings, lastDayIn, firstDayIn, hoursIn, formatClock } from '../i18n/season-format.js';
+import { seasonStrings, lastDayIn, firstDayIn, hoursIn, departuresIn, formatClock } from '../i18n/season-format.js';
+import { localeInfo } from '../i18n/locales.js';
 import { daysIn } from '../i18n/weekdays.js';
 import { phoneStrings } from '../i18n/phone-format.js';
 import { pages } from '../i18n/pages.js';
@@ -58,6 +59,10 @@ export function remarkContent() {
     // days, first day and hours too, so the page can say whether the place
     // is open now. Its days come from its label, and a label that cannot be
     // read fails the build: guessing would show a wrong status.
+    //
+    // One that names departures carries its times instead, so the page can
+    // say when the next one leaves. Its label is "Avganger:", so it has to
+    // say "hver dag" in its text, the only days it can name for now.
     visit(tree, 'listItem', (node) => {
       const text = [];
       visit(node, 'text', (t) => {
@@ -66,7 +71,8 @@ export function remarkContent() {
       const joined = text.join(' ');
       const until = lastDayIn(joined);
       const hours = locale && hoursIn(joined);
-      if (!until && !hours) return;
+      const departures = locale && departuresIn(joined);
+      if (!until && !hours && !departures) return;
       const props = until ? { dataUntil: until } : {};
 
       if (hours) {
@@ -81,6 +87,18 @@ export function remarkContent() {
           dataClose: hours[1],
           dataOpenText: formatClock(locale, hours[0]),
           dataCloseText: formatClock(locale, hours[1]),
+        });
+      }
+      if (departures) {
+        const every = localeInfo(locale).days?.every;
+        if (!every || !joined.toLocaleLowerCase().includes(every)) {
+          file.fail(`Departures row that does not say "${every}": "${joined}"`, node);
+        }
+        Object.assign(props, {
+          dataDays: '0,1,2,3,4,5,6',
+          dataFrom: firstDayIn(joined),
+          dataDepartures: departures.join(','),
+          dataDepartureTexts: departures.map((time) => formatClock(locale, time)).join(','),
         });
       }
       node.data = { ...node.data, hProperties: { ...node.data?.hProperties, ...props } };

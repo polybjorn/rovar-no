@@ -43,6 +43,12 @@ export const seasonClockRanges = Object.fromEntries(
   )
 );
 
+// The departure times a piece of text names, as ['HH:MM', ...], or undefined:
+// "hver dag kl. {{ribDepartures}}" -> ['11:30', '14:15'].
+export function departuresIn(text) {
+  return text.includes('{{ribDepartures}}') ? season.ribDepartures : undefined;
+}
+
 // The first day, by the same rule as lastDayIn, or undefined when no
 // placeholder in the text gives one.
 export function firstDayIn(text) {
