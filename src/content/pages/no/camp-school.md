@@ -37,7 +37,7 @@ Elevene bor i 6-8-manns rom på Sjøhuset, et renovert sildesalteri fra
 
 ### Espen Martens
 
-Ta kontakt om dere har spørsmål.
+Ta kontakt om du har spørsmål.
 
 - [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
 - [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})
