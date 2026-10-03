@@ -36,12 +36,9 @@ October. The pupils stay in rooms for 6–8 in Sjøhuset, a renovated
 herring saltery from 1892. It sleeps 32, so in practice there is room
 for one class at a time.
 
-## Contact
-
 ### Espen Martens
 
-If you have questions about the practical side of a camp school
-stay, just get in touch with Espen Martens.
+Get in touch if you have any questions.
 
-- Email: [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
-- Phone: {{campSchoolPhone}}
+- [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
+- [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})

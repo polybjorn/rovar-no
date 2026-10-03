@@ -35,12 +35,9 @@ Elevene bor i 6-8-manns rom på Sjøhuset, et renovert sildesalteri fra
 1892. Her er det liggeplass til 32, slik at det i praksis er plass til
 én klasse om gangen.
 
-## Kontakt
-
 ### Espen Martens
 
-Har dere spørsmål som gjelder de praktiske sidene ved
-leirskole-oppholdet, er det bare å ta kontakt med Espen Martens.
+Ta kontakt om du har spørsmål.
 
-- E-post: [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
-- Telefon: {{campSchoolPhone}}
+- [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
+- [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})
