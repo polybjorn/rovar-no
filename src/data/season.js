@@ -6,6 +6,13 @@
 // Content files refer to these as {{placeholders}}, e.g. "frem til {{end}}".
 // Dates are ISO, times are 24-hour "HH:MM" in Europe/Oslo. Ranges are pairs,
 // a single time is a string.
+//
+// Where each place publishes its hours, for the yearly update (README,
+// "Updating dates and hours"; npm run season:check says when):
+//   Røvær Sjøhus and the RIB tour: the Sjøhus Facebook page, or
+//     Havbrukssenteret (facts.js has the email and phone)
+//   Røvær Havhotell: rovarhavhotell.no, and its Facebook page
+//   Hiltahuset: haugalandmuseet.no/museum/hiltahuset
 
 export const season = {
   year: 2026,
