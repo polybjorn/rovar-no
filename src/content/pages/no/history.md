@@ -53,7 +53,8 @@ mellomrom.
 
 Hiltahuset er Røværs eldste hus. Konstruksjonen tyder på at det ble satt
 opp rundt 1820-1830, av to eldre stuer med gang og kjøkken i midten. Det
-ble bygd som våningshus og ble senere brukt som kårhus. I 1880-årene var
+ble bygd som våningshus og ble senere brukt som kårhus, der de eldre
+bodde etter å ha overlatt gården til neste generasjon. I 1880-årene var
 den ene stuen i perioder skolestue: læreren var to uker på Røvær og to
 uker på Hauge.
 
