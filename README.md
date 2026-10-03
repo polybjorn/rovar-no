@@ -65,6 +65,11 @@ hours is noted next to its entries in `season.js`.
 A date entered for next year (Hiltahuset's, say) is shown as soon as it is
 there, so update a place as soon as it publishes rather than all at once.
 
+`npm run hours:check` reads Nærbutikken's opening hours from narbutikken.no
+and fails when they differ from `narbutikkenHours`. The site cannot read them
+live (narbutikken.no allows no cross-site fetch), so the weekly link check
+runs this and files an issue when they change.
+
 ## Tech
 
 [Astro](https://astro.build) builds the site to plain HTML files, the styling

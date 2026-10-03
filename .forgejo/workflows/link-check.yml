@@ -74,3 +74,12 @@ jobs:
           API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
           ISSUE_TOKEN: ${{ github.token }}
         run: npm run season:check
+      # Nærbutikken's hours are ours, not read live (narbutikken.no allows no
+      # cross-site fetch), so this says when theirs change, filing one issue
+      # the same way. Their site being down is not a finding.
+      - name: Nærbutikken hours
+        if: always()
+        env:
+          API: ${{ github.server_url }}/api/v1/repos/${{ github.repository }}
+          ISSUE_TOKEN: ${{ github.token }}
+        run: npm run hours:check
