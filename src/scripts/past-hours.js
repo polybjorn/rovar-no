@@ -22,10 +22,14 @@ function dayName(date, inDays) {
   return new Intl.DateTimeFormat(intl, { ...options, timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
 }
 
-function statusText(status) {
+// With one hours row its closing time is printed just above, so "open now"
+// says no more; with several it says which one holds today.
+function statusText(status, rowCount) {
   if (!status) return null;
   const { row, inDays } = status;
-  if (status.state === 'open') return fill(strings.openNow, { time: row.closeText });
+  if (status.state === 'open') {
+    return rowCount === 1 ? strings.openNowPlain : fill(strings.openNow, { time: row.closeText });
+  }
   if (inDays === 0) return fill(strings.opensToday, { time: row.openText });
   if (inDays === 1) return fill(strings.opensTomorrow, { time: row.openText });
   return fill(strings.opensOn, { time: row.openText, day: dayName(status.date, inDays) });
@@ -61,7 +65,7 @@ function update() {
           closeText: d.closeText,
         }));
       const status = hours.length ? hoursStatus(hours, today, minutes) : null;
-      const text = statusText(status);
+      const text = statusText(status, hours.length);
       if (!text) continue;
       p.className = 'fact-status';
       p.dataset.state = status.state;
