@@ -40,7 +40,7 @@ Elevene bor i 6-8-manns rom på Sjøhuset, et renovert sildesalteri fra
 ### Espen Martens
 
 Har dere spørsmål som gjelder de praktiske sidene ved
-leirskole-oppholdet, er det bare å ta kontakt med Espen Martens.
+leirskole-oppholdet, er det bare å ta kontakt.
 
 - [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
 - [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})

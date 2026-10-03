@@ -44,7 +44,7 @@ in der Praxis jeweils eine Klasse Platz findet.
 ### Espen Martens
 
 Bei Fragen zu den praktischen Seiten eines Schullandheim-Aufenthalts
-wenden Sie sich einfach an Espen Martens.
+melden Sie sich einfach.
 
 - [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
 - [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})
