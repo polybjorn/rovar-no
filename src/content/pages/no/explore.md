@@ -40,7 +40,7 @@ Ved Skolen og Barnehagen er det en ny og fin lekeplass og mulighet for å
 spise medbrakt mat om man rydder opp og forlater området i fin stand til
 nestemann. Det er også en fotballbinge like ved.
 
-## Røvær Sjøhus og Havbrukssenter
+## Havbruk og laksesafari
 
 ### Røvær Sjøhus
 

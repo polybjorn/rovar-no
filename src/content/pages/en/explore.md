@@ -48,7 +48,7 @@ tables, if you brought your own food – that is as long as you clean up
 after yourselves and leave the area in a good state. There is also a
 football court close by.
 
-## Røvær Sjøhus and Aquaculture Centre
+## Fish farming and salmon safari
 
 ### Røvær Sjøhus
 
