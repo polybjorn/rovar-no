@@ -39,7 +39,7 @@
      a width and a breakpoint that share a number stay independent. */
   --width-site: 960px;  /* nav, footer and wide pages */
   --width-page: 720px;  /* a page's text column */
-  --width-intro: 640px; /* the lead paragraph under a page title */
+  --width-intro: 640px; /* the lead paragraph on the 404 page */
   --width-hero: 520px;  /* the line under the front-page title */
   --nav-height: 3.5rem;
 }
@@ -430,7 +430,6 @@ span.lang-option[aria-current="true"] {
 
 .page-intro {
   margin-bottom: 2rem;
-  max-width: var(--width-intro);
 }
 
 /* Sections */

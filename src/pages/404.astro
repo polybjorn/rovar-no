@@ -48,9 +48,10 @@ const t = ui(defaultLocale).notFound;
     padding-bottom: 2.5rem;
   }
 
-  /* .page-intro is width-capped, so centring the text is not enough to centre
-     the paragraph. */
+  /* Capped so the centred lines stay short, and centred as a block as well as
+     by its text. */
   .nf-page .page-intro {
+    max-width: var(--width-intro);
     margin-left: auto;
     margin-right: auto;
   }
