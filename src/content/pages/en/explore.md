@@ -120,8 +120,6 @@ Outside these hours, you can book a guided tour with Haugalandmuseet.
 
 ## Food, drinks and accommodation
 
-Coffee, ice cream and sweets are also sold at [Røvær Sjøhus](#røvær-sjøhus).
-
 ### Røvær Havhotell
 
 Røvær Havhotell has a restaurant, offers accommodation by arrangement

@@ -106,8 +106,6 @@ Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
 
 ## Mat, drikke og overnatting
 
-Kaffe, is og søtsaker får du også på [Røvær Sjøhus](#røvær-sjøhus).
-
 ### Røvær Havhotell
 
 Røvær Havhotell har restaurant og åpent for overnatting på bestilling

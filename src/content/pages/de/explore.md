@@ -123,8 +123,6 @@ Außerhalb der Öffnungszeiten können Sie beim Haugalandmuseet eine Führung bu
 
 ## Essen, Trinken und Unterkunft
 
-Kaffee, Eis und Süßigkeiten gibt es auch im [Røvær Sjøhus](#røvær-sjøhus).
-
 ### Røvær Havhotell
 
 Das Røvær Havhotell hat ein Restaurant, bietet ganzjährig
