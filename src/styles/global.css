@@ -796,8 +796,7 @@ img.section-img {
 }
 
 /* In a place's card the list drops its own box, so the card is the only
-   frame: one level of card, not one inside another. A past row's tint still
-   reaches a little past the text, into the card's padding. */
+   frame: one level of card, not one inside another. */
 .section .info-box ul.fact-list {
   padding: 0;
   background: none;
@@ -868,6 +867,55 @@ img.section-img {
 
 .fact-list:has(li.past) li:last-child {
   padding-bottom: 0.8rem;
+}
+
+/* In a card there is no list box to clip the tint to, and a flat shadow
+   into the card's padding read as a red slab with square corners breaking
+   out of the text. So there the past rows get a panel of their own, drawn
+   behind the row and a little wider than the text, rounded and bordered
+   like the card around it. Consecutive past rows share one panel. */
+.info-box .fact-list li.past {
+  box-shadow: none;
+  background: none;
+  position: relative;
+  isolation: isolate;
+}
+
+.info-box .fact-list li.past::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(-1 * var(--fact-pad));
+  z-index: -1;
+  background: var(--past-tint);
+  border: 1px solid color-mix(in srgb, var(--color-urgent) 25%, var(--color-foam));
+  border-block-width: 0;
+}
+
+.info-box .fact-list li.past:not(li.past + li.past)::before {
+  border-top-width: 1px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.info-box .fact-list li.past:not(:has(+ li.past))::before {
+  border-bottom-width: 1px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* The panel's own border is the rule against the rows around it, and
+   between two past rows the rule is drawn across the panel's full width. */
+.info-box .fact-list li.past + li:not(.past),
+.info-box .fact-list li:not(.past) + li.past {
+  border-top-color: transparent;
+}
+
+.info-box .fact-list li.past + li.past {
+  border-top-width: 0;
+}
+
+.info-box .fact-list li.past + li.past::before {
+  border-top: 1px solid var(--color-border);
 }
 
 .fact-past-note {
