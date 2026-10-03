@@ -48,7 +48,21 @@ tables, if you brought your own food – that is as long as you clean up
 after yourselves and leave the area in a good state. There is also a
 football court close by.
 
-## Røvær Aquaculture Centre and Sjøhus
+## Røvær Sjøhus and Aquaculture Centre
+
+### Røvær Sjøhus
+
+Røvær Sjøhus has tourist information and sells coffee, soft drinks,
+ice cream and sweets. All lunch and dinner service is at Røvær
+Havhotell this year. Røvær Sjøhus is also known for serving the
+traditional Norwegian dish “komle”.
+
+* **Every day:** {{sjohusSummer}} _until {{end}}_
+* **Saturday and Sunday:** {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ### The aquaculture centre
 
@@ -84,20 +98,6 @@ Children under 12 must come with an adult, and anyone under 18 needs written
 permission from a guardian.
 
 Sign up for the trip at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone. Payment at Røvær Sjøhus or by Vipps.
-
-### Røvær Sjøhus
-
-Røvær Sjøhus has tourist information and sells coffee, soft drinks,
-ice cream and sweets. All lunch and dinner service is at Røvær
-Havhotell this year. Røvær Sjøhus is also known for serving the
-traditional Norwegian dish “komle”.
-
-* **Every day:** {{sjohusSummer}} _until {{end}}_
-* **Saturday and Sunday:** {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
-- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 

@@ -50,7 +50,21 @@ Spielplatz für Kinder. Mitgebrachtes Essen können Sie an den Bänken und
 Tischen verzehren – solange Sie aufräumen und den Ort in gutem Zustand
 hinterlassen. Gleich daneben gibt es auch einen kleinen Fußballplatz.
 
-## Røvær Havbrukssenter und Sjøhus
+## Røvær Sjøhus und Havbrukssenter
+
+### Røvær Sjøhus
+
+Im Røvær Sjøhus gibt es Touristeninformation und Verkauf von Kaffee,
+Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
+werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
+auch für das traditionelle norwegische Gericht „Komle“ bekannt.
+
+* **Täglich:** {{sjohusSummer}} _bis zum {{end}}_
+* **Samstags und sonntags:** {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ### Das Aquakulturzentrum
 
@@ -87,20 +101,6 @@ Kinder unter 12 Jahren müssen von einem Erwachsenen begleitet werden, unter
 
 Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.
-
-### Røvær Sjøhus
-
-Im Røvær Sjøhus gibt es Touristeninformation und Verkauf von Kaffee,
-Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
-werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
-auch für das traditionelle norwegische Gericht „Komle“ bekannt.
-
-* **Täglich:** {{sjohusSummer}} _bis zum {{end}}_
-* **Samstags und sonntags:** {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
-- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 

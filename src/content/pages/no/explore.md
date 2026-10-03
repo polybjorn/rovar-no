@@ -40,7 +40,19 @@ Ved Skolen og Barnehagen er det en ny og fin lekeplass og mulighet for å
 spise medbrakt mat om man rydder opp og forlater området i fin stand til
 nestemann. Det er også en fotballbinge like ved.
 
-## Røvær Havbrukssenter og Sjøhus
+## Røvær Sjøhus og Havbrukssenter
+
+### Røvær Sjøhus
+
+På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
+søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
+
+* **Hver dag:** kl. {{sjohusSummer}} _til {{end}}_
+* **Lørdag og søndag:** kl. {{sjohusAutumn}} _{{autumn}}_
+
+- [Facebook]({{sjohusFacebookUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ### Havbrukssenteret
 
@@ -73,18 +85,6 @@ Barn under 12 år må ha med en voksen, og alle under 18 år trenger skriftlig
 tillatelse fra foresatte.
 
 Påmelding til turen gjøres på [Røvær Sjøhus](#røvær-sjøhus), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
-
-### Røvær Sjøhus
-
-På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
-søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
-
-* **Hver dag:** kl. {{sjohusSummer}} _til {{end}}_
-* **Lørdag og søndag:** kl. {{sjohusAutumn}} _{{autumn}}_
-
-- [Facebook]({{sjohusFacebookUrl}})
-- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
-- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Museumet Hiltahuset
 

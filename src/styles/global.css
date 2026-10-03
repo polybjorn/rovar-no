@@ -791,6 +791,27 @@ img.section-img {
   color: inherit;
 }
 
+/* In a place's card the list drops its own box, so the card is the only
+   frame: one level of card, not one inside another. A past row's tint still
+   reaches a little past the text, into the card's padding. */
+.section .info-box ul.fact-list {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  --fact-pad: 0.75rem;
+}
+
+.section .info-box ul.fact-list:has(li.past) {
+  overflow: visible;
+}
+
+/* The card's padding is its margin: the last line's own bottom margin would
+   double it. */
+.info-box > :last-child {
+  margin-bottom: 0;
+}
+
 .fact-list li {
   display: grid;
   grid-template-columns: subgrid;
