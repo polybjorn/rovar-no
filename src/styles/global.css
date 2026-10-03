@@ -28,7 +28,10 @@
   --color-warn: #9a5000;
   --color-urgent: #b3261e;
   --color-text: #1f2d3a;
-  --color-text-light: #4a5a68;
+  /* Secondary text: dates, credits, small print. Kept at 7:1 or more on
+     sand, sand-dark and white, so lighter never means harder to read.
+     Running text uses --color-text. */
+  --color-text-light: #33414e;
   /* Every bit of text on the dark blue surfaces uses this one white. */
   --color-on-dark: #ffffff;
   --color-border: #d5cfc5;
@@ -427,7 +430,6 @@ span.lang-option[aria-current="true"] {
 
 .page-intro {
   font-size: 1.1rem;
-  color: var(--color-text-light);
   margin-bottom: 2rem;
   max-width: var(--width-intro);
 }
@@ -507,7 +509,6 @@ img.card-img {
 
 .card-body p {
   font-size: 0.9rem;
-  color: var(--color-text-light);
   line-height: 1.5;
 }
 
