@@ -1,5 +1,5 @@
 import { toOsloDate, osloMinutes } from './departures-core.js';
-import { pastState, hoursStatus } from './past-hours-core.js';
+import { pastState, hoursStatus, nextDeparture } from './past-hours-core.js';
 
 // Strikes through the hours rows whose dates are over (data-until, set from
 // the season data by remark-content), and once every dated row in a list is
@@ -9,6 +9,7 @@ import { pastState, hoursStatus } from './past-hours-core.js';
 // While the season lasts it says instead whether the place is open now, or
 // when it next opens, from the rows' days and hours (data-days and friends).
 // Checked again every minute, so a page left open turns at closing time.
+// A list of departures says instead when the next one leaves.
 const note = document.body.dataset.pastNote;
 const strings = JSON.parse(document.body.dataset.hoursStatus ?? '{}');
 const intl = document.body.dataset.intl;
@@ -35,6 +36,14 @@ function statusText(status, rowCount) {
   return fill(strings.opensOn, { time: row.openText, day: dayName(status.date, inDays) });
 }
 
+function departureText(status) {
+  if (!status) return null;
+  const { row, inDays } = status;
+  if (inDays === 0) return fill(strings.departsToday, { time: row.openText });
+  if (inDays === 1) return fill(strings.departsTomorrow, { time: row.openText });
+  return fill(strings.departsOn, { time: row.openText, day: dayName(status.date, inDays) });
+}
+
 function update() {
   const now = new Date();
   const today = toOsloDate(now);
@@ -54,7 +63,7 @@ function update() {
       p.className = 'fact-past-note';
       p.textContent = note;
     } else {
-      const hours = [...list.querySelectorAll(':scope > li[data-days]')]
+      const hours = [...list.querySelectorAll(':scope > li[data-open]')]
         .map(({ dataset: d }) => ({
           days: d.days.split(',').map(Number),
           from: d.from,
@@ -64,8 +73,23 @@ function update() {
           openText: d.openText,
           closeText: d.closeText,
         }));
-      const status = hours.length ? hoursStatus(hours, today, minutes) : null;
-      const text = statusText(status, hours.length);
+      const departures = [...list.querySelectorAll(':scope > li[data-departures]')]
+        .map(({ dataset: d }) => ({
+          days: d.days.split(',').map(Number),
+          from: d.from,
+          until: d.until,
+          times: d.departures.split(','),
+          texts: d.departureTexts.split(','),
+        }));
+      let status = null;
+      let text = null;
+      if (hours.length) {
+        status = hoursStatus(hours, today, minutes);
+        text = statusText(status, hours.length);
+      } else if (departures.length) {
+        status = nextDeparture(departures, today, minutes);
+        text = departureText(status);
+      }
       if (!text) continue;
       p.className = 'fact-status';
       p.dataset.state = status.state;

@@ -25,7 +25,10 @@
       "openNowPlain": "Åpent nå.",
       "opensToday": "Stengt nå. Åpner kl. {{time}} i dag.",
       "opensTomorrow": "Stengt for i dag. Åpner igjen i morgen kl. {{time}}.",
-      "opensOn": "Stengt nå. Åpner {{day}} kl. {{time}}."
+      "opensOn": "Stengt nå. Åpner {{day}} kl. {{time}}.",
+      "departsToday": "Neste avgang kl. {{time}}.",
+      "departsTomorrow": "Neste avgang i morgen kl. {{time}}.",
+      "departsOn": "Neste avgang {{day}} kl. {{time}}."
     }
   },
   "notFound": {

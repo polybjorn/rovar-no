@@ -135,3 +135,32 @@ test('a row with no dates holds all year, and is open until midnight', () => {
     { state: 'opens', date: '2026-12-24', inDays: 0, open: '05:45', close: '24:00' });
   assert.equal(hoursStatus(shop, '2031-02-01', at('12:00')).state, 'open');
 });
+
+// --- when the next RIB tour leaves -------------------------------------------
+
+import { departuresIn } from '../src/i18n/season-format.js';
+import { nextDeparture } from '../src/scripts/past-hours-core.js';
+
+test('a departures row names its times, an hours row none', () => {
+  assert.deepEqual(departuresIn('hver dag kl. {{ribDepartures}} _til {{end}}_'), season.ribDepartures);
+  assert.equal(departuresIn('kl. {{sjohusSummer}} _til {{end}}_'), undefined);
+});
+
+// The RIB tour: every day at 11:30 and 14:15 until 16 August 2026.
+const rib = [{ days: [0, 1, 2, 3, 4, 5, 6], until: '2026-08-16', times: ['11:30', '14:15'], texts: ['11.30', '14.15'] }];
+const leaves = (s) => s && { state: s.state, date: s.date, inDays: s.inDays, time: s.row.open, text: s.row.openText };
+
+test('the next departure is the first one later today, else tomorrow', () => {
+  assert.deepEqual(leaves(nextDeparture(rib, '2026-07-01', at('09:00'))),
+    { state: 'opens', date: '2026-07-01', inDays: 0, time: '11:30', text: '11.30' });
+  assert.deepEqual(leaves(nextDeparture(rib, '2026-07-01', at('12:00'))),
+    { state: 'opens', date: '2026-07-01', inDays: 0, time: '14:15', text: '14.15' });
+  // A boat leaving this minute is gone, and never counts as open.
+  assert.deepEqual(leaves(nextDeparture(rib, '2026-07-01', at('14:15'))),
+    { state: 'opens', date: '2026-07-02', inDays: 1, time: '11:30', text: '11.30' });
+});
+
+test('no departure is left after the last day', () => {
+  assert.equal(nextDeparture(rib, '2026-08-16', at('15:00')), null);
+  assert.equal(nextDeparture(rib, '2026-10-01', at('09:00')), null);
+});
