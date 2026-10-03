@@ -804,6 +804,30 @@ img.section-img {
   --fact-pad: 0.75rem;
 }
 
+/* In a wide card the table is only as wide as its rows and sits in the
+   middle, like the links under it, rather than hugging the left with the
+   card's right half empty. The rows stay left-aligned inside it, so labels,
+   times and dates still line up. The line introducing it and the status
+   under it centre with it; a sentence of prose in the card stays left. On a
+   phone it fills the card again, or a one-row table floats in the middle. */
+.section .info-box ul.fact-list {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+@media (max-width: 600px) {
+  .section .info-box ul.fact-list {
+    width: auto;
+  }
+}
+
+.info-box > p:has(+ ul.fact-list),
+.info-box .fact-status,
+.info-box .fact-past-note {
+  text-align: center;
+}
+
 .section .info-box ul.fact-list:has(li.past) {
   overflow: visible;
 }

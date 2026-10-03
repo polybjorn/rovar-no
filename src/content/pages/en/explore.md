@@ -145,7 +145,7 @@ Restaurant opening hours:
 The island's own shop has groceries, post, parcel pickup and fishing
 tackle.
 
-- **Every day:** {{narbutikkenHours}}
+* **Every day:** {{narbutikkenHours}}
 
 - [Facebook]({{narbutikkenFacebookUrl}})
 - [Website]({{narbutikkenUrl}})

@@ -148,7 +148,7 @@ Events.
 Der inseleigene Laden bietet Lebensmittel, Post, Paketausgabe und
 Angelzubehör.
 
-- **Täglich:** {{narbutikkenHours}}
+* **Täglich:** {{narbutikkenHours}}
 
 - [Facebook]({{narbutikkenFacebookUrl}})
 - [Website]({{narbutikkenUrl}})

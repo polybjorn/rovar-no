@@ -130,7 +130,7 @@ hele året, og har forskjellige arrangementer i løpet av året.
 
 Øyas egen butikk har dagligvarer, post, pakkeutlevering og fiskeutstyr.
 
-- **Hver dag:** kl. {{narbutikkenHours}}
+* **Hver dag:** kl. {{narbutikkenHours}}
 
 - [Facebook]({{narbutikkenFacebookUrl}})
 - [Nettside]({{narbutikkenUrl}})
