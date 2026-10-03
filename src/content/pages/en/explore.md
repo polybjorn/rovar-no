@@ -78,6 +78,8 @@ conditions. There are screens for deeper learning, games and
 activities. Entry to the exhibition is free.
 
 - [Website]({{havbrukUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ### RIB tour to the salmon pens
 

@@ -66,6 +66,8 @@ tema som havbruk, historie, miljø og naturforhold. Det er skjermer for
 fordypning, spill og aktiviteter. Det er gratis å besøke utstillingen.
 
 - [Nettside]({{havbrukUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ### Visningstur til laksemerd
 

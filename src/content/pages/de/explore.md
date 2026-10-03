@@ -80,6 +80,8 @@ Naturverhältnisse. Es gibt Bildschirme zur Vertiefung, Spiele und
 Aktivitäten. Der Eintritt zur Ausstellung ist frei.
 
 - [Website]({{havbrukUrl}})
+- [{{havbrukEmail}}](mailto:{{havbrukEmail}})
+- [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ### RIB-Tour zu den Lachsgehegen
 
