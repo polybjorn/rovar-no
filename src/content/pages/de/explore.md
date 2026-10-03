@@ -50,7 +50,7 @@ Spielplatz für Kinder. Mitgebrachtes Essen können Sie an den Bänken und
 Tischen verzehren – solange Sie aufräumen und den Ort in gutem Zustand
 hinterlassen. Gleich daneben gibt es auch einen kleinen Fußballplatz.
 
-## Røvær Sjøhus und Havbrukssenter
+## Aquakultur und Lachssafari
 
 ### Røvær Sjøhus
 
