@@ -39,4 +39,6 @@ for (const args of [
   if (run.status !== 0) process.exit(run.status ?? 1);
 }
 
-console.log(`\npreview:build: publish it with\n  site-preview publish ${SITE} dist ${branch}`);
+// site-preview names the preview by the branch dist's checkout is on, so a
+// BRANCH= override is for the combined build (BRANCH=all), not for publish.
+console.log(`\npreview:build: publish it with\n  site-preview publish ${SITE} dist`);
