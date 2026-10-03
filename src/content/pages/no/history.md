@@ -65,4 +65,15 @@ rundt 1960 var det feriehus.
 
 I dag er Hiltahuset museum, innredet med gjenstander og inventar som
 viser bo- og byggeskikk på Røvær, og ett av rommene har en utstilling om
-ulykken i 1899. [Åpningstider og priser]({{explorePage}}#museumet-hiltahuset)
+ulykken i 1899.
+
+- **Søndag og torsdag:** kl. {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
+- **Pris:** {{hiltaPriceAdult}} voksne\
+  {{hiltaPriceReduced}} studenter og honnør\
+  gratis under 16 år
+
+Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
+
+- [{{hiltaEmail}}](mailto:{{hiltaEmail}})
+- [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
+- [Nettside](https://haugalandmuseet.no/museum/hiltahuset/)

@@ -67,4 +67,14 @@ it was a holiday home.
 Today Hiltahuset is a museum, furnished with objects and fittings that
 show how people lived and built on Røvær, and one of its rooms holds an
 exhibition about the accident in 1899.
-[Opening hours and prices]({{explorePage}}#hiltahuset-museum)
+
+- **Sundays and Thursdays:** {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
+- **Price:** {{hiltaPriceAdult}} adults\
+  {{hiltaPriceReduced}} students and seniors\
+  free under 16
+
+Outside these hours, you can book a guided tour with Haugalandmuseet.
+
+- [{{hiltaEmail}}](mailto:{{hiltaEmail}})
+- [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
+- [Website](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
