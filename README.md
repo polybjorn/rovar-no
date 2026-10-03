@@ -62,6 +62,25 @@ actually built with: `.nvmrc` holds that, currently 24, and both the forge gate
 and the Pages deploy read it so the two cannot drift apart. `npm run build`
 writes the finished site to `dist/`.
 
+### Branch previews
+
+The hypervisor's tailnet preview server serves a branch from
+`/rovar-no/<branch>/`, so the build has to carry that path as its base or
+every asset 404s while the page still renders.
+
+```bash
+npm run preview:build
+site-preview publish rovar-no dist
+```
+
+`preview:build` derives the base from the current branch the same way the
+publisher names its directory, and prints the publish command with the branch
+filled in. `BRANCH=herd/other` overrides it. Every URL the site emits already
+goes through `BASE_URL`, so the base is all it changes; `npm run build`
+without `PREVIEW_BASE` set is the deploy build, unchanged. The page link
+inside a preview's `.ics` feeds points at the Pages host under the preview
+path, which does not exist; the feeds themselves are served fine.
+
 ## Calendar
 
 The ferry page has no subscription link, and the board has no controls on its

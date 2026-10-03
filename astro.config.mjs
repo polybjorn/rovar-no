@@ -15,7 +15,10 @@ const isPreview = !site.includes('rovar.no');
 // https://astro.build/config
 export default defineConfig({
   site,
-  base: '/rovar-no',
+  // A branch preview on the fleet's site-preview server lands on a subpath of
+  // its own; scripts/build-preview.mjs sets this to match. Unset, the build is
+  // the deploy build.
+  base: process.env.PREVIEW_BASE ?? '/rovar-no',
   integrations: isPreview ? [] : [
     sitemap({
       filter: (page) => !page.includes('/404'),
