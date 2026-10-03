@@ -429,7 +429,6 @@ span.lang-option[aria-current="true"] {
 }
 
 .page-intro {
-  font-size: 1.1rem;
   margin-bottom: 2rem;
   max-width: var(--width-intro);
 }
