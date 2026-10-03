@@ -79,10 +79,9 @@ Vi arrangerer visningstur i RIB ut til laksemerdene hver dag på sommeren.
 - **Varighet:** ca. 45 min, inkludert påkledning
 - **Pris:** {{ribPriceAdult}} voksne\
   {{ribPriceChild}} barn
-- **Alder:** fra 6 år
-
-Barn under 12 år må ha med en voksen, og alle under 18 år trenger skriftlig
-tillatelse fra foresatte.
+- **Alder:** fra 6 år\
+  under 12 år: sammen med en voksen\
+  under 18 år: skriftlig tillatelse fra foresatte
 
 Påmelding til turen gjøres på [Røvær Sjøhus](#røvær-sjøhus), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
 

@@ -94,10 +94,9 @@ Lachsgehegen.
 - **Dauer:** etwa 45 Minuten, inklusive Anziehen der Ausrüstung
 - **Preis:** {{ribPriceAdult}} Erwachsene\
   {{ribPriceChild}} Kinder
-- **Alter:** ab 6 Jahren
-
-Kinder unter 12 Jahren müssen von einem Erwachsenen begleitet werden, unter
-18 Jahren braucht es eine schriftliche Erlaubnis der Erziehungsberechtigten.
+- **Alter:** ab 6 Jahren\
+  unter 12: in Begleitung eines Erwachsenen\
+  unter 18: schriftliche Erlaubnis der Erziehungsberechtigten
 
 Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.

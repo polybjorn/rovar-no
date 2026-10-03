@@ -92,10 +92,9 @@ pens.
 - **Duration:** about 45 minutes, including getting dressed for the trip
 - **Price:** {{ribPriceAdult}} adults\
   {{ribPriceChild}} children
-- **Age:** 6 and up
-
-Children under 12 must come with an adult, and anyone under 18 needs written
-permission from a guardian.
+- **Age:** 6 and up\
+  under 12: with an adult\
+  under 18: written permission from a guardian
 
 Sign up for the trip at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone. Payment at Røvær Sjøhus or by Vipps.
 
