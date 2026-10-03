@@ -93,13 +93,13 @@ Lachsgehegen.
 - **Abfahrt:** täglich {{ribDepartures}} _bis zum {{end}}_
 - **Dauer:** etwa 45 Minuten, inklusive Anziehen der Ausrüstung
 - **Preis:** {{ribPriceAdult}} Erwachsene\
-  {{ribPriceChild}} Kinder
+  {{ribPriceChild}} Kinder\
+  zahlbar im Røvær Sjøhus oder per Vipps
 - **Alter:** ab 6 Jahren\
   unter 12: in Begleitung eines Erwachsenen\
   unter 18: schriftliche Erlaubnis der Erziehungsberechtigten
 
-Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
-Vipps.
+Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch.
 
 ## Hiltahuset Museum
 

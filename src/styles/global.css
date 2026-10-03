@@ -920,7 +920,7 @@ img.section-img {
 
 .fact-past-note {
   margin-top: 0.6rem;
-  font-weight: 600;
+  color: var(--color-text-light);
 }
 
 /* On a phone the columns leave the values a thin strip, more so in a list

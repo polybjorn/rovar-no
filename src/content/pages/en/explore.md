@@ -91,12 +91,13 @@ pens.
 - **Departures:** every day {{ribDepartures}} _until {{end}}_
 - **Duration:** about 45 minutes, including getting dressed for the trip
 - **Price:** {{ribPriceAdult}} adults\
-  {{ribPriceChild}} children
+  {{ribPriceChild}} children\
+  paid at Røvær Sjøhus or by Vipps
 - **Age:** 6 and up\
   under 12: with an adult\
   under 18: written permission from a guardian
 
-Sign up for the trip at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone. Payment at Røvær Sjøhus or by Vipps.
+Sign up for the trip at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone.
 
 ## Hiltahuset Museum
 
