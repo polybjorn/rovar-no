@@ -23,6 +23,7 @@
     "pastHoursNote": "Die Saison ist vorbei. Aktuelle Zeiten und Veranstaltungen gibt es online oder auf Anfrage.",
     "hoursStatus": {
       "openNow": "Jetzt geöffnet, schließt um {{time}} Uhr.",
+      "openNowPlain": "Jetzt geöffnet.",
       "opensToday": "Jetzt geschlossen. Öffnet heute um {{time}} Uhr.",
       "opensTomorrow": "Heute geschlossen. Öffnet morgen wieder um {{time}} Uhr.",
       "opensOn": "Jetzt geschlossen. Öffnet am {{day}} um {{time}} Uhr."
