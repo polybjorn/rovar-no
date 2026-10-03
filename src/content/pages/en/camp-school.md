@@ -40,8 +40,7 @@ for one class at a time.
 
 ### Espen Martens
 
-If you have questions about the practical side of a camp school
-stay, just get in touch.
+Get in touch with any questions about the practical side of the stay.
 
 - [{{campSchoolEmail}}](mailto:{{campSchoolEmail}})
 - [{{campSchoolPhone}}](tel:{{campSchoolPhoneTel}})
