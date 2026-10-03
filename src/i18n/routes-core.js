@@ -30,6 +30,23 @@ export function pathFor(pageByKey, base, key, code) {
   return `${base}/${prefix}${slug}${slug ? '/' : ''}`;
 }
 
+// Links from one page to the others in the same language, as content files
+// write them: {{historyPage}}, {{campSchoolPage}}. Relative to the page they
+// sit on, so they hold under any base path without the plugin knowing it.
+export function pageLinks(pageByKey, code, fromKey) {
+  const from = pathFor(pageByKey, '', fromKey, code).split('/').filter(Boolean);
+  const links = {};
+  for (const key of Object.keys(pageByKey)) {
+    const to = pathFor(pageByKey, '', key, code).split('/').filter(Boolean);
+    let shared = 0;
+    while (shared < from.length && shared < to.length && from[shared] === to[shared]) shared++;
+    const rest = to.slice(shared).join('/');
+    const name = key.replace(/-(\w)/g, (_, c) => c.toUpperCase()) + 'Page';
+    links[name] = '../'.repeat(from.length - shared) + (rest ? `${rest}/` : '') || './';
+  }
+  return links;
+}
+
 // The reader's language when it exists, otherwise the first language in the
 // fallback chain that has the page. Keeps nav links working while a language
 // is still being translated.

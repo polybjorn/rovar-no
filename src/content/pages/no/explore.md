@@ -51,7 +51,7 @@ Utstillingen er kompakt, og gir en enkel innføring i store og spennende
 tema som havbruk, historie, miljø og naturforhold. Det er skjermer for
 fordypning, spill og aktiviteter.
 
-Det er GRATIS å besøke visningssenteret!
+* **Pris:** gratis
 
 - [Nettside]({{havbrukUrl}})
 
@@ -59,57 +59,65 @@ Det er GRATIS å besøke visningssenteret!
 
 ![Guide forteller til gjestene i RIB-en ved laksemerden](laksemerd)
 
-Vi arrangerer visningstur i RIB ut til laksemerdene hver dag i sommer
-frem til {{end}}. Avgang kl. {{ribDepartures}}. Varighet ca. 45 min,
-dette er inkludert påkledning.
+Vi arrangerer visningstur i RIB ut til laksemerdene hver dag på sommeren.
 
-Pris: {{ribPriceAdult}} for voksne og {{ribPriceChild}} for barn.
+- **Avganger:** hver dag kl. {{ribDepartures}} _til {{end}}_
+- **Varighet:** ca. 45 min, inkludert påkledning
+- **Pris:** {{ribPriceAdult}} voksne\
+  {{ribPriceChild}} barn
+- **Alder:** fra 6 år
 
-- Aldersgrense for visningstur i RIB er 6 år.
-- Fra 6 til 12 år må barn være i følge med en voksen.
-- Barn under 18 år må ha skriftlig tillatelse fra foresatte.
+Barn under 12 år må ha med en voksen, og alle under 18 år trenger skriftlig
+tillatelse fra foresatte.
 
-Påmelding på Røvær Sjøhus (åpent daglig {{sjohusSummer}} frem til
-{{end}}), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
+Påmelding til turen gjøres på [Røvær Sjøhus](#røvær-sjøhus), på e-post eller på telefon. Betaling på Røvær Sjøhus eller på VIPPS.
 
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
 - [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Museumet Hiltahuset
 
-Museumet Hiltahuset kan som regel åpnes og fortelles om av en dyktig
-guide. Der står utstilling om Røværulykka i 1899 hvor 30 lokale liv
-gikk tapt da et gravfølge etter endt gravlegging skulle returnere til
-Røvær. Det sies at Røværulykka preger Røværbuen den dag i dag.
+Hiltahuset er Røværs eldste hus og øyas museum, med en utstilling om
+ulykken i 1899. [Les historien om huset.]({{historyPage}}#hiltahuset)
 
 Skjoldbladbua rett ved siden av Hiltahuset selger varer laget av lokale
 hender.
 
-[Les mer om priser og åpningstider for Hiltahuset.](https://www.fjordnorway.com/no/se-og-gjore/hiltahuset-pa-rovaer)
+- **Søndag og torsdag:** kl. {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
+- **Pris:** {{hiltaPriceAdult}} voksne\
+  {{hiltaPriceReduced}} studenter og honnør\
+  gratis under 16 år
+
+Utenom åpningstidene kan du bestille omvisning hos Haugalandmuseet.
+
+- [{{hiltaEmail}}](mailto:{{hiltaEmail}})
+- [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
+- [Nettside](https://haugalandmuseet.no/museum/hiltahuset/)
 
 ## Mat, drikke og overnatting
 
 ### Røvær Sjøhus
 
-Røvær Sjøhus har sommeren {{year}} åpent hver dag kl. {{sjohusSummer}} frem
-til {{end}}. Her er det turistinformasjon og salg av kaffe, brus,
-is og søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
+På Røvær Sjøhus er det turistinformasjon og salg av kaffe, brus, is og
+søtsaker. All lunsj/middagsservering er i år på Røvær Havhotell.
 
-Etter {{end}} er det åpent lørdag og søndag kl. {{sjohusAutumn}} ut september.
+* **Hver dag:** kl. {{sjohusSummer}} _til {{end}}_
+* **Lørdag og søndag:** kl. {{sjohusAutumn}} _{{autumn}}_
 
 - [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
-Restauranten på Røvær Havhotell har åpent hele sommeren frem til
-{{end}}. Søndag til onsdag er det åpent kl. {{hotelSunWed}} med
-matservering kl. {{hotelSunWedFood}}. Torsdag til lørdag er det åpent
-kl. {{hotelThuSat}} med matservering kl. {{hotelThuSatFood}}. (Etter
-{{end}} er det åpent i restauranten hver lørdag og søndag
-kl. {{hotelAutumn}} ut september.)
+Røvær Havhotell har restaurant og åpent for overnatting på bestilling
+hele året, og har forskjellige arrangementer i løpet av året.
 
-Røvær Havhotell har åpent for overnatting på bestilling hele året,
-og har forskjellige arrangementer i løpet av året.
+Åpningstider i restauranten:
+
+* **Søndag til onsdag:** kl. {{hotelSunWed}}\
+  matservering kl. {{hotelSunWedFood}} _til {{end}}_
+* **Torsdag til lørdag:** kl. {{hotelThuSat}}\
+  matservering kl. {{hotelThuSatFood}} _til {{end}}_
+* **Lørdag og søndag:** kl. {{hotelAutumn}} _{{autumn}}_
 
 - [Facebook]({{havhotellFacebookUrl}})
 - [Nettside]({{havhotellUrl}})

@@ -63,7 +63,7 @@ spannende Themen wie Aquakultur, Geschichte, Umwelt und
 Naturverhältnisse. Es gibt Bildschirme zur Vertiefung, Spiele und
 Aktivitäten.
 
-Der Besuch des Zentrums ist KOSTENLOS!
+* **Preis:** kostenlos
 
 - [Website]({{havbrukUrl}})
 
@@ -71,18 +71,19 @@ Der Besuch des Zentrums ist KOSTENLOS!
 
 ![Ein Guide spricht zu den Gästen im RIB am Lachsgehege](laksemerd)
 
-Diesen Sommer fährt bis zum {{end}} täglich eine RIB-Bootstour
-hinaus zu den Lachsgehegen. Abfahrt um {{ribDepartures}} Uhr. Dauer etwa
-45 Minuten, inklusive Anziehen der Ausrüstung.
+Im Sommer fährt täglich eine RIB-Bootstour hinaus zu den
+Lachsgehegen.
 
-Preis: {{ribPriceAdult}} für Erwachsene und {{ribPriceChild}} für Kinder.
+- **Abfahrt:** täglich {{ribDepartures}} _bis zum {{end}}_
+- **Dauer:** etwa 45 Minuten, inklusive Anziehen der Ausrüstung
+- **Preis:** {{ribPriceAdult}} Erwachsene\
+  {{ribPriceChild}} Kinder
+- **Alter:** ab 6 Jahren
 
-- Das Mindestalter für die RIB-Tour beträgt 6 Jahre.
-- Kinder von 6 bis 12 Jahren müssen von einem Erwachsenen begleitet werden.
-- Kinder unter 18 Jahren benötigen eine schriftliche Erlaubnis der Erziehungsberechtigten.
+Kinder unter 12 Jahren müssen von einem Erwachsenen begleitet werden, unter
+18 Jahren braucht es eine schriftliche Erlaubnis der Erziehungsberechtigten.
 
-Anmeldung im Røvær Sjøhus (täglich {{sjohusSummer}} Uhr geöffnet, bis zum
-{{end}}), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
+Anmeldung zur Tour im [Røvær Sjøhus](#røvær-sjøhus), per E-Mail oder telefonisch. Bezahlung im Røvær Sjøhus oder per
 Vipps.
 
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
@@ -90,40 +91,51 @@ Vipps.
 
 ## Hiltahuset Museum
 
-Unser Museum, das Hiltahuset, kann nach Vereinbarung für Besucher
-geöffnet werden – ein kundiger Führer erzählt Ihnen die Geschichte
-unserer Insel. „Skjoldbladbua“ ist der nächste Nachbar des Museums, ein
+Das Hiltahuset ist das älteste Haus auf Røvær und das Museum der Insel,
+mit einer Ausstellung über das Unglück von 1899.
+[Lesen Sie die Geschichte des Hauses.]({{historyPage}}#hiltahuset)
+
+„Skjoldbladbua“ ist der nächste Nachbar des Museums, ein
 Souvenirladen mit von lokalen Händen gefertigten Waren.
 
-[Lesen Sie hier mehr über Öffnungszeiten und Preise.](https://www.fjordnorway.com/de/sehen-und-erleben/das-hiltahus)
+- **Sonntags und donnerstags:** {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
+- **Preis:** {{hiltaPriceAdult}} Erwachsene\
+  {{hiltaPriceReduced}} Studenten und Senioren\
+  Kinder unter 16 frei
+
+Außerhalb der Öffnungszeiten können Sie beim Haugalandmuseet eine Führung buchen.
+
+- [{{hiltaEmail}}](mailto:{{hiltaEmail}})
+- [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
+- [Website](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
 
 ## Essen, Trinken und Unterkunft
 
 ### Røvær Sjøhus
 
-Im Sommer {{year}} ist das Røvær Sjøhus bis zum {{end}} täglich von
-{{sjohusSummer}} Uhr geöffnet, mit Touristeninformation und Verkauf
-von Kaffee, Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und
-Abendessen werden dieses Jahr im Røvær Havhotell serviert. Das Røvær
-Sjøhus ist auch für das traditionelle norwegische Gericht „Komle“
-bekannt.
+Im Røvær Sjøhus gibt es Touristeninformation und Verkauf von Kaffee,
+Erfrischungsgetränken, Eis und Süßigkeiten. Mittag- und Abendessen
+werden dieses Jahr im Røvær Havhotell serviert. Das Røvær Sjøhus ist
+auch für das traditionelle norwegische Gericht „Komle“ bekannt.
 
-Nach dem {{end}} ist samstags und sonntags von {{sjohusAutumn}} Uhr
-geöffnet, bis Ende September.
+* **Täglich:** {{sjohusSummer}} _bis zum {{end}}_
+* **Samstags und sonntags:** {{sjohusAutumn}} _{{autumn}}_
 
 - [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
-Das Restaurant im Røvær Havhotell ist den ganzen Sommer bis zum
-{{end}} geöffnet. Sonntag bis Mittwoch von {{hotelSunWed}} Uhr mit
-Essensausgabe von {{hotelSunWedFood}} Uhr. Donnerstag bis Samstag von
-{{hotelThuSat}} Uhr mit Essensausgabe von {{hotelThuSatFood}} Uhr. (Nach
-dem {{end}} ist das Restaurant samstags und sonntags von {{hotelAutumn}} Uhr
-geöffnet, bis Ende September.)
+Das Røvær Havhotell hat ein Restaurant, bietet ganzjährig
+Übernachtungen auf Anfrage und veranstaltet über das Jahr verschiedene
+Events.
 
-Das Røvær Havhotell bietet ganzjährig Übernachtungen auf Anfrage und
-veranstaltet über das Jahr verschiedene Events.
+Öffnungszeiten des Restaurants:
+
+* **Sonntag bis Mittwoch:** {{hotelSunWed}}\
+  Küche {{hotelSunWedFood}} _bis zum {{end}}_
+* **Donnerstag bis Samstag:** {{hotelThuSat}}\
+  Küche {{hotelThuSatFood}} _bis zum {{end}}_
+* **Samstags und sonntags:** {{hotelAutumn}} _{{autumn}}_
 
 - [Facebook]({{havhotellFacebookUrl}})
 - [Website]({{havhotellUrl}})

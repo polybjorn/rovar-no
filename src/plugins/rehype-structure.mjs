@@ -9,6 +9,7 @@ import { visit } from 'unist-util-visit';
 //   a lone image                        -> .section-img, unwrapped from its <p>
 //   a list inside an info box           -> .contact-list
 //   a list of nothing but links         -> .link-list
+//   a list of "**Label:** value" lines  -> .fact-list
 //
 // Everything here is language-independent: it runs the same on all 15 content
 // folders.
@@ -39,6 +40,33 @@ function linksOnly(node) {
     const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
     return real.length === 1 && isElement(real[0], 'a');
   });
+}
+
+// A list whose every item opens with a bold label and goes on with its value:
+// opening hours, prices, a tour's departures.
+function labelled(node) {
+  const items = node.children.filter((c) => isElement(c, 'li'));
+  return items.length > 0 && items.every((li) => {
+    const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+    return real.length > 1 && isElement(real[0], 'strong');
+  });
+}
+
+// A fact-list row as label, value and, when the row ends in emphasis, when it
+// applies: "**Hver dag:** kl. 11.00 _til 16. august_". Each part is a cell of
+// the list's grid, so times and dates each line up down the list.
+function factRow(li) {
+  const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+  const [label, ...rest] = real;
+  const last = rest.at(-1);
+  const when = rest.length > 1 && isElement(last, 'em') ? rest.pop() : null;
+  const at = li.children.indexOf(rest[0]);
+  const value = li.children.slice(at, when ? li.children.indexOf(when) : undefined);
+  li.children = [
+    label,
+    { type: 'element', tagName: 'span', properties: { className: ['fact-value'] }, children: value },
+    ...(when ? [{ ...when, tagName: 'span', properties: { className: ['fact-when'] } }] : []),
+  ];
 }
 
 // Email and phone share one item, so the list wraps them together: never the
@@ -112,6 +140,11 @@ export function rehypeStructure() {
         groupContact(node);
       }
 
+      if (isElement(node, 'ul') && labelled(node)) {
+        node.properties.className = [...(node.properties.className ?? []), 'fact-list'];
+        for (const li of node.children) if (isElement(li, 'li')) factRow(li);
+      }
+
       if (isElement(node, 'p') && !section) {
         node.properties.className = [...(node.properties.className ?? []), 'page-intro'];
       }
@@ -120,6 +153,18 @@ export function rehypeStructure() {
     }
 
     tree.children = out;
+
+    // A place under a heading of its own gets the card the food places get
+    // under theirs, from its hours or prices (its links, with neither) to the
+    // links that close it, so every place's links sit inside a card.
+    const hasClass = (node, name) => node.properties?.className?.includes(name);
+    for (const sec of out) {
+      if (!isElement(sec, 'div') || !hasClass(sec, 'section')) continue;
+      const kids = sec.children;
+      if (kids.some((c) => hasClass(c, 'info-box')) || !kids.some((c) => hasClass(c, 'link-list'))) continue;
+      const at = kids.findIndex((c) => hasClass(c, 'fact-list') || hasClass(c, 'link-list'));
+      sec.children = [...kids.slice(0, at), div('info-box', kids.slice(at))];
+    }
 
     // External links open in a new tab, as they did in the hand-written pages.
     visit(tree, 'element', (node) => {

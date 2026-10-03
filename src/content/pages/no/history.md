@@ -48,3 +48,20 @@ Befolkningen nådde en topp rundt 1950, da var det ca. 170 fastboende på
 Røvær. Så minket sildefisket av. Båter ble solgt, flere familier
 flyttet og siden den gang har folketallet uunngåelig variert med jevne
 mellomrom.
+
+## Hiltahuset
+
+Hiltahuset er Røværs eldste hus. Konstruksjonen tyder på at det ble satt
+opp rundt 1820-1830, av to eldre stuer med gang og kjøkken i midten. Det
+ble bygd som våningshus og ble senere brukt som kårhus. I 1880-årene var
+den ene stuen i perioder skolestue: læreren var to uker på Røvær og to
+uker på Hauge.
+
+Det finnes ingen papirer på huset. Det har gått i arv fra mor til datter
+gjennom muntlige avtaler i flere generasjoner, og har navnet sitt etter
+Johan Hilt fra Bergen, som ble gift med en av døtrene i huset. Fram til
+rundt 1960 var det feriehus.
+
+I dag er Hiltahuset museum, innredet med gjenstander og inventar som
+viser bo- og byggeskikk på Røvær, og ett av rommene har en utstilling om
+ulykken i 1899. [Åpningstider og priser]({{explorePage}}#museumet-hiltahuset)

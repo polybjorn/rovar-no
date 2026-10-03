@@ -19,7 +19,8 @@
       "kolumbus": "Tickets für das Schnellboot (Kolumbus)",
       "avis": "Røvær in der Haugesunds Avis",
       "github": "Quellcode (GitHub)"
-    }
+    },
+    "pastHoursNote": "Die Saison ist vorbei. Aktuelle Zeiten und Veranstaltungen auf ihren eigenen Seiten."
   },
   "notFound": {
     "title": "Seite nicht gefunden",

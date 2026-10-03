@@ -18,6 +18,12 @@ export const season = {
   hotelThuSat: ['12:00', '21:00'],
   hotelThuSatFood: ['12:30', '20:00'],
   hotelAutumn: ['12:00', '16:30'],
+  // Weekends after the summer season, for Sjøhus and the Havhotell restaurant.
+  autumn: ['2026-08-17', '2026-09-30'],
+  // Hiltahuset: Sundays and Thursdays through the summer holiday. These are
+  // the museum's dates for summer 2027 (haugalandmuseet.no, 2026-10-02).
+  hiltaSeason: ['2027-06-20', '2027-08-29'],
+  hiltaHours: ['13:30', '15:30'],
   // Nærbutikken Røvær, every day until midnight. Not seasonal, but a clock
   // time on the same page, so it is written the same way as the others.
   narbutikkenOpens: '05:45',

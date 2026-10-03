@@ -49,3 +49,22 @@ The population peaked around 1950, at about 170 permanent residents.
 Then the herring fisheries declined. Boats were sold, several families
 moved away, and since then the population has inevitably varied over
 time.
+
+## Hiltahuset
+
+Hiltahuset is the oldest house on Røvær. Its construction suggests it was
+built around 1820-1830, from two older living rooms with a hall and
+kitchen between them. It was built as a farmhouse and later served as a
+retirement house for the older generation. In the 1880s one of the rooms
+was at times used as a schoolroom: the teacher spent two weeks on Røvær
+and two weeks at Hauge.
+
+There are no papers on the house. It passed from mother to daughter by
+word of mouth for several generations, and is named after Johan Hilt from
+Bergen, who married one of the daughters of the house. Until around 1960
+it was a holiday home.
+
+Today Hiltahuset is a museum, furnished with objects and fittings that
+show how people lived and built on Røvær, and one of its rooms holds an
+exhibition about the accident in 1899.
+[Opening hours and prices]({{explorePage}}#hiltahuset-museum)

@@ -61,7 +61,7 @@ exciting topics such as aquaculture, history, environment and natural
 conditions. There are screens for deeper learning, games and
 activities.
 
-Visiting the centre is FREE!
+* **Price:** free
 
 - [Website]({{havbrukUrl}})
 
@@ -69,55 +69,69 @@ Visiting the centre is FREE!
 
 ![A guide talks to the guests in the RIB alongside the salmon pen](laksemerd)
 
-Every day this summer until {{end}}, a RIB boat tour takes visitors
-out to the salmon pens. Departures at {{ribDepartures}}. Duration about
-45 minutes, including getting dressed for the trip.
+Every day in summer, a RIB boat tour takes visitors out to the salmon
+pens.
 
-Price: {{ribPriceAdult}} for adults and {{ribPriceChild}} for children.
+- **Departures:** every day {{ribDepartures}} _until {{end}}_
+- **Duration:** about 45 minutes, including getting dressed for the trip
+- **Price:** {{ribPriceAdult}} adults\
+  {{ribPriceChild}} children
+- **Age:** 6 and up
 
-- The age limit for the RIB tour is 6 years.
-- Children aged 6 to 12 must be accompanied by an adult.
-- Children under 18 need written permission from a guardian.
+Children under 12 must come with an adult, and anyone under 18 needs written
+permission from a guardian.
 
-Sign up at Røvær Sjøhus (open daily {{sjohusSummer}} until {{end}}), by
-email or by phone. Payment at Røvær Sjøhus or by Vipps.
+Sign up for the trip at [Røvær Sjøhus](#røvær-sjøhus), by email or by phone. Payment at Røvær Sjøhus or by Vipps.
 
 - [{{havbrukEmail}}](mailto:{{havbrukEmail}})
 - [{{havbrukPhone}}](tel:{{havbrukPhoneTel}})
 
 ## Hiltahuset Museum
 
-Our museum, Hiltahuset, can be opened for visitors after appointment –
-a skillful guide will fill you in on the story of our island.
+Hiltahuset is the oldest house on Røvær and the island's museum, with an
+exhibition about the accident in 1899.
+[Read the story of the house.]({{historyPage}}#hiltahuset)
+
 “Skjoldbladbua” is the museum's nearest neighbour and is a souvenir
 shop with items handcrafted by local hands.
 
-[Read more about opening hours and prices here.](https://www.fjordnorway.com/en/see-and-do/hiltahouse-rovaer)
+- **Sundays and Thursdays:** {{hiltaHours}} _{{hiltaSeason}} {{hiltaSeasonYear}}_
+- **Price:** {{hiltaPriceAdult}} adults\
+  {{hiltaPriceReduced}} students and seniors\
+  free under 16
+
+Outside these hours, you can book a guided tour with Haugalandmuseet.
+
+- [{{hiltaEmail}}](mailto:{{hiltaEmail}})
+- [{{hiltaPhone}}](tel:{{hiltaPhoneTel}})
+- [Website](https://haugalandmuseet.no/en/museum/hiltahouse-rovaer/)
 
 ## Food, drinks and accommodation
 
 ### Røvær Sjøhus
 
-In summer {{year}}, Røvær Sjøhus is open every day {{sjohusSummer}} until
-{{end}}, with tourist information and sale of coffee, soft drinks,
+Røvær Sjøhus has tourist information and sells coffee, soft drinks,
 ice cream and sweets. All lunch and dinner service is at Røvær
 Havhotell this year. Røvær Sjøhus is also known for serving the
 traditional Norwegian dish “komle”.
 
-After {{end}} it is open Saturday and Sunday {{sjohusAutumn}} through September.
+* **Every day:** {{sjohusSummer}} _until {{end}}_
+* **Saturday and Sunday:** {{sjohusAutumn}} _{{autumn}}_
 
 - [Facebook]({{sjohusFacebookUrl}})
 
 ### Røvær Havhotell
 
-The restaurant at Røvær Havhotell is open all summer until {{end}}.
-Sunday to Wednesday it is open {{hotelSunWed}} with food served
-{{hotelSunWedFood}}. Thursday to Saturday it is open {{hotelThuSat}} with
-food served {{hotelThuSatFood}}. (After {{end}} the restaurant is open
-every Saturday and Sunday {{hotelAutumn}} through September.)
+Røvær Havhotell has a restaurant, offers accommodation by arrangement
+all year round, and hosts various events throughout the year.
 
-Røvær Havhotell offers accommodation by arrangement all year round,
-and hosts various events throughout the year.
+Restaurant opening hours:
+
+* **Sunday to Wednesday:** {{hotelSunWed}}\
+  food served {{hotelSunWedFood}} _until {{end}}_
+* **Thursday to Saturday:** {{hotelThuSat}}\
+  food served {{hotelThuSatFood}} _until {{end}}_
+* **Saturday and Sunday:** {{hotelAutumn}} _{{autumn}}_
 
 - [Facebook]({{havhotellFacebookUrl}})
 - [Website]({{havhotellUrl}})
