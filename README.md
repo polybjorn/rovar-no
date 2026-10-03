@@ -100,12 +100,17 @@ site-preview publish rovar-no dist
 ```
 
 `preview:build` derives the base from the current branch the same way the
-publisher names its directory, and prints the publish command with the branch
-filled in. `BRANCH=herd/other` overrides it. Every URL the site emits already
+publisher names its directory, and prints the publish command. `BRANCH=`
+overrides it, which the host's combined build uses (`BRANCH=all`); `publish`
+itself always names the preview by the branch that is checked out. Every URL the site emits already
 goes through `BASE_URL`, so the base is all it changes; `npm run build`
 without `PREVIEW_BASE` set is the deploy build, unchanged. The page link
 inside a preview's `.ics` feeds points at the Pages host under the preview
 path, which does not exist; the feeds themselves are served fine.
+
+The host also keeps a combined preview at `/rovar-no/all/`: main with every
+open PR merged on top, rebuilt on its own a few minutes after main or a PR
+moves. `npm run preview:all` asks for that rebuild now instead of waiting.
 
 ## Calendar
 
