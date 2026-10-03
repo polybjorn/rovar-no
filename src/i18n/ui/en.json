@@ -19,7 +19,13 @@
       "avis": "Røvær in Haugesunds Avis",
       "github": "Source code (GitHub)"
     },
-    "pastHoursNote": "The season is over. Follow them online or get in touch for updated hours and events."
+    "pastHoursNote": "The season is over. Follow them online or get in touch for updated hours and events.",
+    "hoursStatus": {
+      "openNow": "Open now, closes at {{time}}.",
+      "opensToday": "Closed now. Opens today at {{time}}.",
+      "opensTomorrow": "Closed for today. Opens again tomorrow at {{time}}.",
+      "opensOn": "Closed now. Opens {{day}} at {{time}}."
+    }
   },
   "notFound": {
     "title": "Page not found",

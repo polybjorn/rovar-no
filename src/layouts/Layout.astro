@@ -69,7 +69,7 @@ const pageLocales = localesWithPage(page);
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="no-referrer">
 </head>
-<body data-past-note={t.chrome.pastHoursNote}>
+<body data-past-note={t.chrome.pastHoursNote} data-hours-status={JSON.stringify(t.chrome.hoursStatus)} data-intl={info.intl}>
   <a href="#main" class="skip-link">{t.chrome.skipLink}</a>
   <nav class="nav">
     <div class="nav-inner">

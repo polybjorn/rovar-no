@@ -922,6 +922,30 @@ img.section-img {
   color: var(--color-text-light);
 }
 
+/* In season, whether the place is open now (scripts/past-hours.js). The words
+   carry it in the text colour; the dot only marks it, green when open, since
+   the kelp green is short of body-text contrast on sand. Red stays for a
+   season that is over. */
+.fact-status {
+  margin-top: 0.6rem;
+  color: var(--color-text-light);
+}
+
+.fact-status::before {
+  content: '';
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-right: 0.45em;
+  border-radius: 50%;
+  vertical-align: 0.08em;
+  background: var(--color-text-light);
+}
+
+.fact-status[data-state='open']::before {
+  background: var(--color-kelp);
+}
+
 /* On a phone the columns leave the values a thin strip, more so in a list
    inside a card. So each row puts its label on a line of its own and the
    value and dates side by side under it, the dates moving under the value

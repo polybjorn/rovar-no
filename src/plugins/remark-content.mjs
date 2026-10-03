@@ -2,7 +2,8 @@ import { createHash } from 'node:crypto';
 import { visit } from 'unist-util-visit';
 import { media } from '../data/media.js';
 import { facts } from '../data/facts.js';
-import { seasonStrings, lastDayIn } from '../i18n/season-format.js';
+import { seasonStrings, lastDayIn, firstDayIn, hoursIn, formatClock } from '../i18n/season-format.js';
+import { daysIn } from '../i18n/weekdays.js';
 import { phoneStrings } from '../i18n/phone-format.js';
 import { pages } from '../i18n/pages.js';
 import { pageLinks } from '../i18n/routes-core.js';
@@ -52,14 +53,37 @@ export function remarkContent() {
     // A list row that names a seasonal date carries the last day it covers,
     // so the page can strike it through once that day is past
     // (scripts/past-hours.js). Read before the placeholders are filled in.
+    //
+    // One that also names opening hours is an hours row, and carries its
+    // days, first day and hours too, so the page can say whether the place
+    // is open now. Its days come from its label, and a label that cannot be
+    // read fails the build: guessing would show a wrong status.
     visit(tree, 'listItem', (node) => {
       const text = [];
       visit(node, 'text', (t) => {
         text.push(t.value);
       });
-      const until = lastDayIn(text.join(' '));
+      const joined = text.join(' ');
+      const until = lastDayIn(joined);
       if (!until) return;
-      node.data = { ...node.data, hProperties: { ...node.data?.hProperties, dataUntil: until } };
+      const props = { dataUntil: until };
+
+      const hours = locale && hoursIn(joined);
+      if (hours) {
+        const strong = node.children[0]?.children?.find((c) => c.type === 'strong');
+        const label = strong?.children?.map((c) => c.value ?? '').join('') ?? '';
+        const days = daysIn(label, locale);
+        if (!days) file.fail(`Hours row with a label naming no days this can read: "${label}"`, node);
+        Object.assign(props, {
+          dataDays: days.join(','),
+          dataFrom: firstDayIn(joined),
+          dataOpen: hours[0],
+          dataClose: hours[1],
+          dataOpenText: formatClock(locale, hours[0]),
+          dataCloseText: formatClock(locale, hours[1]),
+        });
+      }
+      node.data = { ...node.data, hProperties: { ...node.data?.hProperties, ...props } };
     });
 
     visit(tree, 'text', (node) => {

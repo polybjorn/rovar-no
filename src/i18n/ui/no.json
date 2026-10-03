@@ -19,7 +19,13 @@
       "avis": "Røvær i Haugesunds Avis",
       "github": "Kildekode (GitHub)"
     },
-    "pastHoursNote": "Sesongen er over. Følg dem på nett eller ta kontakt for oppdaterte tider og arrangementer."
+    "pastHoursNote": "Sesongen er over. Følg dem på nett eller ta kontakt for oppdaterte tider og arrangementer.",
+    "hoursStatus": {
+      "openNow": "Åpent nå, stenger kl. {{time}}.",
+      "opensToday": "Stengt nå. Åpner kl. {{time}} i dag.",
+      "opensTomorrow": "Stengt for i dag. Åpner igjen i morgen kl. {{time}}.",
+      "opensOn": "Stengt nå. Åpner {{day}} kl. {{time}}."
+    }
   },
   "notFound": {
     "title": "Siden finnes ikke",
