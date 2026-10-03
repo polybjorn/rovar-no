@@ -684,8 +684,12 @@ img.section-img {
   margin-top: 0;
 }
 
+/* The section title's colour, a step smaller, so a place reads as part of
+   its section rather than as a heading of another kind. */
 .place h3 {
+  font-size: 1.1rem;
   font-weight: 600;
+  color: var(--color-ocean);
   margin-bottom: 0.5rem;
 }
 

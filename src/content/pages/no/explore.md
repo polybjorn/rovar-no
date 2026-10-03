@@ -63,9 +63,7 @@ vi har utviklet oss til å bli en verdensledende produsent av laks.
 
 Utstillingen er kompakt, og gir en enkel innføring i store og spennende
 tema som havbruk, historie, miljø og naturforhold. Det er skjermer for
-fordypning, spill og aktiviteter.
-
-* **Pris:** gratis
+fordypning, spill og aktiviteter. Det er gratis å besøke utstillingen.
 
 - [Nettside]({{havbrukUrl}})
 

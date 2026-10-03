@@ -75,9 +75,7 @@ salmon.
 The exhibition is compact and gives a simple introduction to big and
 exciting topics such as aquaculture, history, environment and natural
 conditions. There are screens for deeper learning, games and
-activities.
-
-* **Price:** free
+activities. Entry to the exhibition is free.
 
 - [Website]({{havbrukUrl}})
 

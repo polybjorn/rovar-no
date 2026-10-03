@@ -77,9 +77,7 @@ Lachsproduzenten entwickelt haben.
 Die Ausstellung ist kompakt und gibt eine einfache Einführung in große,
 spannende Themen wie Aquakultur, Geschichte, Umwelt und
 Naturverhältnisse. Es gibt Bildschirme zur Vertiefung, Spiele und
-Aktivitäten.
-
-* **Preis:** kostenlos
+Aktivitäten. Der Eintritt zur Ausstellung ist frei.
 
 - [Website]({{havbrukUrl}})
 
