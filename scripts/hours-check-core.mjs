@@ -3,8 +3,13 @@
 //
 // narbutikken.no publishes each shop's hours as schema.org data in the page
 // (a <script type="application/ld+json"> with openingHoursSpecification).
-// This reads those and compares them with the one row the site prints,
-// season.narbutikkenHours, every day of the week.
+// This reads those and compares them, day by day, with the hours rows the
+// site prints for the shop, read the way the page reads them: days from each
+// row's label, hours from its placeholder. So a row added for one day
+// ("Søndag: kl. {{narbutikkenSunday}}") is checked as that day's hours.
+
+import { daysIn } from '../src/i18n/weekdays.js';
+import { hoursIn } from '../src/i18n/season-format.js';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -40,12 +45,29 @@ export function storeHours(html) {
   return null;
 }
 
-// The days whose published hours differ from ours, a day missing from theirs
+// { Monday: ['05:45', '24:00'], ... } from the hours rows under one heading
+// of a content page, or null when it has none. A day no row names is closed.
+export function printedHours(markdown, heading, code) {
+  const out = {};
+  let inside = false;
+  for (const line of markdown.split('\n')) {
+    const h = line.match(/^#{2,3} (.+)/);
+    if (h) inside = h[1].trim() === heading;
+    const row = inside && line.match(/^[-*] \*\*([^*]+)\*\*(.*)$/);
+    const hours = row && hoursIn(row[2]);
+    if (!hours) continue;
+    for (const i of daysIn(row[1], code) ?? []) out[DAYS[i]] = hours;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+// The days whose published hours differ from ours, a day missing from either
 // counted as closed: [{ day, theirs, ours }].
 export function hoursDrift(theirs, ours) {
-  return DAYS.filter((day) => theirs[day]?.join('-') !== ours.join('-')).map((day) => ({
+  const same = (a, b) => (a ?? []).join('-') === (b ?? []).join('-');
+  return DAYS.filter((day) => !same(theirs[day], ours[day])).map((day) => ({
     day,
     theirs: theirs[day] ?? null,
-    ours,
+    ours: ours[day] ?? null,
   }));
 }
