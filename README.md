@@ -1,8 +1,8 @@
-# rovar-no
+# Røvær island website
 
 Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær
-island outside Haugesund, Norway. The old site is still the live one. This one
-is up for review at
+island outside Haugesund, Norway, with the ferry timetable read live from
+Entur. The old site is still the live one. This one is up for review at
 [polybjorn.github.io/rovar-no](https://polybjorn.github.io/rovar-no/), built
 from `main` by GitHub Pages and set to noindex until launch.
 
@@ -49,35 +49,13 @@ so a half-finished language still renders.
 Every date and opening time on the site is in `src/data/season.js`, and
 every price, phone number and email in `src/data/facts.js`. Each is written
 once and formatted for every language at build time, so a new season is an
-edit to those two files and nothing in `src/content`.
-
-`npm run season:check` lists each season date, the places it is printed
-under, and whether it is current, over or stale.
-
-Over is normal: the page strikes those rows through and tells the reader to
-follow the place online or get in touch. Stale means a date still holds last
-year's season from 1 March, when it is time to ask the places for this year's
-hours. The weekly link check runs it too, and on the first stale run it
-files an issue here, so the reminder arrives without anyone remembering to
-look. Where each place publishes its
-hours is noted next to its entries in `season.js`.
+edit to those two files and nothing in `src/content`. Where each place
+publishes its hours is noted next to its entries in `season.js`.
 
 A date entered for next year (Hiltahuset's, say) is shown as soon as it is
 there, so update a place as soon as it publishes rather than all at once.
 A new `end` needs its `start` with it: the "til" rows open on that day, and
 `npm test` fails on a season after 2026 without one.
-
-`npm run hours:check` reads Nærbutikken's opening hours from narbutikken.no
-and fails when they differ from `narbutikkenHours`. The site cannot read them
-live (narbutikken.no allows no cross-site fetch), so the weekly link check
-runs this and files an issue when they change.
-
-Røvær Havhotell and Hiltahuset state their hours as prose, which no script
-can compare with `season.js`. `npm run hours:pages` keeps the text that
-states them in `scripts/hours-pages.json`, and the weekly link check files an
-issue when a page changes it. Compare the page with `season.js` by hand, then
-`npm run hours:pages -- --update` and commit the json. Sjøhus publishes on
-Facebook, which cannot be fetched, so only the yearly reminder covers it.
 
 ## Tech
 
@@ -99,36 +77,10 @@ writes the finished site to `dist/`.
 
 ## Calendar
 
-The ferry page has no subscription link, and the board has no controls on its
-rows. "Legg avganger i kalenderen" opens a dialog (`src/scripts/calendar-picker.js`)
-with its own timetable: once on a date from a two-week strip, or every week on
-Hverdager, Lørdag or Søndag (the three timetables the route actually has, with
-the weekdays narrowable). The reader ticks departures and downloads one `.ics`
-holding only those; weekly picks run to the end of the published timetable,
-matched by direction and Oslo clock time, so a day where a boat does not run
-is left out. A single departure also gets a Google Calendar link, which on
-Android opens the calendar app where a download would only land in the
-downloads folder. A calendar holding every crossing of the month was the
-reason for all of this.
-
-A departure that has to be booked is flagged in the dialog with the booking
-rule, and in the downloaded file it carries an alarm an hour before its
-booking deadline. The Google link cannot carry one, and the feeds below never
-do, since a feed holds every booking boat and would ring every evening.
-
-The subscription feeds are still built, unlinked, so an existing subscription
-keeps working: `/rutebaten.ics` with every departure in both directions, one
-per language (`/en/ferry.ics`, `/de/ferry.ics`), and `/rutebaten-summary.ics`
-with one all-day line per day and direction. Picks, links and feeds all come
-from the same event builder in `src/scripts/departures-core.js`.
-
-The feeds run to the end of Entur's published timetable rather than a fixed
-window, and close with an all-day entry naming the date they run out, so a feed
-nobody has rebuilt says so instead of just going quiet. They are static files, so
-a deploy is what refreshes them, and `deploy.yml` runs daily on a schedule for
-that reason alone. If Entur answers with nothing the build fails rather than
-publishing an empty calendar, which would clear the departures out of every
-subscriber's calendar.
+"Legg avganger i kalenderen" on the ferry page lets a reader pick departures
+and download them as one `.ics` file. The older subscription feeds are built
+unlinked until they retire on 2027-01-04. How both work:
+[docs/calendar.md](docs/calendar.md).
 
 ## Tests
 
