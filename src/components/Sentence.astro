@@ -1,0 +1,38 @@
+---
+// A UI string that has a link inside it. The catalog holds the whole sentence
+// with a {{token}} where the link goes, so a translator can move it; this
+// renders the anchor into whichever gap the translation put it in.
+//
+// A token with no link given renders as written, the same way an unknown
+// {{placeholder}} does, so a typo in a catalog is visible rather than silent.
+
+import { segments } from '../i18n/ui-core.js';
+
+interface Link {
+  href: string;
+  label: string;
+  id?: string;
+  external?: boolean;
+}
+
+interface Props {
+  text: string;
+  links: Record<string, Link>;
+}
+
+const { text, links } = Astro.props;
+---
+
+{segments(text).map((part) => {
+  if (!part.token) return part.text;
+  const link = links[part.token];
+  if (!link) return `{{${part.token}}}`;
+  return (
+    <a
+      id={link.id}
+      href={link.href}
+      target={link.external ? '_blank' : undefined}
+      rel={link.external ? 'noopener' : undefined}
+    >{link.label}</a>
+  );
+})}

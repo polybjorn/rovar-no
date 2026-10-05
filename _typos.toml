@@ -1,0 +1,8 @@
+# The spellchecker is English-only, and page copy is Norwegian and German
+# prose. Left unexcluded it flags ordinary words ("alle", "sie", "Bord") in
+# every translation, and each new language adds more.
+[files]
+extend-exclude = [
+  "src/content/**",
+  "src/i18n/ui/*.json",
+]

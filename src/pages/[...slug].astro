@@ -1,0 +1,40 @@
+---
+import { getEntry, render } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import DepartureBoard from '../components/DepartureBoard.astro';
+import HomeContent from '../components/HomeContent.astro';
+import { allRoutes } from '../i18n/routes.js';
+
+// Every page in every language comes from here. Adding a language adds routes
+// without touching this file; adding a page means one entry in
+// src/i18n/routes.js and one content file per language.
+export async function getStaticPaths() {
+  return allRoutes().map((route) => ({
+    params: { slug: route.slug || undefined },
+    props: route,
+  }));
+}
+
+const { key, locale } = Astro.props;
+
+const entry = await getEntry('pages', `${locale}/${key}`);
+const { title, description } = entry.data;
+const Content = key === 'home' ? undefined : (await render(entry)).Content;
+---
+
+<Layout title={title} description={description} lang={locale} page={key}>
+  {key === 'ferry' && (
+    <DepartureBoard lang={locale} title={title}>
+      <Content />
+    </DepartureBoard>
+  )}
+
+  {key === 'home' && <HomeContent lang={locale} data={entry.data} />}
+
+  {Content && key !== 'ferry' && (
+    <div class="page">
+      <h1 class="page-title">{title}</h1>
+      <Content />
+    </div>
+  )}
+</Layout>

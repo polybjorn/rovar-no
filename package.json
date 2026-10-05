@@ -1,0 +1,45 @@
+{
+  "name": "rovar-no",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "preview:build": "node scripts/build-preview.mjs",
+    "astro": "astro",
+    "clean": "rm -rf node_modules/.astro dist",
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "i18n:new": "node scripts/i18n-new.mjs",
+    "i18n:verify": "node scripts/i18n-check.mjs --check",
+    "links:check": "node scripts/link-check.mjs",
+    "season:check": "node scripts/season-check.mjs",
+    "hours:check": "node scripts/hours-check.mjs",
+    "hours:pages": "node scripts/hours-pages.mjs",
+    "pins:check": "node scripts/node-pins-check.mjs",
+    "merges:check": "node scripts/check-merged-prs.mjs",
+  "sweep:check": "node scripts/check-sweep-freshness.mjs",
+  "retries:check": "node scripts/check-delete-retries.mjs",
+  "verdict:check": "node scripts/check-verdict-contract.mjs",
+    "inert:check": "node scripts/check-inert-prs.mjs",
+    "inert:history": "node scripts/check-inert-prs.mjs --history",
+    "prebuild": "npm run i18n:verify",
+    "test": "node --test \"test/*.test.mjs\" && TZ=Pacific/Auckland node --test \"test/*.test.mjs\"",
+    "pretest": "npm run i18n:verify"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "^7.2.2",
+    "@astrojs/sitemap": "^3.7.3",
+    "astro": "^7.1.6"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true
+  },
+  "devDependencies": {
+    "unist-util-visit": "^5.1.0"
+  }
+}

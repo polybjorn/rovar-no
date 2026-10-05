@@ -1,0 +1,66 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # The ferry calendar feed is baked at build time, so a deploy is the only
+  # thing that refreshes it. Nothing but this runs on its own: an odd minute
+  # off the hour because GitHub drops scheduled runs that pile onto :00.
+  # GitHub disables a schedule after 60 days of repository inactivity and
+  # emails the repo owner to switch it back on; the feed is built to the end
+  # of Entur's published timetable, so it stays correct for months if that
+  # happens rather than running out in weeks.
+  # The feeds retire on FEED_RETIRE_DATE (src/scripts/departures-core.js, #88),
+  # and the gate step below turns scheduled runs into no-ops a week after it.
+  # The cron line can go once that week has passed.
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.gate.outputs.build }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          # The version lives in .nvmrc so one file answers "which node builds
+          # this site" for both halves of CI. The forge gate reads the same file
+          # through scripts/node-pins-check.mjs, which is what stops this and the
+          # runner drifting apart unnoticed again (#12, #26).
+          node-version-file: .nvmrc
+          cache: npm
+      - id: gate
+        run: node scripts/feed-schedule-gate.mjs
+      - if: steps.gate.outputs.build == 'true'
+        run: npm ci
+      - if: steps.gate.outputs.build == 'true'
+        run: npm test
+      - if: steps.gate.outputs.build == 'true'
+        run: npm run build
+      - if: steps.gate.outputs.build == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist/
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

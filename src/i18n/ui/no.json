@@ -1,0 +1,101 @@
+{
+  "nav": {
+    "explore": "Opplev øya",
+    "ferry": "Rutebåten",
+    "camp-school": "Leirskolen",
+    "history": "Historie"
+  },
+  "chrome": {
+    "homeLabel": "Røvær, til forsiden",
+    "skipLink": "Hopp til innhold",
+    "menuLabel": "Meny",
+    "langLabel": "Velg språk",
+    "linksHeading": "Nyttige lenker",
+    "links": {
+      "havhotell": "Røvær Havhotell",
+      "sjohus": "Røvær Sjøhus",
+      "havbruk": "Røvær Havbrukssenter",
+      "kolumbus": "Billetter til rutebåten (Kolumbus)",
+      "avis": "Røvær i Haugesunds Avis",
+      "github": "Kildekode (GitHub)"
+    },
+    "pastHoursNote": "Sesongen er over. Følg dem på nett eller ta kontakt for oppdaterte tider og arrangementer.",
+    "hoursStatus": {
+      "openNow": "Åpent nå, stenger kl. {{time}}.",
+      "openNowPlain": "Åpent nå.",
+      "opensToday": "Stengt nå. Åpner kl. {{time}} i dag.",
+      "opensTomorrow": "Stengt for i dag. Åpner igjen i morgen kl. {{time}}.",
+      "opensOn": "Stengt nå. Åpner {{day}} kl. {{time}}.",
+      "departsToday": "Neste avgang kl. {{time}}.",
+      "departsTomorrow": "Neste avgang i morgen kl. {{time}}.",
+      "departsOn": "Neste avgang {{day}} kl. {{time}}."
+    }
+  },
+  "notFound": {
+    "title": "Siden finnes ikke",
+    "intro": "Den kan ha blitt flyttet, eller adressen kan være feilskrevet.",
+    "homeLink": "Til forsiden"
+  },
+  "ferry": {
+    "prevDay": "Forrige dag",
+    "nextDay": "Neste dag",
+    "boatAlt": "Hurtigbåten Fjordled (Kolumbus)",
+    "legend": "Kan kreve forhåndsbestilling.",
+    "booking": "Bestill via {{bookingSiteLink}} eller ring {{kolumbusPhone}}.",
+    "credit": "Sanntidsdata fra {{enturLink}}, oppdateres hvert minutt.",
+    "kolumbus": {
+      "label": "Se rutetider hos Kolumbus",
+      "line": "{{kolumbusLink}} (linje {{ferryLine}})"
+    },
+    "board": {
+      "loading": "Henter avganger...",
+      "empty": "Ingen avganger denne dagen",
+      "error": "Kunne ikke hente rutedata",
+      "bookingDeadlineRow": "Bestillingsfrist for avgang {{time}}",
+      "now": "nå",
+      "relative": "om {{time}}",
+      "hourUnit": "t",
+      "minUnit": "min",
+      "prevMonth": "Forrige måned",
+      "nextMonth": "Neste måned",
+      "bookLabel": "Bestillingsrute",
+      "infoLabel": "Info",
+      "pickStart": "Legg avganger i kalenderen",
+      "pickTitle": "Legg i kalenderen",
+      "pickCancel": "Lukk",
+      "pickFreq": "Hvilke dager",
+      "pickOnce": "Bestemte datoer",
+      "pickWeekly": "Hver uke",
+      "pickDate": "Datoer",
+      "pickEarlier": "Tidligere datoer",
+      "pickLater": "Senere datoer",
+      "pickDays": "Dager",
+      "pickWeekdays": "Hverdager",
+      "pickSaturday": "Lørdag",
+      "pickSunday": "Søndag",
+      "pickWhichDays": "Hvilke hverdager",
+      "pickDepartures": "Avganger",
+      "pickEvery": "hver {{day}}",
+      "pickEveryWeekday": "hverdager",
+      "pickChooseDays": "Velg hvilke hverdager over.",
+      "pickBooking": "Bestillingsrute: bestill senest {{minutes}} minutter før avgang på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
+      "pickRemove": "Fjern",
+      "pickLoading": "Henter rutetidene...",
+      "pickSave": "Legg i kalenderen",
+      "pickGoogle": "Google Kalender",
+      "icsSummary": "Rutebåten {{from}}-{{to}}",
+      "icsLocation": "{{from}} hurtigbåtkai",
+      "icsVia": "Via {{stops}}.",
+      "icsBooking": "Bestillingsrute: bestill innen {{deadline}} på {{kolumbusPhone}}.",
+      "icsBookingNoDeadline": "Bestillingsrute: må bestilles på forhånd på {{kolumbusPhone}}.",
+      "icsBookingAlarm": "Bestill rutebåten {{time}} innen {{deadline}}: ring {{kolumbusPhone}}.",
+      "icsDay": "Rutebåten {{from}}-{{to}}: {{times}}",
+      "icsTimetableEnd": "Rutetabellen slutter her",
+      "icsTimetableEndBody": "Kolumbus har ikke publisert avganger etter {{date}}. Kalenderen fylles på igjen når nye rutetider legges ut - se rovar.no for gjeldende tider.",
+      "icsFeedRetired": "Denne kalenderen er avsluttet",
+      "icsFeedRetiredBody": "Abonnementet på rutetidene er lagt ned, og kalenderen oppdateres ikke lenger. Du kan fjerne den. Velg avganger og legg dem i kalenderen din fra rutebåtsiden på rovar.no."
+    },
+    "feedName": "Rutebåten Røvær-Haugesund",
+    "feedSummaryName": "Rutebåten Røvær-Haugesund (dagsoversikt)"
+  }
+}

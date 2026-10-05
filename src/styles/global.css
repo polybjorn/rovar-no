@@ -1,0 +1,1218 @@
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/barlow-regular.woff2') format('woff2');
+}
+
+/* One Bold face covers the range, so the 600 rules and the 700 ones are both an
+   exact match and no engine falls back to synthetic bold - that keeps advance
+   widths stable, which the departure board sizes its clock column from. */
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url('../assets/fonts/barlow-bold.woff2') format('woff2');
+}
+
+:root {
+  --color-ocean: #1a5276;
+  --color-ocean-dark: #0e3650;
+  --color-ocean-light: #2980b9;
+  --color-sand: #f5f0e8;
+  --color-sand-dark: #e8dfd2;
+  --color-foam: #ffffff;
+  --color-kelp: #2e7d5b;
+  --color-warn: #9a5000;
+  --color-urgent: #b3261e;
+  --color-text: #1f2d3a;
+  /* Secondary text: dates, credits, small print. Kept at 7:1 or more on
+     sand, sand-dark and white, so lighter never means harder to read.
+     Running text uses --color-text. */
+  --color-text-light: #33414e;
+  /* Every bit of text on the dark blue surfaces uses this one white. */
+  --color-on-dark: #ffffff;
+  --color-border: #d5cfc5;
+  /* Content widths, named by what they hold rather than by pixel value, so
+     a width and a breakpoint that share a number stay independent. */
+  --width-site: 960px;  /* nav, footer and wide pages */
+  --width-page: 720px;  /* a page's text column */
+  --width-intro: 640px; /* the lead paragraph on the 404 page */
+  --width-hero: 520px;  /* the line under the front-page title */
+  --nav-height: 3.5rem;
+}
+
+/* Breakpoints. var() does not work inside @media or @container, so these stay
+   literals; this list is the record, kept in step by hand.
+     700px  global.css: the nav collapses to the menu button
+     640px  DepartureBoard.astro: the phone layout of the ferry page
+            (641px as its min-width counterpart)
+     600px  global.css: the card grid goes to one column, the hero shrinks
+     560px  DepartureBoard.astro: the calendar stacks its two directions
+     520px  global.css: the footer link columns stack
+     25rem  DepartureBoard.astro, container query: short weekday names
+     24rem  global.css, container query: an hours list with an extra
+            column stacks its rows */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Reserve the scrollbar track even on pages short enough not to scroll, so
+     the centred nav does not jump sideways between pages. */
+  scrollbar-gutter: stable;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  font-family: 'Barlow', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--color-text);
+  background: var(--color-sand);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* Keeps the footer at the bottom of the viewport on short pages. */
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+body > main {
+  flex: 1;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--color-ocean-light);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ocean-light);
+  outline-offset: 2px;
+}
+
+.nav :focus-visible {
+  outline-color: var(--color-on-dark);
+}
+
+/* Skip link */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  background: var(--color-ocean-dark);
+  color: var(--color-on-dark);
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 6px 6px;
+  z-index: 200;
+  font-size: 0.9rem;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Navigation */
+
+.nav {
+  background: var(--color-ocean-dark);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-inner {
+  max-width: var(--width-site);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo-img {
+  height: 2rem;
+  /* Without this the width attribute stays at the source width and the logo
+     renders stretched. Any sized logo needs the pair. */
+  width: auto;
+  filter: invert(1);
+}
+
+.nav-logo:hover {
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.25rem;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--color-on-dark);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-links a:hover,
+.nav-links a[aria-current="page"] {
+  color: var(--color-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+  text-decoration: none;
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: none;
+  border: none;
+  color: var(--color-on-dark);
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Three bars that fold into an X on open: the span is the middle bar, its
+   pseudo-elements the outer two. */
+.nav-toggle-bars,
+.nav-toggle-bars::before,
+.nav-toggle-bars::after {
+  display: block;
+  width: 1.25rem;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform 0.25s ease, background 0.15s ease;
+}
+
+.nav-toggle-bars::before,
+.nav-toggle-bars::after {
+  content: "";
+  position: relative;
+}
+
+.nav-toggle-bars::before {
+  top: -6px;
+}
+
+.nav-toggle-bars::after {
+  top: 4px;
+}
+
+/* The middle bar goes transparent rather than fading the span, which would
+   take the pseudo-elements with it. */
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars {
+  background: transparent;
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::before {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::after {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Language switcher */
+
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-left: 0.75rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.lang-menu {
+  position: relative;
+}
+
+.lang-menu summary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--color-on-dark);
+}
+
+.lang-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.lang-menu summary:hover,
+.lang-menu.is-open summary {
+  color: var(--color-on-dark);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lang-globe {
+  flex-shrink: 0;
+}
+
+/* Collapse/expand like the mobile nav panel. The open state is the .is-open
+   class, not [open]: nav.js sets the attribute first and the class a frame
+   later so the opening transition has a start value, and on close keeps the
+   attribute until the transition has run. */
+.lang-list {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: var(--color-ocean-dark);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.lang-menu.is-open .lang-list {
+  max-height: 20rem;
+  opacity: 1;
+}
+
+.lang-option {
+  display: block;
+  color: var(--color-on-dark);
+  padding: 0.45rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+a.lang-option:hover {
+  background: rgba(255, 255, 255, 0.12);
+  text-decoration: none;
+}
+
+span.lang-option[aria-current="true"] {
+  color: var(--color-on-dark);
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: calc(var(--nav-height) - 0.4rem);
+    right: 1.5rem;
+    left: auto;
+    min-width: 8rem;
+    max-width: calc(100vw - 3rem);
+    background: var(--color-ocean-dark);
+    flex-direction: column;
+    gap: 0;
+    padding: 0 0.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    /* Collapsed rather than display:none so open/close can animate. */
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
+    transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease,
+      visibility 0s linear 0.25s;
+  }
+
+  .nav-links.open {
+    max-height: calc(100vh - var(--nav-height));
+    opacity: 1;
+    visibility: visible;
+    padding: 0.4rem;
+    transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease,
+      visibility 0s;
+  }
+
+  .nav-links a {
+    padding: 0.45rem 0.6rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .nav-links a:hover,
+  .nav-links a[aria-current="page"] {
+    background: transparent;
+    color: var(--color-on-dark);
+  }
+
+  .lang-switcher {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 0.35rem;
+    margin-top: 0.35rem;
+  }
+
+  .lang-menu {
+    width: 100%;
+  }
+
+  .lang-list {
+    position: static;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    padding: 0 0 0 0.5rem;
+  }
+}
+
+/* Page layout */
+
+.page {
+  max-width: var(--width-page);
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.page-wide {
+  max-width: var(--width-site);
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-ocean-dark);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.page-intro {
+  margin-bottom: 2rem;
+}
+
+/* Sections */
+
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--color-ocean);
+  margin-bottom: 0.75rem;
+}
+
+.section p {
+  margin-bottom: 0.75rem;
+}
+
+.section ul {
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.section li {
+  margin-bottom: 0.35rem;
+}
+
+/* Cards */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--color-foam);
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border: 1px solid var(--color-border);
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+img.card-img {
+  height: 160px;
+  width: 100%;
+  object-fit: cover;
+}
+
+.card-body {
+  padding: 1rem 1.25rem;
+}
+
+.card-body h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-ocean-dark);
+  margin-bottom: 0.25rem;
+}
+
+.card-body p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+img.section-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Hero */
+
+.hero {
+  background: var(--color-ocean-dark);
+  background-size: cover;
+  background-position: center;
+  color: var(--color-on-dark);
+  text-align: center;
+  position: relative;
+}
+
+.hero-overlay {
+  background: rgba(10, 22, 40, 0.55);
+  padding: 5rem 1.5rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hero p {
+  font-size: 1.15rem;
+  max-width: var(--width-hero);
+  margin: 0 auto;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 600px) {
+  .hero-overlay {
+    padding: 3.5rem 1.25rem;
+  }
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+}
+
+/* Map link */
+
+.map {
+  position: relative;
+  margin-top: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-foam);
+}
+
+.map:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.map-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+}
+
+.map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  color: var(--color-ocean);
+}
+
+/* Boat routes and stops drawn over the map image. Lines keep their width
+   whatever the map is scaled to, and the markers are fixed-size HTML placed by
+   percentage, so neither shrinks to a hairline on a phone. */
+.map-frame {
+  position: relative;
+}
+
+.map-routes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.map-routes polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-route-casing {
+  stroke: var(--color-foam);
+  stroke-width: 7;
+}
+
+.map-route-line {
+  stroke: var(--color-ocean-dark);
+  stroke-width: 3.5;
+}
+
+/* Round caps on a zero-length dash draw a row of dots. */
+.map-route-alt {
+  stroke: var(--color-ocean-dark);
+  stroke-width: 3;
+  stroke-dasharray: 0 6;
+}
+
+.map-stop {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2.5px solid var(--color-ocean-dark);
+  border-radius: 50%;
+  background: var(--color-foam);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* The link covers the whole figure, so the map itself is what you click. */
+.map-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.map-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.map-credit {
+  /* Above the link overlay, so the attribution stays selectable. */
+  position: relative;
+  /* Kartverket's map and ferry lines are CC BY, and Kystverket's and Entur's
+     lines are NLOD: the credit has to stay visible, so it is kept small
+     rather than hidden behind a hover no phone can perform. */
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+/* Info box */
+
+.info-box {
+  background: var(--color-foam);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* A place under a ### heading (rehype-structure): heading, picture and
+   description as running text, then its card. */
+.place {
+  margin-top: 2rem;
+}
+
+.section-title + .place {
+  margin-top: 0;
+}
+
+/* The section title's colour, a step smaller, so a place reads as part of
+   its section rather than as a heading of another kind. */
+.place h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-ocean);
+  margin-bottom: 0.5rem;
+}
+
+/* Contact */
+
+/* Contact details in an info box, written as a plain markdown list */
+
+.section ul.contact-list {
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+}
+
+/* A place's own links (a list of nothing but links, see rehype-structure),
+   each with an icon for what it opens, side by side and wrapping as the
+   card has room and centred across it, rather than one down the left with
+   the right of the card empty. */
+.section ul.link-list {
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: 1.25rem;
+}
+
+.link-list li {
+  margin: 0.175rem 0;
+  overflow-wrap: anywhere;
+}
+
+/* Email and phone in one item (rehype-structure), so they wrap onto the next
+   line together. Only a card too narrow for both splits them. */
+.link-list li.link-contact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: 1.25rem;
+  row-gap: 0.35rem;
+}
+
+.link-list a::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.45em;
+  vertical-align: -0.15em;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon-link);
+  mask-image: var(--icon-link);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.link-list {
+  --icon-link: url("../assets/icons/globe.svg");
+}
+
+.link-list a[href*="facebook.com"] {
+  --icon-link: url("../assets/icons/facebook.svg");
+}
+
+.link-list a[href^="mailto:"] {
+  --icon-link: url("../assets/icons/mail.svg");
+}
+
+.link-list a[href^="tel:"] {
+  --icon-link: url("../assets/icons/phone.svg");
+}
+
+.link-list a[href*="/meny"] {
+  --icon-link: url("../assets/icons/menu.svg");
+}
+
+/* Hours, prices and the like as label, value and, for hours, the dates they
+   apply (.fact-when), each in a column of its own so they line up down the
+   list. The value column is only as wide as the longest time, so the dates
+   sit next to the times rather than across the card from them. Each item is
+   a row of the list's grid (subgrid), so one long label sets the column for
+   all. A card like the info boxes, with a rule between rows, so it reads as
+   a table of facts and not as more of the text around it. */
+.section ul.fact-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: fit-content(40%) auto 1fr;
+  column-gap: 1.25rem;
+  --fact-pad: 1.1rem;
+  padding: 0.35rem var(--fact-pad);
+  background: var(--color-foam);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  /* Inside a .place it is also a .contact-list, whose smaller, lighter
+     text is for a place's address lines, not for its hours and prices. */
+  font-size: inherit;
+  color: inherit;
+}
+
+/* In a place's card the list drops its own box, so the card is the only
+   frame: one level of card, not one inside another. */
+.section .info-box ul.fact-list {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  --fact-pad: 0.75rem;
+}
+
+/* In a wide card the table is only as wide as its rows and sits in the
+   middle, like the links under it, rather than hugging the left with the
+   card's right half empty. The rows stay left-aligned inside it, so labels,
+   times and dates still line up. The card's lines of text centre with it
+   and the links, so the card reads as one centred column; a place's
+   description stays above the card, left-aligned. It stays centred on a
+   phone too: filling the card there put a short row such as Nærbutikken's
+   at the left under centred text and links. */
+.section .info-box ul.fact-list {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.info-box > p {
+  text-align: center;
+}
+
+.section .info-box ul.fact-list:has(li.past) {
+  overflow: visible;
+}
+
+/* The card's padding is its margin: the last line's own bottom margin would
+   double it. */
+.info-box > :last-child {
+  margin-bottom: 0;
+}
+
+.fact-list li {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.45rem 0;
+}
+
+.fact-list li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+/* A label stays on one line. Its column is capped at 40% of the list, and a
+   list with no dates column is narrow enough that "Lørdag og søndag:" broke
+   in two. The longest label is short, and on a phone it has a line of its
+   own, so this never overflows. */
+.fact-list strong {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fact-value {
+  grid-column: 2 / -1;
+}
+
+.fact-value:has(+ .fact-when) {
+  grid-column: 2;
+}
+
+.fact-when {
+  color: var(--color-text-light);
+}
+
+/* Dates shared by the rows under them, printed once (groupWhen in
+   rehype-structure). Across the whole row, with no rule between it and the
+   rows it heads. */
+.fact-list li.fact-group {
+  display: block;
+  color: var(--color-ocean);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.9rem 0 0.1rem;
+  border-top: 0;
+}
+
+.fact-list li.fact-group:first-child {
+  padding-top: 0.45rem;
+}
+
+.fact-list li.fact-group + li {
+  border-top: 0;
+}
+
+/* An extra column, such as a restaurant's kitchen hours: its times sit in a
+   column of their own between the value and the dates, and in a list with
+   date headings its label heads that column (groupWhen). The label may
+   take half the row and wraps only past that, so a long one (German) goes
+   to two lines in a narrow card instead of overflowing it. */
+.section ul.fact-list.has-extra {
+  grid-template-columns: fit-content(50%) auto 1fr;
+}
+
+/* The dates column only when a row has dates: an empty one still costs a
+   gap, enough to wrap a label that would otherwise fit. */
+.section ul.fact-list.has-extra:has(.fact-when) {
+  grid-template-columns: fit-content(50%) auto auto 1fr;
+}
+
+.fact-list.has-extra li > strong {
+  white-space: normal;
+}
+
+.fact-value:has(+ .fact-extra) {
+  grid-column: 2;
+}
+
+/* In a track of its own, not spanning into the dates' 1fr one: an item
+   that spans a flexible track gives no width to the tracks it spans, so the
+   kitchen times overflowed a narrow card instead of the label wrapping. */
+.fact-extra {
+  grid-column: 3;
+}
+
+.fact-list.has-extra li.fact-group {
+  display: grid;
+  grid-template-columns: subgrid;
+}
+
+.fact-group-when {
+  grid-column: 1 / 3;
+}
+
+.fact-group-when:only-child {
+  grid-column: 1 / -1;
+}
+
+.fact-group-extra {
+  grid-column: 3;
+}
+
+/* An hours row whose dates are over, and the line under a list whose rows
+   all are (scripts/past-hours.js). A light red row rather than struck
+   through or coloured text: a line through "12.00 – 20.00" hides the
+   dash, and the old hours stay as readable as the rest, a fair hint of what
+   next season may look like. The tint runs to the card's edges: sideways
+   by a shadow over the list's side padding, and the list's top and bottom
+   padding moves into its first and last rows. */
+.fact-list li.past {
+  --past-tint: color-mix(in srgb, var(--color-urgent) 8%, var(--color-foam));
+  background: var(--past-tint);
+  box-shadow: calc(-1 * var(--fact-pad)) 0 0 var(--past-tint), var(--fact-pad) 0 0 var(--past-tint);
+}
+
+.section ul.fact-list:has(li.past) {
+  padding-block: 0;
+  overflow: clip;
+}
+
+.fact-list:has(li.past) li:first-child {
+  padding-top: 0.8rem;
+}
+
+.fact-list:has(li.past) li:last-child {
+  padding-bottom: 0.8rem;
+}
+
+/* In a card there is no list box to clip the tint to, and a flat shadow
+   into the card's padding read as a red slab with square corners breaking
+   out of the text. So there the past rows get a panel of their own, drawn
+   behind the row and a little wider than the text, rounded and bordered
+   like the card around it. Consecutive past rows share one panel. */
+.info-box .fact-list li.past {
+  box-shadow: none;
+  background: none;
+  position: relative;
+  isolation: isolate;
+}
+
+.info-box .fact-list li.past::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(-1 * var(--fact-pad));
+  z-index: -1;
+  background: var(--past-tint);
+  border: 1px solid color-mix(in srgb, var(--color-urgent) 25%, var(--color-foam));
+  border-block-width: 0;
+}
+
+.info-box .fact-list li.past:not(li.past + li.past)::before {
+  border-top-width: 1px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.info-box .fact-list li.past:not(:has(+ li.past))::before {
+  border-bottom-width: 1px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* The panel's own border is the rule against the rows around it, and
+   between two past rows the rule is drawn across the panel's full width. */
+.info-box .fact-list li.past + li:not(.past),
+.info-box .fact-list li:not(.past) + li.past {
+  border-top-color: transparent;
+}
+
+.info-box .fact-list li.past + li.past {
+  border-top-width: 0;
+}
+
+.info-box .fact-list li.past + li.past::before {
+  border-top: 1px solid var(--color-border);
+}
+
+.info-box .fact-list li.fact-group + li.past::before,
+.info-box .fact-list li.past + li.fact-group.past::before {
+  border-top-width: 0;
+}
+
+.fact-past-note {
+  margin-top: 0.6rem;
+  color: var(--color-text-light);
+}
+
+/* In season, whether the place is open now (scripts/past-hours.js). The words
+   carry it in the text colour; the dot only marks it, green when open, since
+   the kelp green is short of body-text contrast on sand. Red stays for a
+   season that is over. */
+.fact-status {
+  margin-top: 0.6rem;
+  color: var(--color-text-light);
+}
+
+.fact-status::before {
+  content: '';
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-right: 0.45em;
+  border-radius: 50%;
+  vertical-align: 0.08em;
+  background: var(--color-text-light);
+}
+
+.fact-status[data-state='open']::before {
+  background: var(--color-kelp);
+}
+
+/* On a phone the columns leave the values a thin strip, more so in a list
+   inside a card. So each row puts its label on a line of its own and the
+   value and dates side by side under it, the dates moving under the value
+   when they do not fit. */
+@media (max-width: 600px) {
+  .section ul.fact-list {
+    display: block;
+    --fact-pad: 0.9rem;
+  }
+
+  .fact-list li {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.75rem;
+    padding: 0.55rem 0;
+  }
+
+  .fact-list li > strong {
+    flex-basis: 100%;
+  }
+
+  /* Stacked, the rows have no columns to line up, so in a card they centre
+     like the status line and links under them. Left-aligned, a short row
+     sat off to one side and wrapped values left the card's right side
+     empty. */
+  .info-box .fact-list:not(.has-extra) li {
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* A list with an extra column keeps its columns on a phone too, and
+     stacks only when its own box is too narrow for them (below). */
+  .section ul.fact-list.has-extra {
+    display: grid;
+    column-gap: 1rem;
+  }
+
+  .fact-list.has-extra li {
+    display: grid;
+    column-gap: 1rem;
+    padding: 0.45rem 0;
+  }
+}
+
+/* A list with an extra column, such as a restaurant's kitchen hours, goes by
+   the width of its own box rather than the window's: a card on a narrow
+   desktop window has room for label, times and kitchen times on one line,
+   which the 600px query above would stack. The Norwegian and English rows
+   need about 24rem on one line. */
+:has(> .fact-list.has-extra) {
+  container-type: inline-size;
+}
+
+/* Too narrow for that, each row puts its label on a line of its own and the
+   two sets of times side by side under it, so the kitchen hours still sit
+   under their heading. The gap is narrow so that both sets fit on one line
+   each from about 350px; below that "kl." wraps above its times, and the
+   times themselves never break (season-format). */
+@container (max-width: 24rem) {
+  .section ul.fact-list.has-extra {
+    grid-template-columns: auto 1fr;
+    --fact-pad: 0.9rem;
+  }
+
+  .fact-list.has-extra li {
+    padding: 0.55rem 0;
+  }
+
+  .fact-list.has-extra li > strong {
+    white-space: nowrap;
+  }
+
+  .fact-list.has-extra li > strong,
+  .fact-list.has-extra .fact-value:not(:has(+ .fact-extra)),
+  .fact-list.has-extra .fact-group-when:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .fact-list.has-extra .fact-value,
+  .fact-list.has-extra .fact-group-when {
+    grid-column: 1;
+  }
+
+  .fact-list.has-extra .fact-extra,
+  .fact-list.has-extra .fact-group-extra {
+    grid-column: 2;
+  }
+}
+
+/* A link to another page of the site, set in running text ({{historyPage}}
+   and friends), stays in one piece: the whole of it moves to the next line
+   rather than breaking part way. They are short, so this never overflows. */
+.section p a[href^="../"] {
+  white-space: nowrap;
+}
+
+/* Footer */
+
+.footer {
+  background: var(--color-ocean-dark);
+  color: var(--color-on-dark);
+  padding: 2.5rem 0;
+  font-size: 1rem;
+}
+
+/* Same box as .nav-inner and .page-wide. The links sit centred at every
+   width, so the footer does not leave its right half empty, with the contact
+   line closing the footer underneath them. */
+.footer-inner {
+  max-width: var(--width-site);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.75rem;
+}
+
+.footer-col h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+/* One column per group in src/data/footer.js, side by side on a wide screen
+   and wrapping into one on a phone. */
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem 2rem;
+}
+
+.footer-links ul {
+  list-style: none;
+  text-align: left;
+  display: grid;
+  align-content: start;
+  gap: 0.3rem;
+}
+
+/* The closing line, under a rule across the footer and quieter than the links
+   above it. One line on a wide screen; the postcode drops under the address on
+   its own rather than splitting the address when the line runs out of room. */
+.footer-contact {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.2);
+  font-size: 0.9rem;
+  color: rgb(255 255 255 / 0.75);
+}
+
+.footer a {
+  color: var(--color-on-dark);
+  text-decoration: underline;
+}
+
+/* Below this the two link columns no longer fit side by side in every
+   language. Stacked as one grid they keep a shared left edge, centred as a
+   block, rather than each list centring on its own. */
+@media (max-width: 520px) {
+  .footer-links {
+    display: grid;
+    justify-content: center;
+  }
+}

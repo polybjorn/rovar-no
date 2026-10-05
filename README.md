@@ -1,0 +1,278 @@
+# rovar-no
+
+Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær
+island outside Haugesund, Norway. The old site is still the live one. This one
+is up for review at
+[polybjorn.github.io/rovar-no](https://polybjorn.github.io/rovar-no/), built
+from `main` by GitHub Pages and set to noindex until launch.
+
+## Pages
+
+| Page | Path | Content |
+|---|---|---|
+| Home | `/` | Hero image, intro text, card grid, OpenStreetMap link |
+| Explore the island | `/opplev-oya-var/` | Hiking, swimming, historical sites, food, places to stay, the aquaculture centre |
+| Ferry | `/rutebaten/` | Live departure board from the Entur API, with service notices, past and next departures marked, a link to Kolumbus as a fallback, and picked departures to your calendar |
+| Camp school | `/leirskolen/` | Program, practical information, contact |
+| Island history | `/rovaers-historie/` | Archaeological finds, the fishing community, the 1899 disaster |
+
+The paths are the Norwegian ones, kept from the old site so existing links
+still work. Every other language uses English paths under its own prefix
+(`/en/explore/`, `/de/explore/`).
+
+## Languages
+
+<!-- i18n-status:start -->
+
+| Language | Prefix | Progress | Pages | UI strings |
+|---|---|---|---|---|
+| Norsk | none (root) | `██████████` 100% | 5/5 | 83/83 |
+| English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [83/83](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
+| Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [83/83](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
+
+`█` reviewed by a speaker, `▒` machine-translated and awaiting review
+<!-- i18n-status:end -->
+
+Each count links to the files it counts, so click one to read or fix a
+translation. Norwegian is the original wording rather than a translation, so
+its counts are plain text.
+
+Adding a language needs no changes to the code or the markup.
+`npm run i18n:new -- <code>` sets up the registry entry, the UI catalog and
+the content folder, and `npm run i18n:check -- --write` updates the table
+above. A page nobody has translated yet is not built for that language and
+does not appear in the language menu. Missing UI strings fall back one by one,
+so a half-finished language still renders.
+
+## Updating dates and hours
+
+Every date and opening time on the site is in `src/data/season.js`, and
+every price, phone number and email in `src/data/facts.js`. Each is written
+once and formatted for every language at build time, so a new season is an
+edit to those two files and nothing in `src/content`.
+
+`npm run season:check` lists each season date, the places it is printed
+under, and whether it is current, over or stale.
+
+Over is normal: the page strikes those rows through and tells the reader to
+follow the place online or get in touch. Stale means a date still holds last
+year's season from 1 March, when it is time to ask the places for this year's
+hours. The weekly link check runs it too, and on the first stale run it
+files an issue here, so the reminder arrives without anyone remembering to
+look. Where each place publishes its
+hours is noted next to its entries in `season.js`.
+
+A date entered for next year (Hiltahuset's, say) is shown as soon as it is
+there, so update a place as soon as it publishes rather than all at once.
+A new `end` needs its `start` with it: the "til" rows open on that day, and
+`npm test` fails on a season after 2026 without one.
+
+`npm run hours:check` reads Nærbutikken's opening hours from narbutikken.no
+and fails when they differ from `narbutikkenHours`. The site cannot read them
+live (narbutikken.no allows no cross-site fetch), so the weekly link check
+runs this and files an issue when they change.
+
+Røvær Havhotell and Hiltahuset state their hours as prose, which no script
+can compare with `season.js`. `npm run hours:pages` keeps the text that
+states them in `scripts/hours-pages.json`, and the weekly link check files an
+issue when a page changes it. Compare the page with `season.js` by hand, then
+`npm run hours:pages -- --update` and commit the json. Sjøhus publishes on
+Facebook, which cannot be fetched, so only the yearly reminder covers it.
+
+## Tech
+
+[Astro](https://astro.build) builds the site to plain HTML files, the styling
+is hand-written CSS, and nothing else is needed to run it. Only two things send
+JavaScript to the browser: the departure board, which reads live times from the
+[Entur JourneyPlanner API](https://developer.entur.org/), and the language menu
+in the nav.
+
+```bash
+npm install && npm run dev
+```
+
+Node 22.12 or newer, which is what Astro 7 asks for and what `engines` in
+`package.json` declares. That is the floor rather than the version the site is
+actually built with: `.nvmrc` holds that, currently 24, and both the forge gate
+and the Pages deploy read it so the two cannot drift apart. `npm run build`
+writes the finished site to `dist/`.
+
+### Branch previews
+
+The hypervisor's tailnet preview server serves a branch from
+`/rovar-no/<branch>/`, so the build has to carry that path as its base or
+every asset 404s while the page still renders.
+
+```bash
+npm run preview:build
+site-preview publish rovar-no dist
+```
+
+`preview:build` derives the base from the current branch the same way the
+publisher names its directory, and prints the publish command. `BRANCH=`
+overrides it, which the host's combined build uses (`BRANCH=all`); `publish`
+itself always names the preview by the branch that is checked out. Every URL the site emits already
+goes through `BASE_URL`, so the base is all it changes; `npm run build`
+without `PREVIEW_BASE` set is the deploy build, unchanged. The page link
+inside a preview's `.ics` feeds points at the Pages host under the preview
+path, which does not exist; the feeds themselves are served fine.
+
+The host also keeps a combined preview at `/rovar-no/all/`: main with every
+open PR merged on top, rebuilt on its own a few minutes after main or a PR
+moves.
+
+## Calendar
+
+The ferry page has no subscription link, and the board has no controls on its
+rows. "Legg avganger i kalenderen" opens a dialog (`src/scripts/calendar-picker.js`)
+with its own timetable: once on a date from a two-week strip, or every week on
+Hverdager, Lørdag or Søndag (the three timetables the route actually has, with
+the weekdays narrowable). The reader ticks departures and downloads one `.ics`
+holding only those; weekly picks run to the end of the published timetable,
+matched by direction and Oslo clock time, so a day where a boat does not run
+is left out. A single departure also gets a Google Calendar link, which on
+Android opens the calendar app where a download would only land in the
+downloads folder. A calendar holding every crossing of the month was the
+reason for all of this.
+
+A departure that has to be booked is flagged in the dialog with the booking
+rule, and in the downloaded file it carries an alarm an hour before its
+booking deadline. The Google link cannot carry one, and the feeds below never
+do, since a feed holds every booking boat and would ring every evening.
+
+The subscription feeds are still built, unlinked, so an existing subscription
+keeps working: `/rutebaten.ics` with every departure in both directions, one
+per language (`/en/ferry.ics`, `/de/ferry.ics`), and `/rutebaten-summary.ics`
+with one all-day line per day and direction. Picks, links and feeds all come
+from the same event builder in `src/scripts/departures-core.js`.
+
+The feeds run to the end of Entur's published timetable rather than a fixed
+window, and close with an all-day entry naming the date they run out, so a feed
+nobody has rebuilt says so instead of just going quiet. They are static files, so
+a deploy is what refreshes them, and `deploy.yml` runs daily on a schedule for
+that reason alone. If Entur answers with nothing the build fails rather than
+publishing an empty calendar, which would clear the departures out of every
+subscriber's calendar.
+
+## Tests
+
+`npm test` checks the departure-board logic, the routing, the language
+fallbacks and the content files (`node --test`, no test framework). It runs
+twice, the second time under `TZ=Pacific/Auckland`: a departure board that
+reads the visitor's own clock looks right in Norway and wrong everywhere else.
+CI runs the tests before the build.
+
+`npm run links:check` follows every external link in `dist/`, so it needs a
+build first. A weekly job runs it on the forge rather than on pull requests:
+a link dying is not something a change to this repo caused, and not something
+blocking a merge would fix. Only links a reader can click are checked, not the
+`canonical` and `hreflang` tags, one of which correctly points at a URL that
+answers 404. A link that is gone fails the job; a host that refuses a scripted
+request is reported and tolerated, since that says nothing about whether the
+link works in a browser.
+
+`npm run pins:check` compares three numbers that have to agree: the node the
+job is running on, the version `deploy.yml` builds with, and the floor
+`package.json` declares. It runs in CI before `npm ci`, so the runner's own
+version reaches the log as a measurement rather than as a comment that was true
+once. A difference between the first two is reported and tolerated; the job
+fails only when the deploy version drops below the floor, which is the point
+where the difference can actually break the build.
+
+The CI job also scans the lockfile for known vulnerabilities, with
+`bjorn/ci-actions/osv-scan@v1`. It is offline: the scanner and the OSV databases
+are cached on the runner host and mounted read-only at `/osv`, so no part of
+this repo's package list reaches osv.dev. It runs before `npm ci`, on the
+committed tree rather than on one with `node_modules` in it, and it refuses
+rather than skips - an absent mount, an absent scanner or a cache older than a
+week fail the step, because a scanner with nothing to read prints a summary that
+looks exactly like a clean one. A finding is silenced with an `osv-scanner.toml`
+in the repo root carrying an `[[IgnoredVulns]]` entry with an id and a reason;
+the scanner reads that file natively and nothing here parses it.
+
+`npm run merges:check` asks git whether every pull request the forge reports as
+merged is reachable from `main`. A daily job runs it. A merge can report success
+on every signal and leave `main` without the work, and when that happens nothing
+else notices: the pull request says merged, the linked issue closes, and CI goes
+green on a commit that is on no branch. Reachability is decided by git rather
+than by the forge API, because the API is the thing under suspicion, and the
+script refuses to run on a shallow clone instead of guessing, since a truncated
+history reports nearly every merge as lost.
+
+`npm run sweep:check` asks whether the branch sweep actually ran. A merged
+branch is normally removed by a job on the merge event, and a daily sweep
+deletes any `herd/` branch that git says `main` already contains, for the
+merges where that event never arrived. It honours a specimen marker for seven
+days and then expires the marker and the branch together, so a branch held
+back for a host-side read cannot quietly become the branch that never goes
+away. The sweep has the same blind spot one layer up: if its timer stops
+firing, nothing says so and the branches pile up in the same silence. The
+daily audit runs this check too, so the answer comes from a job that already
+exists rather than from a second timer that would need watching in turn. A
+skipped run does not count as a run, which is what stops the check passing on
+merge traffic alone.
+
+`npm run retries:check` reads the delete job's own logs and counts how often the
+forge put a branch back after a delete git had accepted. The daily audit runs
+this too. The delete job no longer deletes the ref again when that happens:
+deleting a ref destroys its reflog, and that reflog is the only evidence of
+whether the delete applied before something recreated it. The branch is kept
+instead, marked as `refs/specimens/<date>/<branch>`, and the run exits
+non-zero. The branch being clean and the writer being unexplained are two
+different facts, and removing the evidence fixes neither. A kept branch is
+also checked against the forge itself rather than only against `git
+ls-remote`: the read everything else here uses returns the ref
+advertisement, which is a report about the refs, so the job additionally
+asks the server to take the ref lock and say whether the branch is really
+at that sha. That answer goes in the log and in the notice, and changes no
+verdict - it is there for the case where nobody can reach the disk, which
+has now been every case. This check exists
+for the rate rather than for the event, which is on the tick. Four
+generations of that workflow appear in the logs it reads, and one of the
+older ones printed an HTTP status where the attempt count now sits, so the
+parser is explicit about which parenthesised number means what.
+
+`npm run verdict:check` asks whether the delete job still prints the lines
+`retries:check` parses. The delete step is an action in another repo, so those
+wordings are not this repo's to change, and a reword would land every run in the
+tally's `unknown` bucket - a count going quietly down rather than a red tick. The
+wordings are declared once: the test suite checks each still classifies here, and
+the daily audit checks each is still in the action source at the ref the workflow
+pins, reading the pin out of the workflow rather than from a copy of it. It found
+one wording already diverged, on a path this repo's job guard means cannot fire.
+What it cannot see is a verdict the action adds, which needs the action to
+declare its own.
+
+`npm run inert:check` says which open pull requests are provably inert: every
+file in them is markdown outside the build, or identical to the version on main
+once comments are removed. Those can be merged on green without reading the diff,
+and the daily audit comments on them so nobody has to go looking. It merges
+nothing - that is a separate decision, and `npm run inert:history` replays the
+prover over every merge on main so its verdicts can be checked against what
+actually landed before anyone considers giving it rights.
+
+The prover is allowed to be wrong in one direction only, "not provable". Nothing
+inside a yaml block scalar counts as a comment, because a `run:` block can embed
+shell or javascript and a `#` line in javascript is a private class field; a
+`//` line inside a template literal is content, not a comment; a trailing comment
+is never stripped, since finding where one starts means knowing whether an
+earlier `/` opened a regular expression; an added, removed or renamed file is
+never inert whatever it contains; and an extension with no prover, `.sh` and
+`.json` included, is never inert. The cost is real - a comment fix inside a
+`run:` block is not provable, which is most of this repo's big comments - and it
+is the right side to err on, because a false "inert" is an unreviewed change on
+main and, since the site deploys on every push there, published.
+
+Renovate owns npm updates. It runs on the fleet host rather than as a job here,
+is configured in nixfleet's `modules/renovate.nix`, and groups this repo's npm
+bumps into one pull request before 6am on Mondays; its dependency dashboard is
+issue #58. This repo also had its own fortnightly `npm update` job until
+2026-09-27, which raised the same bumps as a second pull request, so that job
+was removed rather than kept beside Renovate. The difference to read for:
+Renovate edits `package.json` as well as the lockfile, so a bump can cross a
+major, where the removed job never could.
+
+## License
+
+The code is MIT. The page texts and the photos belong to Røvær øyting and to
+the photographers.

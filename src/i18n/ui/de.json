@@ -1,0 +1,102 @@
+{
+  "_meta": { "machineTranslated": true },
+  "nav": {
+    "explore": "Entdecken",
+    "ferry": "Fähre",
+    "camp-school": "Schullandheim",
+    "history": "Geschichte"
+  },
+  "chrome": {
+    "homeLabel": "Røvær, zur Startseite",
+    "skipLink": "Zum Inhalt springen",
+    "menuLabel": "Menü",
+    "langLabel": "Sprache wählen",
+    "linksHeading": "Nützliche Links",
+    "links": {
+      "havhotell": "Røvær Havhotell",
+      "sjohus": "Røvær Sjøhus",
+      "havbruk": "Røvær Havbrukssenter",
+      "kolumbus": "Tickets für das Schnellboot (Kolumbus)",
+      "avis": "Røvær in der Haugesunds Avis",
+      "github": "Quellcode (GitHub)"
+    },
+    "pastHoursNote": "Die Saison ist vorbei. Aktuelle Zeiten und Veranstaltungen gibt es online oder auf Anfrage.",
+    "hoursStatus": {
+      "openNow": "Jetzt geöffnet, schließt um {{time}} Uhr.",
+      "openNowPlain": "Jetzt geöffnet.",
+      "opensToday": "Jetzt geschlossen. Öffnet heute um {{time}} Uhr.",
+      "opensTomorrow": "Heute geschlossen. Öffnet morgen wieder um {{time}} Uhr.",
+      "opensOn": "Jetzt geschlossen. Öffnet am {{day}} um {{time}} Uhr.",
+      "departsToday": "Nächste Abfahrt um {{time}} Uhr.",
+      "departsTomorrow": "Nächste Abfahrt morgen um {{time}} Uhr.",
+      "departsOn": "Nächste Abfahrt am {{day}} um {{time}} Uhr."
+    }
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "intro": "Vielleicht wurde sie verschoben, oder die Adresse ist falsch geschrieben.",
+    "homeLink": "Zur Startseite"
+  },
+  "ferry": {
+    "prevDay": "Vorheriger Tag",
+    "nextDay": "Nächster Tag",
+    "boatAlt": "Das Schnellboot Fjordled (Kolumbus)",
+    "legend": "Kann Vorausbuchung erfordern.",
+    "booking": "Buchen Sie über {{bookingSiteLink}} oder rufen Sie {{kolumbusPhone}} an.",
+    "credit": "Echtzeitdaten von {{enturLink}}, jede Minute aktualisiert.",
+    "kolumbus": {
+      "label": "Fahrpläne bei Kolumbus",
+      "line": "{{kolumbusLink}} (Linie {{ferryLine}})"
+    },
+    "board": {
+      "loading": "Abfahrten werden geladen...",
+      "empty": "Keine Abfahrten an diesem Tag",
+      "error": "Fahrplandaten konnten nicht geladen werden",
+      "bookingDeadlineRow": "Buchungsfrist für die Abfahrt um {{time}}",
+      "now": "jetzt",
+      "relative": "in {{time}}",
+      "hourUnit": "Std.",
+      "minUnit": "Min.",
+      "prevMonth": "Vorheriger Monat",
+      "nextMonth": "Nächster Monat",
+      "bookLabel": "Vorausbuchung erforderlich",
+      "infoLabel": "Info",
+      "pickStart": "Abfahrten in den Kalender eintragen",
+      "pickTitle": "In den Kalender",
+      "pickCancel": "Schließen",
+      "pickFreq": "Welche Tage",
+      "pickOnce": "Bestimmte Tage",
+      "pickWeekly": "Jede Woche",
+      "pickDate": "Tage",
+      "pickEarlier": "Frühere Tage",
+      "pickLater": "Spätere Tage",
+      "pickDays": "Tage",
+      "pickWeekdays": "Werktage",
+      "pickSaturday": "Samstag",
+      "pickSunday": "Sonntag",
+      "pickWhichDays": "Welche Werktage",
+      "pickDepartures": "Abfahrten",
+      "pickEvery": "jeden {{day}}",
+      "pickEveryWeekday": "werktags",
+      "pickChooseDays": "Wähle oben die Wochentage.",
+      "pickBooking": "Reservierungspflichtig: spätestens {{minutes}} Minuten vor Abfahrt unter {{kolumbusPhone}} buchen. Die Kalenderdatei erinnert Sie eine Stunde vorher.",
+      "pickRemove": "Entfernen",
+      "pickLoading": "Fahrplan wird geladen...",
+      "pickSave": "Zum Kalender hinzufügen",
+      "pickGoogle": "Google Kalender",
+      "icsSummary": "Fähre {{from}}-{{to}}",
+      "icsLocation": "{{from}} hurtigbåtkai",
+      "icsVia": "Über {{stops}}.",
+      "icsBooking": "Reservierungspflichtig: bis {{deadline}} unter {{kolumbusPhone}} buchen.",
+      "icsBookingNoDeadline": "Reservierungspflichtig: bitte unter {{kolumbusPhone}} anrufen.",
+      "icsBookingAlarm": "Boot um {{time}} bis {{deadline}} buchen: {{kolumbusPhone}} anrufen.",
+      "icsDay": "Fähre {{from}}-{{to}}: {{times}}",
+      "icsTimetableEnd": "Hier endet der Fahrplan",
+      "icsTimetableEndBody": "Kolumbus hat keine Abfahrten nach {{date}} veröffentlicht. Der Kalender füllt sich wieder, sobald neue Zeiten erscheinen - aktuelle Abfahrten auf rovar.no.",
+      "icsFeedRetired": "Dieser Kalender wurde eingestellt",
+      "icsFeedRetiredBody": "Das Fahrplan-Abo wurde eingestellt, dieser Kalender wird nicht mehr aktualisiert. Sie können ihn entfernen. Abfahrten auswählen und in den eigenen Kalender übernehmen geht auf der Fährseite von rovar.no."
+    },
+    "feedName": "Fähre Røvær-Haugesund",
+    "feedSummaryName": "Fähre Røvær-Haugesund (Tagesübersicht)"
+  }
+}

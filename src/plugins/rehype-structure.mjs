@@ -1,0 +1,240 @@
+import { visit } from 'unist-util-visit';
+
+// Gives content markdown the same DOM the hand-written pages had, so page
+// structure is a property of the markup, not something translators reproduce:
+//
+//   paragraphs before the first heading -> .page-intro
+//   ## heading and what follows         -> .section, heading gets .section-title
+//   ### heading inside a section        -> .place, a place of its own
+//   a place's hours, prices and contact -> .info-box, the card (see below)
+//   a lone image                        -> .section-img, unwrapped from its <p>
+//   a list inside a .place              -> .contact-list
+//   a list of nothing but links         -> .link-list
+//   a list of "**Label:** value" lines  -> .fact-list
+//
+// Everything here is language-independent: it runs the same on all 15 content
+// folders.
+
+const div = (className, children) => ({
+  type: 'element',
+  tagName: 'div',
+  properties: { className: [className] },
+  children,
+});
+
+const isElement = (node, tag) => node?.type === 'element' && node.tagName === tag;
+
+// Markdown wraps a lone image in a paragraph; pull it back out.
+function loneImage(node) {
+  if (isElement(node, 'img')) return node;
+  if (!isElement(node, 'p')) return null;
+  const real = node.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+  return real.length === 1 && isElement(real[0], 'img') ? real[0] : null;
+}
+
+// A list whose every item is one link and nothing else: a place's web
+// address, email and phone. A line that labels its link in words ("E-post:
+// ...") keeps the list plain.
+function linksOnly(node) {
+  const items = node.children.filter((c) => isElement(c, 'li'));
+  return items.length > 0 && items.every((li) => {
+    const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+    return real.length === 1 && isElement(real[0], 'a');
+  });
+}
+
+// A list whose every item opens with a bold label and goes on with its value:
+// opening hours, prices, a tour's departures.
+function labelled(node) {
+  const items = node.children.filter((c) => isElement(c, 'li'));
+  return items.length > 0 && items.every((li) => {
+    const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+    return real.length > 1 && isElement(real[0], 'strong');
+  });
+}
+
+// A fact-list row as label, value and, when the row ends in emphasis, when it
+// applies: "**Hver dag:** kl. 11.00 _til 16. august_". Each part is a cell of
+// the list's grid, so times and dates each line up down the list. A second
+// bold label in the value starts a column of its own, the extra:
+// "**Søndag til onsdag:** kl. 12.00 **Matservering:** kl. 12.30".
+function factRow(li) {
+  const real = li.children.filter((c) => c.type !== 'text' || c.value.trim() !== '');
+  const [label, ...rest] = real;
+  const last = rest.at(-1);
+  const when = rest.length > 1 && isElement(last, 'em') ? rest.pop() : null;
+  const at = li.children.indexOf(rest[0]);
+  const value = li.children.slice(at, when ? li.children.indexOf(when) : undefined);
+  const split = value.findIndex((c, i) => i > 0 && isElement(c, 'strong'));
+  const cell = (className, children) => ({ type: 'element', tagName: 'span', properties: { className: [className] }, children });
+  li.children = [
+    label,
+    cell('fact-value', split > 0 ? value.slice(0, split) : value),
+    ...(split > 0 ? [cell('fact-extra', value.slice(split))] : []),
+    ...(when ? [{ ...when, tagName: 'span', properties: { className: ['fact-when'] } }] : []),
+  ];
+}
+
+const textOf = (node) => node.type === 'text' ? node.value : (node.children ?? []).map(textOf).join('');
+const cellOf = (li, name) => li.children.find((c) => isElement(c, 'span') && c.properties.className?.includes(name));
+
+// In a list of two or more rows that are all dated, the dates move up into
+// heading rows over the rows they cover, so "til 16. august" is printed once
+// however many rows share it. A list that dates only some rows (a tour's
+// departures above its price) keeps the date on the row. The label of an
+// extra column moves up the same way, into the heading over its times.
+//
+// The rows keep their own data-until, which past-hours.js reads; the heading
+// takes it too, so it turns with them.
+export function groupWhen(ul) {
+  const items = ul.children.filter((c) => isElement(c, 'li'));
+  const whens = items.map((li) => cellOf(li, 'fact-when'));
+  if (items.length < 2 || whens.some((w) => !w)) return;
+  const text = whens.map((w) => textOf(w).trim());
+  const extras = items.map((li) => cellOf(li, 'fact-extra'));
+  if (extras.some(Boolean)) ul.properties.className = [...(ul.properties.className ?? []), 'has-extra'];
+
+  const out = [];
+  items.forEach((li, i) => {
+    if (i === 0 || text[i] !== text[i - 1]) {
+      const until = li.properties?.dataUntil;
+      let j = i;
+      while (j < items.length && text[j] === text[i] && !extras[j]) j += 1;
+      const extra = j < items.length && text[j] === text[i] ? extras[j] : null;
+      const heading = extra && textOf(extra.children[0]).trim().replace(/:$/, '');
+      out.push({
+        type: 'element',
+        tagName: 'li',
+        properties: { className: ['fact-group'], ...(until ? { dataUntil: until } : {}) },
+        children: [
+          { type: 'element', tagName: 'span', properties: { className: ['fact-group-when'] }, children: whens[i].children },
+          ...(heading ? [{ type: 'element', tagName: 'span', properties: { className: ['fact-group-extra'] }, children: [{ type: 'text', value: heading }] }] : []),
+        ],
+      });
+    }
+    // Its label is in the heading now.
+    if (extras[i]) extras[i].children = extras[i].children.slice(1);
+    li.children = li.children.filter((c) => c !== whens[i]);
+    out.push(li);
+  });
+  ul.children = out;
+}
+
+// Email and phone share one item, so the list wraps them together: never the
+// phone number alone on a line of its own under the email.
+const isContact = (li) => li.children.some((c) => isElement(c, 'a')
+  && /^(mailto|tel):/.test(String(c.properties?.href ?? '')));
+
+function groupContact(node) {
+  const contact = node.children.filter((c) => isElement(c, 'li') && isContact(c));
+  if (contact.length < 2) return;
+  const group = {
+    type: 'element',
+    tagName: 'li',
+    properties: { className: ['link-contact'] },
+    children: contact.flatMap((li) => li.children.filter((c) => isElement(c, 'a'))),
+  };
+  const at = node.children.indexOf(contact[0]);
+  node.children = node.children.filter((c) => !contact.includes(c));
+  node.children.splice(at, 0, group);
+}
+
+export function rehypeStructure() {
+  return (tree) => {
+    const out = [];
+    let section = null;
+    let place = null;
+    let seenImage = false;
+
+    const push = (node) => {
+      const parent = place ?? section;
+      if (parent) parent.children.push(node);
+      else out.push(node);
+    };
+    const openSection = () => {
+      section = div('section', []);
+      place = null;
+      out.push(section);
+    };
+
+    for (const node of tree.children) {
+      if (node.type === 'text' && !node.value.trim()) continue;
+
+      if (isElement(node, 'h2')) {
+        node.properties.className = [...(node.properties.className ?? []), 'section-title'];
+        openSection();
+        section.children.push(node);
+        continue;
+      }
+
+      if (isElement(node, 'h3') && section) {
+        place = div('place', [node]);
+        section.children.push(place);
+        continue;
+      }
+
+      const img = loneImage(node);
+      if (img) {
+        img.properties.className = [...(img.properties.className ?? []), 'section-img'];
+        if (seenImage) img.properties.loading = 'lazy';
+        seenImage = true;
+        push(img);
+        continue;
+      }
+
+      if (isElement(node, 'ul') && place) {
+        node.properties.className = [...(node.properties.className ?? []), 'contact-list'];
+      }
+
+      if (isElement(node, 'ul') && linksOnly(node)) {
+        node.properties.className = [...(node.properties.className ?? []), 'link-list'];
+        groupContact(node);
+      }
+
+      if (isElement(node, 'ul') && labelled(node)) {
+        node.properties.className = [...(node.properties.className ?? []), 'fact-list'];
+        for (const li of node.children) if (isElement(li, 'li')) factRow(li);
+        groupWhen(node);
+      }
+
+      if (isElement(node, 'p') && !section) {
+        node.properties.className = [...(node.properties.className ?? []), 'page-intro'];
+      }
+
+      push(node);
+    }
+
+    tree.children = out;
+
+    // A card holds a place's practical details and nothing else: from its
+    // first list of hours, prices, links or contact lines to the end of the
+    // place, with the heading, picture and description left above it. A
+    // place is a ### block, or a ## section with none. A line introducing
+    // the first list ("Åpningstider i restauranten:") goes in with it.
+    const hasClass = (node, name) => node.properties?.className?.includes(name);
+    const practical = (node) => isElement(node, 'ul')
+      && ['fact-list', 'link-list', 'contact-list'].some((name) => hasClass(node, name));
+    const card = (block) => {
+      const kids = block.children;
+      let at = kids.findIndex(practical);
+      if (at < 0) return;
+      if (at > 0 && isElement(kids[at - 1], 'p') && textOf(kids[at - 1]).trim().endsWith(':')) at -= 1;
+      block.children = [...kids.slice(0, at), div('info-box', kids.slice(at))];
+    };
+    for (const sec of out) {
+      if (!isElement(sec, 'div') || !hasClass(sec, 'section')) continue;
+      const places = sec.children.filter((c) => hasClass(c, 'place'));
+      if (places.length) places.forEach(card);
+      else card(sec);
+    }
+
+    // External links open in a new tab, as they did in the hand-written pages.
+    visit(tree, 'element', (node) => {
+      if (node.tagName !== 'a') return;
+      const href = String(node.properties?.href ?? '');
+      if (!/^https?:\/\//.test(href)) return;
+      node.properties.target = '_blank';
+      node.properties.rel = 'noopener';
+    });
+  };
+}
