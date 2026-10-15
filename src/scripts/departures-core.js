@@ -16,11 +16,8 @@ export const ROVAR_STOP = 'NSR:StopPlace:25940';
 export const HAUGESUND_STOP = 'NSR:StopPlace:26090';
 export const MAX_DAY_OFFSET = 7;
 // A ceiling on the query window, not a horizon: Entur is asked for more than it
-// can have and answers with the whole published timetable, which ran out about
-// four months ahead when this was measured in 2026 (Kolumbus publishes to a
-// year end, so how far ahead that is depends on when you ask). Taking all of
-// it is what lets the feed survive a deploy that never comes - it stays correct
-// until the timetable it was built from ends, rather than for a fixed 30 days.
+// can have and answers with the whole published timetable, which is what lets
+// a weekly pick in the calendar dialog run to the end of it.
 export const FEED_WINDOW_DAYS = 400;
 export const FEED_TTL_MINUTES = 720;
 
@@ -656,7 +653,7 @@ export function collectEvents(once, weekly, events, from, weekdays = WEEKDAYS) {
   return [...byUid.values()].sort((a, b) => a.start - b.start);
 }
 
-// --- summary feed -----------------------------------------------------------
+// --- all-day dates -----------------------------------------------------------
 
 export const compactDate = (dateStr) => dateStr.replace(/-/g, '');
 
@@ -667,102 +664,17 @@ export function nextOsloDay(dateStr) {
   return day.toISOString().slice(0, 10);
 }
 
-// The detailed events folded into one all-day entry per day and direction. A
-// timetable is reference material, and eighteen timed blocks a day bury a
-// calendar it was only meant to sit beside; one line per direction says the
-// same thing from the all-day row, where it costs nothing.
-export function summaryEvents(events, opts = {}) {
-  const { strings = {}, locale = 'no', stamp = new Date(), url } = opts;
+// --- retired feeds -----------------------------------------------------------
 
-  const days = new Map();
-  for (const event of events) {
-    const key = `${toOsloDate(event.start)}|${event.direction}`;
-    if (!days.has(key)) days.set(key, []);
-    days.get(key).push(event);
-  }
+// The subscription feeds lost their link when the picker landed (#89) and were
+// retired on this date (#115): each is built as a single closing note, so a
+// subscribed calendar empties instead of freezing on the last departures it
+// saw. The date is fixed so every rebuild leaves the note where it was.
+export const FEED_RETIRE_DATE = '2026-10-15';
 
-  return [...days.entries()]
-    .map(([key, group]) => {
-      const [date, direction] = key.split('|');
-      const sorted = [...group].sort((a, b) => a.start - b.start);
-      const clock = (dt) => osloClock(dt, locale);
-      return {
-        uid: `summary-${date}-${direction}@${ICS_DOMAIN}`,
-        stamp,
-        allDay: true,
-        date,
-        direction,
-        transparent: true,
-        summary: fillTokens(strings.icsDay ?? '{{from}}-{{to}}: {{times}}', {
-          from: sorted[0].from,
-          to: sorted[0].to,
-          times: sorted.map((e) => clock(e.start)).join(', '),
-        }),
-        description: sorted
-          .map((e) => (e.end ? `${clock(e.start)}-${clock(e.end)}` : clock(e.start)))
-          .join('\n'),
-        url,
-      };
-    })
-    .sort((a, b) => a.date.localeCompare(b.date) || a.direction.localeCompare(b.direction));
-}
-
-// The feed states its own expiry. Without this a subscriber whose calendar has
-// simply stopped being rebuilt sees no ferry at all past some date and reads it
-// as the boat having stopped, with nothing on screen to suggest otherwise. One
-// all-day marker on the last covered day says which it is and where to look.
-// The UID is fixed, so each build moves this one entry rather than leaving the
-// old date behind in anyone's calendar.
-export function expiryEvent(events, opts = {}) {
-  if (!events.length) return null;
-  const { strings = {}, stamp = new Date(), url } = opts;
-  const last = events.reduce((a, b) => (a.start > b.start ? a : b));
-  const date = toOsloDate(last.start);
-
-  return {
-    uid: `timetable-end@${ICS_DOMAIN}`,
-    stamp,
-    allDay: true,
-    date,
-    transparent: true,
-    summary: strings.icsTimetableEnd ?? 'Timetable ends',
-    description: fillTokens(strings.icsTimetableEndBody ?? '', { date }),
-    url,
-  };
-}
-
-// --- feed retirement --------------------------------------------------------
-
-// The subscription feeds lost their link when the picker landed (#89) and are
-// kept only so existing subscribers are not cut off mid-season (#88). From
-// this Oslo date the build publishes them with a single closing note in place
-// of the timetable, so a subscribed calendar empties instead of freezing on
-// the last departures it saw. Picked to fall just after the year end Kolumbus
-// publishes to, when a subscriber's calendar would be running out anyway.
-export const FEED_RETIRE_DATE = '2027-01-04';
-// Scheduled deploys keep running this long past the retirement, so a dropped
-// or disabled run still leaves one build that publishes the closing note.
-export const FEED_SCHEDULE_GRACE_DAYS = 7;
-
-export function feedRetired(now = new Date(), retireDate = FEED_RETIRE_DATE) {
-  return toOsloDate(now) >= retireDate;
-}
-
-// Whether a scheduled deploy still has a feed to refresh. Pushes always build;
-// this only answers for the daily run, which exists for the feeds alone.
-export function feedScheduleWanted(
-  now = new Date(),
-  retireDate = FEED_RETIRE_DATE,
-  graceDays = FEED_SCHEDULE_GRACE_DAYS
-) {
-  let last = retireDate;
-  for (let i = 0; i < graceDays; i++) last = nextOsloDay(last);
-  return toOsloDate(now) <= last;
-}
-
-// The one entry a retired feed carries, on the retirement date: what happened
-// and where the departures went. A fixed UID, so every later build replaces it
-// rather than adding another.
+// The one entry a retired feed carries: what happened and where the departures
+// went. A fixed UID, so every later build replaces it rather than adding
+// another.
 export function retiredEvent(opts = {}) {
   const { strings = {}, stamp = new Date(), url, retireDate = FEED_RETIRE_DATE } = opts;
   return {

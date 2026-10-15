@@ -50,12 +50,8 @@ import {
   FEED_TTL_MINUTES,
   groupByOsloDate,
   feedEvents,
-  summaryEvents,
   nextOsloDay,
-  expiryEvent,
   FEED_RETIRE_DATE,
-  feedRetired,
-  feedScheduleWanted,
   retiredEvent,
 } from '../src/scripts/departures-core.js';
 
@@ -1054,26 +1050,7 @@ test('no exported event ever ends before it starts', () => {
   for (const event of events) assert.ok(event.end > event.start, `${event.uid} ends before it starts`);
 });
 
-// --- summary feed -----------------------------------------------------------
-
-const twoDays = () =>
-  feedEvents(
-    [
-      {
-        direction: 'to-haugesund',
-        calls: [
-          call({ time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'a' }),
-          call({ time: '2026-07-15T21:05:00+02:00', frontText: 'Haugesund', id: 'b' }),
-          call({ time: '2026-07-16T08:00:00+02:00', frontText: 'Haugesund', id: 'c' }),
-        ],
-      },
-      {
-        direction: 'to-rovar',
-        calls: [call({ time: '2026-07-15T12:40:00+02:00', frontText: 'Røvær', id: 'd' })],
-      },
-    ],
-    { stamp: ICS_STAMP }
-  );
+// --- all-day dates -----------------------------------------------------------
 
 test('nextOsloDay steps over a month end and a DST change', () => {
   assert.equal(nextOsloDay('2026-07-31'), '2026-08-01');
@@ -1082,143 +1059,11 @@ test('nextOsloDay steps over a month end and a DST change', () => {
   assert.equal(nextOsloDay('2026-10-24'), '2026-10-25');
 });
 
-test('a day and a direction fold into one entry', () => {
-  const summary = summaryEvents(twoDays(), { stamp: ICS_STAMP });
-  assert.deepEqual(
-    summary.map((e) => e.uid),
-    [
-      'summary-2026-07-15-to-haugesund@rovar.no',
-      'summary-2026-07-15-to-rovar@rovar.no',
-      'summary-2026-07-16-to-haugesund@rovar.no',
-    ]
-  );
-});
-
-test('the entry lists that direction\'s departures in clock order', () => {
-  const summary = summaryEvents(twoDays(), {
-    stamp: ICS_STAMP,
-    strings: { icsDay: 'Rutebåten {{from}}-{{to}}: {{times}}' },
-  });
-  assert.equal(summary[0].summary, 'Rutebåten Røvær-Haugesund: 08:00, 21:05');
-  assert.equal(summary[1].summary, 'Rutebåten Haugesund-Røvær: 12:40');
-});
-
-test('the times are the Oslo clock, not the reader\'s', () => {
-  // 08:00 and 21:05 in Oslo stay 08:00 and 21:05 under a foreign TZ.
-  const summary = summaryEvents(twoDays(), { stamp: ICS_STAMP });
-  assert.match(summary[0].summary, /08:00, 21:05/);
-});
-
-test('an all-day entry ends on the following day, as a DATE end is exclusive', () => {
-  const lines = icsEvent(summaryEvents(twoDays(), { stamp: ICS_STAMP })[0]);
-  assert.ok(lines.includes('DTSTART;VALUE=DATE:20260715'));
-  assert.ok(lines.includes('DTEND;VALUE=DATE:20260716'));
-  assert.ok(!lines.some((l) => l.startsWith('DTSTART:')), 'no timed start alongside the date one');
-});
-
-test('a timetable never claims the day as busy', () => {
-  const lines = icsEvent(summaryEvents(twoDays(), { stamp: ICS_STAMP })[0]);
-  assert.ok(lines.includes('TRANSP:TRANSPARENT'));
-  // A crossing someone is actually taking is not transparent.
-  assert.ok(!icsEvent(departureEvent(bookedCall(), { stamp: ICS_STAMP })).includes('TRANSP:TRANSPARENT'));
-});
-
-test('the description keeps the crossings behind the one-line summary', () => {
-  const withStops = feedEvents([{ direction: 'to-haugesund', calls: [bookedCall()] }], {
-    stamp: ICS_STAMP,
-  });
-  assert.equal(summaryEvents(withStops, { stamp: ICS_STAMP })[0].description, '21:05-21:30');
-});
-
-test('a crossing with no known arrival is listed by its departure alone', () => {
-  assert.equal(summaryEvents(twoDays(), { stamp: ICS_STAMP })[0].description, '08:00\n21:05');
-});
-
-test('a summary rebuilt from the same days keeps its UIDs', () => {
-  const first = summaryEvents(twoDays(), { stamp: ICS_STAMP });
-  const second = summaryEvents(twoDays(), { stamp: new Date('2026-07-15T06:00:00Z') });
-  assert.deepEqual(first.map((e) => e.uid), second.map((e) => e.uid));
-});
-
-test('the summary is a fraction of the events of the full feed', () => {
-  const events = twoDays();
-  const summary = summaryEvents(events, { stamp: ICS_STAMP });
-  assert.equal(events.length, 4);
-  assert.equal(summary.length, 3);
-  const ics = icsCalendar(summary, { name: 'Rutebåten', ttlMinutes: FEED_TTL_MINUTES });
-  assert.equal(ics.split('\r\n').filter((l) => l === 'BEGIN:VEVENT').length, 3);
-});
-
-// --- expiry marker ----------------------------------------------------------
-
-test('the marker lands on the last day the timetable covers', () => {
-  const marker = expiryEvent(twoDays(), { stamp: ICS_STAMP });
-  assert.equal(marker.date, '2026-07-16');
-  assert.equal(marker.allDay, true);
-});
-
-test('the marker keeps one UID as its date moves, so it updates in place', () => {
-  const short = expiryEvent(twoDays(), { stamp: ICS_STAMP });
-  const longer = expiryEvent(
-    feedEvents(
-      [
-        {
-          direction: 'to-haugesund',
-          calls: [
-            call({ time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'a' }),
-            call({ time: '2026-12-31T08:00:00+01:00', frontText: 'Haugesund', id: 'z' }),
-          ],
-        },
-      ],
-      { stamp: ICS_STAMP }
-    ),
-    { stamp: ICS_STAMP }
-  );
-  assert.equal(short.uid, longer.uid);
-  assert.notEqual(short.date, longer.date);
-  assert.equal(longer.date, '2026-12-31');
-});
-
-test('a feed with no departures gets no marker rather than an undated one', () => {
-  assert.equal(expiryEvent([], { stamp: ICS_STAMP }), null);
-});
-
-test('the marker names the date it expires and never claims the day as busy', () => {
-  const marker = expiryEvent(twoDays(), {
-    stamp: ICS_STAMP,
-    strings: {
-      icsTimetableEnd: 'Rutetabellen slutter her',
-      icsTimetableEndBody: 'Ingen avganger etter {{date}}.',
-    },
-  });
-  assert.equal(marker.summary, 'Rutetabellen slutter her');
-  assert.equal(marker.description, 'Ingen avganger etter 2026-07-16.');
-  const lines = icsEvent(marker);
-  assert.ok(lines.includes('TRANSP:TRANSPARENT'));
-  assert.ok(lines.includes('DTSTART;VALUE=DATE:20260716'));
-});
-
 // --- feed retirement ----------------------------------------------------------
 
-test('the feed retires on the Oslo date, not the UTC one', () => {
-  // 23:30 UTC on the 3rd is already the 4th in Oslo.
-  assert.equal(feedRetired(new Date('2027-01-03T22:30:00Z'), '2027-01-04'), false);
-  assert.equal(feedRetired(new Date('2027-01-03T23:30:00Z'), '2027-01-04'), true);
-  assert.equal(feedRetired(new Date('2027-03-01T12:00:00Z'), '2027-01-04'), true);
-});
-
-test('the retirement date is a real date, later than the day it was set (#88)', () => {
+test('the retirement date is a real date (#115)', () => {
   assert.match(FEED_RETIRE_DATE, /^\d{4}-\d{2}-\d{2}$/);
   assert.equal(new Date(`${FEED_RETIRE_DATE}T12:00:00Z`).toISOString().slice(0, 10), FEED_RETIRE_DATE);
-  assert.ok(FEED_RETIRE_DATE > '2026-10-02');
-});
-
-test('scheduled deploys run through the grace week and stop after it', () => {
-  const at = (iso) => feedScheduleWanted(new Date(iso), '2027-01-04', 7);
-  assert.equal(at('2026-12-01T03:17:00Z'), true);
-  assert.equal(at('2027-01-04T03:17:00Z'), true);
-  assert.equal(at('2027-01-11T03:17:00Z'), true);
-  assert.equal(at('2027-01-12T03:17:00Z'), false);
 });
 
 test('a retired feed carries one transparent note on the retirement date', () => {
@@ -1233,4 +1078,7 @@ test('a retired feed carries one transparent note on the retirement date', () =>
   const lines = icsEvent(note);
   assert.ok(lines.includes('TRANSP:TRANSPARENT'));
   assert.ok(lines.includes('DTSTART;VALUE=DATE:20270104'));
+  // A DATE end is exclusive, so a one-day entry ends on the following day.
+  assert.ok(lines.includes('DTEND;VALUE=DATE:20270105'));
+  assert.ok(!lines.some((l) => l.startsWith('DTSTART:')), 'no timed start alongside the date one');
 });
