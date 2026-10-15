@@ -18,8 +18,7 @@ export const MAX_DAY_OFFSET = 7;
 // A ceiling on the query window, not a horizon: Entur is asked for more than it
 // can have and answers with the whole published timetable, which is what lets
 // a weekly pick in the calendar dialog run to the end of it.
-export const FEED_WINDOW_DAYS = 400;
-export const FEED_TTL_MINUTES = 720;
+export const TIMETABLE_WINDOW_DAYS = 400;
 
 export const query = `query departures($stopId: String!, $n: Int!, $startTime: DateTime!, $timeRange: Int!) {
   stopPlace(id: $stopId) {
@@ -96,8 +95,8 @@ export function osloMinutes(dt) {
 // --- route data -------------------------------------------------------------
 
 // Without a targetDate this is the direction filter alone, which is what the
-// feed wants: one query covers a month, and the day it belongs to is worked
-// out per call afterwards.
+// calendar timetable wants: one query covers every published day, and the day
+// each call belongs to is worked out afterwards.
 export function filterRoute(calls, direction, targetDate) {
   return calls.filter((c) => {
     const dest = c.destinationDisplay.frontText.toLowerCase();
@@ -408,9 +407,9 @@ export function foldLine(line, limit = 75) {
   return parts.map((part, i) => (i ? ` ${part}` : part)).join('\r\n');
 }
 
-// A UID has to name the same journey on the same day every time the feed is
-// built, or a subscriber collects a duplicate instead of an update whenever a
-// departure moves. serviceJourney.id is that name; without it (older cached
+// A UID has to name the same journey on the same day every time it is
+// exported, or downloading a departure again after it moved lands a duplicate
+// in the calendar instead of an update. serviceJourney.id is that name; without it (older cached
 // data) the clock time stands in, which is stable until the very departure
 // that moves, and then reads as a new event.
 export function journeyKey(call, direction) {
@@ -482,30 +481,16 @@ export function departureEvent(call, opts = {}) {
 export function icsEvent(event) {
   const lines = ['BEGIN:VEVENT', `UID:${event.uid}`, `DTSTAMP:${icsTime(event.stamp)}`];
 
-  if (event.allDay) {
-    // A DATE end is exclusive, so a single day ends on the next one.
-    lines.push(
-      `DTSTART;VALUE=DATE:${compactDate(event.date)}`,
-      `DTEND;VALUE=DATE:${compactDate(nextOsloDay(event.date))}`
-    );
-  } else {
-    lines.push(`DTSTART:${icsTime(event.start)}`);
-    // No arrival time known means an event with no end rather than a guessed
-    // one: Entur leaves the stop list empty often enough that a made-up
-    // crossing time would be the common case, not the exception.
-    if (event.end) lines.push(`DTEND:${icsTime(event.end)}`);
-  }
+  lines.push(`DTSTART:${icsTime(event.start)}`);
+  // No arrival time known means an event with no end rather than a guessed
+  // one: Entur leaves the stop list empty often enough that a made-up
+  // crossing time would be the common case, not the exception.
+  if (event.end) lines.push(`DTEND:${icsTime(event.end)}`);
 
   lines.push(`SUMMARY:${icsEscape(event.summary)}`);
   if (event.location) lines.push(`LOCATION:${icsEscape(event.location)}`);
   if (event.description) lines.push(`DESCRIPTION:${icsEscape(event.description)}`);
   if (event.url) lines.push(`URL:${event.url}`);
-  // A timetable is something to read, not somewhere you have to be. Marked
-  // transparent it shows in the calendar without claiming the day as busy,
-  // which an all-day event would otherwise do to every free/busy lookup.
-  if (event.transparent) lines.push('TRANSP:TRANSPARENT');
-  // Only on an event the caller asked for one: the published feed carries
-  // every booking departure, and an alarm there would ring every evening.
   // Counted back from the start, which more clients honour than a fixed time.
   if (event.alarm) {
     lines.push(
@@ -539,23 +524,15 @@ export function googleCalendarUrl(event) {
 
 // CRLF throughout and a trailing one, per RFC 5545 - some clients reject a
 // file that ends without it.
-export function icsCalendar(events, { prodid = ICS_PRODID, name, ttlMinutes, method } = {}) {
+export function icsCalendar(events, { prodid = ICS_PRODID, method } = {}) {
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', `PRODID:${prodid}`, 'CALSCALE:GREGORIAN'];
   if (method) lines.push(`METHOD:${method}`);
-  if (name) lines.push(`NAME:${icsEscape(name)}`, `X-WR-CALNAME:${icsEscape(name)}`);
-  // How often a subscriber should re-read the feed. NAME/REFRESH-INTERVAL are
-  // the standard properties and the X- ones are what Apple and Outlook
-  // actually read, so both go in.
-  if (ttlMinutes) {
-    const ttl = `PT${ttlMinutes}M`;
-    lines.push(`REFRESH-INTERVAL;VALUE=DURATION:${ttl}`, `X-PUBLISHED-TTL:${ttl}`);
-  }
   for (const event of events) lines.push(...icsEvent(event));
   lines.push('END:VCALENDAR');
   return `${lines.map((line) => foldLine(line)).join('\r\n')}\r\n`;
 }
 
-// Calls split into Oslo days, each day's own calls in clock order. The feed
+// Calls split into Oslo days, each day's own calls in clock order. The timetable
 // needs the split because "the last boat of the day" is what marks a
 // bestillingsrute when Entur has no booking data yet, and a month of calls
 // arrives as one flat list.
@@ -579,7 +556,7 @@ export function groupByOsloDate(calls) {
 // Both directions of a month, as one sorted event list. Keyed by UID on the
 // way through: a stop's query answers with departures the other stop's query
 // also saw, and two events with the same UID are the same boat, not two.
-export function feedEvents(batches, opts = {}) {
+export function timetableEvents(batches, opts = {}) {
   const byUid = new Map();
   for (const { calls, direction } of batches) {
     for (const day of groupByOsloDate(filterRoute(calls, direction))) {
@@ -651,40 +628,4 @@ export function collectEvents(once, weekly, events, from, weekdays = WEEKDAYS) {
   const repeated = weekly.length ? weeklyEvents(weekly, events, from, weekdays) : [];
   const byUid = new Map([...once, ...repeated].map((event) => [event.uid, event]));
   return [...byUid.values()].sort((a, b) => a.start - b.start);
-}
-
-// --- all-day dates -----------------------------------------------------------
-
-export const compactDate = (dateStr) => dateStr.replace(/-/g, '');
-
-// Midday, so a DST change cannot tip the arithmetic into the wrong day.
-export function nextOsloDay(dateStr) {
-  const day = new Date(`${dateStr}T12:00:00Z`);
-  day.setUTCDate(day.getUTCDate() + 1);
-  return day.toISOString().slice(0, 10);
-}
-
-// --- retired feeds -----------------------------------------------------------
-
-// The subscription feeds lost their link when the picker landed (#89) and were
-// retired on this date (#115): each is built as a single closing note, so a
-// subscribed calendar empties instead of freezing on the last departures it
-// saw. The date is fixed so every rebuild leaves the note where it was.
-export const FEED_RETIRE_DATE = '2026-10-15';
-
-// The one entry a retired feed carries: what happened and where the departures
-// went. A fixed UID, so every later build replaces it rather than adding
-// another.
-export function retiredEvent(opts = {}) {
-  const { strings = {}, stamp = new Date(), url, retireDate = FEED_RETIRE_DATE } = opts;
-  return {
-    uid: `feed-retired@${ICS_DOMAIN}`,
-    stamp,
-    allDay: true,
-    date: retireDate,
-    transparent: true,
-    summary: strings.icsFeedRetired ?? 'This calendar has ended',
-    description: strings.icsFeedRetiredBody ?? '',
-    url,
-  };
 }

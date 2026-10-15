@@ -88,11 +88,7 @@
       "icsVia": "Via {{stops}}.",
       "icsBooking": "Bestillingsrute: bestill innen {{deadline}} på {{kolumbusPhone}}.",
       "icsBookingNoDeadline": "Bestillingsrute: må bestilles på forhånd på {{kolumbusPhone}}.",
-      "icsBookingAlarm": "Bestill rutebåten {{time}} innen {{deadline}}: ring {{kolumbusPhone}}.",
-      "icsFeedRetired": "Denne kalenderen er avsluttet",
-      "icsFeedRetiredBody": "Abonnementet på rutetidene er lagt ned, og kalenderen oppdateres ikke lenger. Du kan fjerne den. Velg avganger og legg dem i kalenderen din fra rutebåtsiden på rovar.no."
-    },
-    "feedName": "Rutebåten Røvær-Haugesund",
-    "feedSummaryName": "Rutebåten Røvær-Haugesund (dagsoversikt)"
+      "icsBookingAlarm": "Bestill rutebåten {{time}} innen {{deadline}}: ring {{kolumbusPhone}}."
+    }
   }
 }

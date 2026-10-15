@@ -8,7 +8,7 @@ import {
   ENTUR_CLIENT,
   ROVAR_STOP,
   HAUGESUND_STOP,
-  FEED_WINDOW_DAYS,
+  TIMETABLE_WINDOW_DAYS,
   WEEKDAYS,
   query,
   osloMidnight,
@@ -19,7 +19,7 @@ import {
   dateAtOffset,
   dayKind,
   bookingPattern,
-  feedEvents,
+  timetableEvents,
   collectEvents,
   nextDateOfKind,
   icsCalendar,
@@ -94,7 +94,7 @@ async function fetchStop(stopId) {
     headers: { 'Content-Type': 'application/json', 'ET-Client-Name': ENTUR_CLIENT },
     body: JSON.stringify({
       query,
-      variables: { stopId, n: FEED_WINDOW_DAYS * 20, startTime: osloMidnight(0), timeRange: FEED_WINDOW_DAYS * 86400 },
+      variables: { stopId, n: TIMETABLE_WINDOW_DAYS * 20, startTime: osloMidnight(0), timeRange: TIMETABLE_WINDOW_DAYS * 86400 },
     }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -104,7 +104,7 @@ async function fetchStop(stopId) {
 function load() {
   loading ??= Promise.all([fetchStop(ROVAR_STOP), fetchStop(HAUGESUND_STOP)])
     .then(([rovar, haugesund]) => {
-      timetable = feedEvents(
+      timetable = timetableEvents(
         [
           { calls: rovar, direction: 'to-haugesund' },
           { calls: haugesund, direction: 'to-rovar' },

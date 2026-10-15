@@ -89,11 +89,7 @@
       "icsVia": "Über {{stops}}.",
       "icsBooking": "Reservierungspflichtig: bis {{deadline}} unter {{kolumbusPhone}} buchen.",
       "icsBookingNoDeadline": "Reservierungspflichtig: bitte unter {{kolumbusPhone}} anrufen.",
-      "icsBookingAlarm": "Boot um {{time}} bis {{deadline}} buchen: {{kolumbusPhone}} anrufen.",
-      "icsFeedRetired": "Dieser Kalender wurde eingestellt",
-      "icsFeedRetiredBody": "Das Fahrplan-Abo wurde eingestellt, dieser Kalender wird nicht mehr aktualisiert. Sie können ihn entfernen. Abfahrten auswählen und in den eigenen Kalender übernehmen geht auf der Fährseite von rovar.no."
-    },
-    "feedName": "Fähre Røvær-Haugesund",
-    "feedSummaryName": "Fähre Røvær-Haugesund (Tagesübersicht)"
+      "icsBookingAlarm": "Boot um {{time}} bis {{deadline}} buchen: {{kolumbusPhone}} anrufen."
+    }
   }
 }

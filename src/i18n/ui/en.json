@@ -88,11 +88,7 @@
       "icsVia": "Via {{stops}}.",
       "icsBooking": "Advance booking required: book by {{deadline}} on {{kolumbusPhone}}.",
       "icsBookingNoDeadline": "Advance booking required: call {{kolumbusPhone}}.",
-      "icsBookingAlarm": "Book the {{time}} boat by {{deadline}}: call {{kolumbusPhone}}.",
-      "icsFeedRetired": "This calendar has ended",
-      "icsFeedRetiredBody": "The timetable subscription has been retired and this calendar no longer updates. You can remove it. Pick departures and add them to your calendar from the ferry page on rovar.no."
-    },
-    "feedName": "Røvær-Haugesund ferry",
-    "feedSummaryName": "Røvær-Haugesund ferry (daily overview)"
+      "icsBookingAlarm": "Book the {{time}} boat by {{deadline}}: call {{kolumbusPhone}}."
+    }
   }
 }

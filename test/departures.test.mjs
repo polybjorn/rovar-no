@@ -47,12 +47,8 @@ import {
   nextDateOfKind,
   collectEvents,
   ICS_PRODID,
-  FEED_TTL_MINUTES,
   groupByOsloDate,
-  feedEvents,
-  nextOsloDay,
-  FEED_RETIRE_DATE,
-  retiredEvent,
+  timetableEvents,
 } from '../src/scripts/departures-core.js';
 
 // A summer and a winter instant, chosen so the UTC date and the Oslo date
@@ -725,14 +721,7 @@ test('the calendar wraps its events and ends with a CRLF', () => {
   assert.ok(!/[^\r]\n/.test(ics));
 });
 
-test('a subscription feed advertises how often to come back', () => {
-  const ics = icsCalendar([], { name: 'Rutebåten', ttlMinutes: 720 });
-  assert.ok(ics.includes('REFRESH-INTERVAL;VALUE=DURATION:PT720M'));
-  assert.ok(ics.includes('X-PUBLISHED-TTL:PT720M'));
-  assert.ok(ics.includes('X-WR-CALNAME:Rutebåten'));
-});
-
-test('a download carries METHOD:PUBLISH and a feed does not', () => {
+test('METHOD:PUBLISH appears only when asked for', () => {
   assert.ok(icsCalendar([], { method: 'PUBLISH' }).includes('METHOD:PUBLISH'));
   assert.ok(!icsCalendar([]).includes('METHOD:'));
 });
@@ -882,7 +871,7 @@ test('osloClock prints the Oslo wall clock, not the visitor local time', () => {
   assert.equal(osloClock(new Date('2026-01-15T19:05:00Z'), 'no'), '20:05');
 });
 
-// --- subscription feed ------------------------------------------------------
+// --- calendar timetable -----------------------------------------------------
 
 test('filterRoute without a date keeps the whole direction, whatever the day', () => {
   const calls = [
@@ -922,8 +911,8 @@ test('each day is put in clock order before the last boat is picked out', () => 
   );
 });
 
-test('the feed merges both directions into one list in clock order', () => {
-  const events = feedEvents(
+test('the timetable merges both directions into one list in clock order', () => {
+  const events = timetableEvents(
     [
       {
         direction: 'to-haugesund',
@@ -947,7 +936,7 @@ test('the feed merges both directions into one list in clock order', () => {
 
 test('the same boat seen from both stop queries becomes one event', () => {
   const shared = { time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'shared' };
-  const events = feedEvents(
+  const events = timetableEvents(
     [
       { direction: 'to-haugesund', calls: [call(shared)] },
       { direction: 'to-haugesund', calls: [call(shared)] },
@@ -958,7 +947,7 @@ test('the same boat seen from both stop queries becomes one event', () => {
 });
 
 test('the last boat of each day is marked for booking, not just the last of the month', () => {
-  const events = feedEvents(
+  const events = timetableEvents(
     [
       {
         direction: 'to-haugesund',
@@ -978,7 +967,7 @@ test('the last boat of each day is marked for booking, not just the last of the 
   );
 });
 
-test('a feed of a whole month is one valid calendar', () => {
+test('a whole month of departures is one valid calendar', () => {
   const calls = Array.from({ length: 30 }, (_, day) =>
     call({
       time: `2026-07-${String(day + 1).padStart(2, '0')}T08:00:00+02:00`,
@@ -986,8 +975,8 @@ test('a feed of a whole month is one valid calendar', () => {
       id: `journey-${day}`,
     })
   );
-  const events = feedEvents([{ direction: 'to-haugesund', calls }], { stamp: ICS_STAMP });
-  const ics = icsCalendar(events, { name: 'Rutebåten', ttlMinutes: FEED_TTL_MINUTES });
+  const events = timetableEvents([{ direction: 'to-haugesund', calls }], { stamp: ICS_STAMP });
+  const ics = icsCalendar(events);
   assert.equal(events.length, 30);
   assert.equal(ics.split('\r\n').filter((l) => l === 'BEGIN:VEVENT').length, 30);
   assert.equal(new Set(events.map((e) => e.uid)).size, 30);
@@ -1037,7 +1026,7 @@ test('no exported event ever ends before it starts', () => {
         },
       ],
     });
-  const events = feedEvents(
+  const events = timetableEvents(
     [
       {
         direction: 'to-haugesund',
@@ -1048,37 +1037,4 @@ test('no exported event ever ends before it starts', () => {
   );
   assert.equal(events.length, 3);
   for (const event of events) assert.ok(event.end > event.start, `${event.uid} ends before it starts`);
-});
-
-// --- all-day dates -----------------------------------------------------------
-
-test('nextOsloDay steps over a month end and a DST change', () => {
-  assert.equal(nextOsloDay('2026-07-31'), '2026-08-01');
-  assert.equal(nextOsloDay('2026-12-31'), '2027-01-01');
-  // The night the clocks go back in Norway.
-  assert.equal(nextOsloDay('2026-10-24'), '2026-10-25');
-});
-
-// --- feed retirement ----------------------------------------------------------
-
-test('the retirement date is a real date (#115)', () => {
-  assert.match(FEED_RETIRE_DATE, /^\d{4}-\d{2}-\d{2}$/);
-  assert.equal(new Date(`${FEED_RETIRE_DATE}T12:00:00Z`).toISOString().slice(0, 10), FEED_RETIRE_DATE);
-});
-
-test('a retired feed carries one transparent note on the retirement date', () => {
-  const note = retiredEvent({
-    stamp: ICS_STAMP,
-    retireDate: '2027-01-04',
-    url: 'https://rovar.no/rutebaten/',
-    strings: { icsFeedRetired: 'Avsluttet', icsFeedRetiredBody: 'Fjern kalenderen.' },
-  });
-  assert.equal(note.uid, 'feed-retired@rovar.no');
-  assert.equal(note.summary, 'Avsluttet');
-  const lines = icsEvent(note);
-  assert.ok(lines.includes('TRANSP:TRANSPARENT'));
-  assert.ok(lines.includes('DTSTART;VALUE=DATE:20270104'));
-  // A DATE end is exclusive, so a one-day entry ends on the following day.
-  assert.ok(lines.includes('DTEND;VALUE=DATE:20270105'));
-  assert.ok(!lines.some((l) => l.startsWith('DTSTART:')), 'no timed start alongside the date one');
 });
