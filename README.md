@@ -1,4 +1,4 @@
-# Røvær island website
+# Røvær website
 
 A proposed new website for Røvær, a small island outside Haugesund, Norway.
 The current site is [rovar.no](https://rovar.no). This one runs as a preview at
