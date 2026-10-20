@@ -18,6 +18,8 @@ import {
   getArrivalFromPassingTimes,
   getRouteInfo,
   bookingDeadline,
+  deadlineWeekday,
+  osloMinutesFrom,
   bookingPattern,
   situationTexts,
   noticeState,
@@ -47,8 +49,8 @@ import {
   nextDateOfKind,
   collectEvents,
   ICS_PRODID,
-  groupByOsloDate,
   timetableEvents,
+  bookingRule,
 } from '../src/scripts/departures-core.js';
 
 // A summer and a winter instant, chosen so the UTC date and the Oslo date
@@ -99,9 +101,10 @@ test('dateAtOffset does not mutate the date it is given', () => {
 
 // --- route data -------------------------------------------------------------
 
-const call = ({ time, frontText = 'Haugesund', stops, passingTimes, notices, situations, id }) => ({
+const call = ({ time, frontText = 'Haugesund', stops, passingTimes, notices, situations, id, booking }) => ({
   expectedDepartureTime: time,
   destinationDisplay: { frontText },
+  bookingArrangements: booking ?? null,
   serviceJourney: {
     id,
     line: { publicCode: '700' },
@@ -144,7 +147,6 @@ test('getRouteInfo uses the per-stop calls when Entur supplies them', () => {
       {
         quay: { stopPlace: { name: 'Røvær hurtigbåtkai' } },
         expectedDepartureTime: '2026-07-15T08:00:00+02:00',
-        bookingArrangements: null,
       },
       {
         quay: { stopPlace: { name: 'Feøy hurtigbåtkai' } },
@@ -163,14 +165,14 @@ test('getRouteInfo uses the per-stop calls when Entur supplies them', () => {
   assert.equal(info.arrivalTime.toISOString(), new Date('2026-07-15T08:25:00+02:00').toISOString());
 });
 
-test('getRouteInfo reads booking arrangements off the first stop', () => {
+test('getRouteInfo reads booking arrangements off the call at the board\'s own stop', () => {
   const c = call({
     time: '2026-07-15T08:00:00+02:00',
+    booking: { latestBookingTime: '20:00', bookingMethods: ['callDriver'] },
     stops: [
       {
         quay: { stopPlace: { name: 'Røvær hurtigbåtkai' } },
         expectedDepartureTime: '2026-07-15T08:00:00+02:00',
-        bookingArrangements: { latestBookingTime: '20:00', bookingMethods: ['callDriver'] },
       },
       {
         quay: { stopPlace: { name: 'Haugesund hurtigbåtkai' } },
@@ -179,6 +181,20 @@ test('getRouteInfo reads booking arrangements off the first stop', () => {
     ],
   });
   assert.equal(getRouteInfo(c).hasBooking, true);
+});
+
+test('booking data is read on a future date, where the stop list is empty', () => {
+  // Entur leaves serviceJourney.estimatedCalls empty ahead of today but still
+  // fills the call's own bookingArrangements; the early Sunday boats are only
+  // marked because of that.
+  const c = call({
+    time: '2026-10-25T07:05:00+01:00',
+    stops: [],
+    booking: { latestBookingTime: '20:00:00', bookWhen: 'untilPreviousDay', bookingMethods: ['callDriver'] },
+  });
+  const info = getRouteInfo(c);
+  assert.equal(info.hasBooking, true);
+  assert.equal(info.bookingDeadline.toISOString(), new Date('2026-10-24T20:00:00+02:00').toISOString());
 });
 
 test('getRouteInfo falls back to passingTimes when the stop list is empty', () => {
@@ -195,7 +211,7 @@ test('getRouteInfo falls back to passingTimes when the stop list is empty', () =
   const info = getRouteInfo(c);
   assert.equal(info.duration, 25);
   assert.deepEqual(info.via, ['Feøy']);
-  assert.equal(info.hasBooking, false, 'booking data is not available ahead of today');
+  assert.equal(info.hasBooking, false);
   assert.equal(toOsloDate(info.arrivalTime), '2026-07-20');
 });
 
@@ -267,7 +283,6 @@ test('bookingArrangements alone marks a departure as bestillingsrute', () => {
   const state = noticeState({
     call: call({ time: '2026-07-15T08:00:00+02:00' }),
     hasBooking: true,
-    isLast: false,
     bookingRe: re,
   });
   assert.equal(state.isBooking, true);
@@ -283,7 +298,6 @@ test('a booking notice from the API is not repeated as an info notice', () => {
       notices: [{ text: 'Turen må bestilles innen kl 20' }],
     }),
     hasBooking: true,
-    isLast: true,
     bookingRe: re,
   });
   assert.equal(state.isBooking, true);
@@ -310,6 +324,26 @@ test('latestBookingTime is read as Oslo time on the departure day, not the visit
     new Date('2026-07-15T21:05:00+02:00')
   );
   assert.equal(at.toISOString(), new Date('2026-07-15T20:00:00+02:00').toISOString());
+});
+
+test('untilPreviousDay puts a wall-clock deadline on the evening before', () => {
+  // The first boat off Røvær on a Sunday: 20:00 means Saturday 20:00.
+  const departure = new Date('2026-10-25T07:05:00+01:00');
+  const at = bookingDeadline({ latestBookingTime: '20:00:00', bookWhen: 'untilPreviousDay' }, departure);
+  assert.equal(at.toISOString(), new Date('2026-10-24T20:00:00+02:00').toISOString());
+  assert.equal(deadlineWeekday(at, departure, 'no'), 'lørdag');
+});
+
+test('a deadline on the departure day carries no weekday', () => {
+  const departure = new Date('2026-07-15T21:05:00+02:00');
+  assert.equal(deadlineWeekday(new Date('2026-07-15T20:25:00+02:00'), departure), '');
+  assert.equal(deadlineWeekday(null, departure), '');
+});
+
+test('a moment on the day before counts back from the board day\'s midnight', () => {
+  // Saturday 20:00 is four hours before Sunday's midnight, so it sorts first.
+  assert.equal(osloMinutesFrom(new Date('2026-10-24T20:00:00+02:00'), '2026-10-25'), -240);
+  assert.equal(osloMinutesFrom(new Date('2026-10-25T07:05:00+01:00'), '2026-10-25'), 7 * 60 + 5);
 });
 
 test('a wall-clock deadline later than the departure is dropped rather than shown', () => {
@@ -380,6 +414,22 @@ test('a deadline before the first departure of the day still sorts to the top', 
   assert.deepEqual(rows.map((r) => r.type), ['deadline', 'departure']);
 });
 
+test('a deadline the evening before heads the board, ahead of the evening boats', () => {
+  const rows = timeline([
+    { minutes: at(7, 5), deadlineMinutes: -240 },
+    { minutes: at(20, 35), deadlineMinutes: at(19, 55) },
+  ]);
+  assert.deepEqual(
+    rows.map((r) => [r.minutes, r.type]),
+    [
+      [-240, 'deadline'],
+      [at(7, 5), 'departure'],
+      [at(19, 55), 'deadline'],
+      [at(20, 35), 'departure'],
+    ]
+  );
+});
+
 test('no booking data at all means no deadline', () => {
   assert.equal(bookingDeadline(null, new Date('2026-07-15T21:05:00+02:00')), null);
   assert.equal(
@@ -395,19 +445,17 @@ test('notice text alone marks a departure, without booking data from the API', (
       notices: [{ text: 'Turen må bestilles innen kl 20' }],
     }),
     hasBooking: false,
-    isLast: false,
     bookingRe: re,
   });
   assert.equal(state.isBooking, true);
   assert.deepEqual(state.infoTexts, []);
 });
 
-test('the last departure of the direction is marked even with no booking data', () => {
-  // Entur withholds bookingArrangements ahead of today, and the last boat is
-  // the one that usually needs booking.
-  const base = { call: call({ time: '2026-07-15T22:00:00+02:00' }), bookingRe: re };
-  assert.equal(noticeState({ ...base, hasBooking: false, isLast: true }).isBooking, true);
-  assert.equal(noticeState({ ...base, hasBooking: false, isLast: false }).isBooking, false);
+test('a departure without booking data or a booking notice is not marked', () => {
+  // Kolumbus publishes which boats need booking; the last boat of the day is
+  // not assumed to be one.
+  const state = noticeState({ call: call({ time: '2026-07-15T22:00:00+02:00' }), hasBooking: false, bookingRe: re });
+  assert.equal(state.isBooking, false);
 });
 
 test('situations and notices both reach the detail text', () => {
@@ -418,7 +466,6 @@ test('situations and notices both reach the detail text', () => {
       situations: [{ summary: [{ value: 'Innstilt ved kuling' }] }],
     }),
     hasBooking: false,
-    isLast: false,
     bookingRe: re,
   });
   assert.deepEqual(state.infoTexts, ['Kun skoledager', 'Innstilt ved kuling']);
@@ -532,11 +579,11 @@ const bookedCall = (extra = {}) =>
     time: '2026-07-15T21:05:00+02:00',
     frontText: 'Haugesund via Feøy',
     id: 'KOL:ServiceJourney:700_1234',
+    booking: { minimumBookingPeriod: 'PT40M', bookingMethods: ['callDriver'] },
     stops: [
       {
         quay: { stopPlace: { name: 'Røvær hurtigbåtkai' } },
         expectedDepartureTime: '2026-07-15T21:05:00+02:00',
-        bookingArrangements: { minimumBookingPeriod: 'PT40M', bookingMethods: ['callDriver'] },
       },
       {
         quay: { stopPlace: { name: 'Feøy hurtigbåtkai' } },
@@ -649,6 +696,20 @@ test('the description carries the via stops and the booking deadline', () => {
   assert.match(event.description, /Via Feøy\./);
   // 40 minutes before 21:05, on the Oslo clock wherever the test runs.
   assert.match(event.description, /Bestill innen 20:25\./);
+});
+
+test('a deadline the evening before is named by its weekday in the description', () => {
+  const c = call({
+    time: '2026-10-25T07:05:00+01:00',
+    stops: [],
+    booking: { latestBookingTime: '20:00:00', bookWhen: 'untilPreviousDay', bookingMethods: ['online'] },
+  });
+  const event = departureEvent(c, {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+    strings: { icsBooking: 'Bestill innen {{deadline}}.' },
+  });
+  assert.equal(event.description, 'Bestill innen lørdag 20:00.');
 });
 
 test('a booking departure with no deadline falls back to the plain booking line', () => {
@@ -883,34 +944,6 @@ test('filterRoute without a date keeps the whole direction, whatever the day', (
   assert.equal(filterRoute(calls, 'to-rovar').length, 1);
 });
 
-test('a month of calls splits into Oslo days', () => {
-  const calls = [
-    call({ time: '2026-07-15T08:00:00+02:00' }),
-    call({ time: '2026-07-15T21:05:00+02:00' }),
-    call({ time: '2026-07-16T08:00:00+02:00' }),
-  ];
-  const days = groupByOsloDate(calls);
-  assert.deepEqual(days.map((d) => d.date), ['2026-07-15', '2026-07-16']);
-  assert.equal(days[0].calls.length, 2);
-});
-
-test('the day a departure belongs to is its Oslo day, not the UTC one', () => {
-  // 22:30 UTC on the 15th is already 00:30 on the 16th in Oslo.
-  const days = groupByOsloDate([call({ time: '2026-07-15T22:30:00Z' })]);
-  assert.deepEqual(days.map((d) => d.date), ['2026-07-16']);
-});
-
-test('each day is put in clock order before the last boat is picked out', () => {
-  const days = groupByOsloDate([
-    call({ time: '2026-07-15T21:05:00+02:00' }),
-    call({ time: '2026-07-15T08:00:00+02:00' }),
-  ]);
-  assert.deepEqual(
-    days[0].calls.map((c) => c.expectedDepartureTime),
-    ['2026-07-15T08:00:00+02:00', '2026-07-15T21:05:00+02:00']
-  );
-});
-
 test('the timetable merges both directions into one list in clock order', () => {
   const events = timetableEvents(
     [
@@ -946,16 +979,17 @@ test('the same boat seen from both stop queries becomes one event', () => {
   assert.equal(events.length, 1);
 });
 
-test('the last boat of each day is marked for booking, not just the last of the month', () => {
+test('the timetable marks the boats Entur books, wherever they fall in the day', () => {
+  const booked = { minimumBookingPeriod: 'PT40M', bookingMethods: ['callDriver'] };
   const events = timetableEvents(
     [
       {
         direction: 'to-haugesund',
         calls: [
           call({ time: '2026-07-15T08:00:00+02:00', frontText: 'Haugesund', id: 'a' }),
-          call({ time: '2026-07-15T21:05:00+02:00', frontText: 'Haugesund', id: 'b' }),
-          call({ time: '2026-07-16T08:00:00+02:00', frontText: 'Haugesund', id: 'c' }),
-          call({ time: '2026-07-16T21:05:00+02:00', frontText: 'Haugesund', id: 'd' }),
+          call({ time: '2026-07-15T21:05:00+02:00', frontText: 'Haugesund', id: 'b', booking: booked }),
+          call({ time: '2026-07-19T07:05:00+02:00', frontText: 'Haugesund', id: 'c', booking: booked }),
+          call({ time: '2026-07-19T21:05:00+02:00', frontText: 'Haugesund', id: 'd' }),
         ],
       },
     ],
@@ -963,7 +997,7 @@ test('the last boat of each day is marked for booking, not just the last of the 
   );
   assert.deepEqual(
     events.map((e) => e.isBooking),
-    [false, true, false, true]
+    [false, true, true, false]
   );
 });
 
@@ -988,11 +1022,11 @@ test('a stop list describing another day still dates the crossing from the depar
   // off that list ends the day before it starts.
   const c = call({
     time: '2026-07-20T08:00:00+02:00',
+    booking: { minimumBookingPeriod: 'PT40M', bookingMethods: ['callDriver'] },
     stops: [
       {
         quay: { stopPlace: { name: 'Røvær hurtigbåtkai' } },
         expectedDepartureTime: '2026-07-15T08:00:00+02:00',
-        bookingArrangements: { minimumBookingPeriod: 'PT40M', bookingMethods: ['callDriver'] },
       },
       {
         quay: { stopPlace: { name: 'Haugesund hurtigbåtkai' } },
@@ -1018,7 +1052,6 @@ test('no exported event ever ends before it starts', () => {
           quay: { stopPlace: { name: 'Røvær hurtigbåtkai' } },
           // Always today's dates, whatever day was asked about.
           expectedDepartureTime: '2026-07-15T08:00:00+02:00',
-          bookingArrangements: null,
         },
         {
           quay: { stopPlace: { name: 'Haugesund hurtigbåtkai' } },
@@ -1037,4 +1070,31 @@ test('no exported event ever ends before it starts', () => {
   );
   assert.equal(events.length, 3);
   for (const event of events) assert.ok(event.end > event.start, `${event.uid} ends before it starts`);
+});
+
+test('the booking rule keeps a deadline the evening before out of the minutes', () => {
+  // Sunday's 07:05 books by Saturday 20:00 and its 21:05 by 40 minutes before;
+  // counted together the rule would read "665 minutes before departure".
+  const early = departureEvent(
+    call({
+      time: '2026-10-25T07:05:00+01:00',
+      stops: [],
+      booking: { latestBookingTime: '20:00:00', bookWhen: 'untilPreviousDay', bookingMethods: ['online'] },
+    }),
+    { direction: 'to-haugesund', stamp: ICS_STAMP }
+  );
+  const late = departureEvent(
+    call({ time: '2026-10-25T21:05:00+01:00', stops: [], booking: { minimumBookingPeriod: 'PT40M', bookingMethods: ['online'] } }),
+    { direction: 'to-haugesund', stamp: ICS_STAMP }
+  );
+  const plain = departureEvent(call({ time: '2026-10-25T11:20:00+01:00', stops: [] }), {
+    direction: 'to-haugesund',
+    stamp: ICS_STAMP,
+  });
+
+  const both = bookingRule([early, late, plain]);
+  assert.equal(both.booked, true);
+  assert.equal(both.minutes, 40);
+  assert.deepEqual(both.dayBefore, [early]);
+  assert.deepEqual(bookingRule([plain]), { booked: false, minutes: 0, dayBefore: [] });
 });

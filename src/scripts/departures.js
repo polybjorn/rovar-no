@@ -17,9 +17,12 @@ import {
   dateAtOffset,
   osloMidnight,
   osloMinutes,
+  osloMinutesFrom,
   osloClock,
   filterRoute,
   getRouteInfo,
+  deadlineWeekday,
+  fillTokens,
   bookingPattern,
   noticeState,
   timeline,
@@ -110,7 +113,6 @@ function render(containerId, calls, fresh) {
     const { isBooking, infoTexts } = noticeState({
       call: c,
       hasBooking,
-      isLast: i === calls.length - 1,
       bookingRe: BOOKING_RE,
     });
     const depMinutes = osloMinutes(dt);
@@ -167,8 +169,10 @@ function render(containerId, calls, fresh) {
     return {
       minutes: depMinutes,
       // Only a departure that is actually a bestillingsrute gets a deadline row.
-      deadlineMinutes: isBooking && bookingDeadline ? osloMinutes(bookingDeadline) : null,
+      deadlineMinutes: isBooking && bookingDeadline ? osloMinutesFrom(bookingDeadline, toOsloDate(dt)) : null,
+      deadline: bookingDeadline,
       deadlineText: bookingDeadline ? fmt(bookingDeadline) : '',
+      deadlineDay: deadlineWeekday(bookingDeadline, dt, S.locale),
       time,
       html: rowHtml(countdownHtml),
       base: rowHtml(''),
@@ -176,15 +180,19 @@ function render(containerId, calls, fresh) {
   });
 
   // A deadline row is greyed once it is past, exactly like a departure that has
-  // already sailed: same timeline, same way of showing a moment has gone.
+  // already sailed: same timeline, same way of showing a moment has gone. It is
+  // measured against now rather than today's clock, because a deadline the
+  // evening before has passed while tomorrow's board is still being read.
   const items = timeline(rows).map((row) => {
     if (row.type === 'departure') {
       const dep = rows[row.index];
       return { key: `dep-${dep.time}`, html: dep.html, base: dep.base };
     }
     const dep = rows[row.forIndex];
-    const gone = dayOffset === 0 && row.minutes < nowMinutes;
-    const label = (S.bookingDeadlineRow ?? '{{time}}').replace('{{time}}', dep.time);
+    const gone = dep.deadline < new Date();
+    const label = dep.deadlineDay
+      ? fillTokens(S.bookingDeadlineRowDayBefore ?? '{{day}} {{time}}', { day: dep.deadlineDay, time: dep.time })
+      : (S.bookingDeadlineRow ?? '{{time}}').replace('{{time}}', dep.time);
     const html = `<li class="dep-deadline-row${gone ? ' passed' : ''}">
       <span class="dep-deadline-time">${esc(dep.deadlineText)}</span>
       ${clockIcon}<span class="dep-deadline-label">${esc(label)}</span>

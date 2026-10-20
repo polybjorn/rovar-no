@@ -20,6 +20,7 @@ import {
   dayKind,
   bookingPattern,
   timetableEvents,
+  bookingRule,
   collectEvents,
   nextDateOfKind,
   icsCalendar,
@@ -312,18 +313,21 @@ function renderFooter() {
   }
   const booking = byId('cal-booking-note');
   if (booking) {
-    // Said once however many picks have to be booked, as a rule rather than
-    // a list: the chips already name the boats, and the rule is what to act
-    // on. Entur gives every booking boat the same period, but should two
-    // differ, the longer one is the one that holds for both.
-    const booked = values.filter(([, p]) => p.event.isBooking).map(([, p]) => p.event);
-    const minutes = Math.max(0, ...booked.filter((e) => e.bookingDeadline).map((e) => Math.round((e.start - e.bookingDeadline) / 60000)));
-    booking.hidden = !booked.length;
-    booking.lastElementChild.textContent = !booked.length
+    const { booked, minutes, dayBefore } = bookingRule(values.map(([, p]) => p.event));
+    const early = {
+      deadline: dayBefore.length ? fmt(dayBefore[0].bookingDeadline) : '',
+      departures: [...new Set(dayBefore.map((e) => fmt(e.start)))].join(', '),
+    };
+    booking.hidden = !booked;
+    booking.lastElementChild.textContent = !booked
       ? ''
-      : minutes
-        ? fill(S.pickBooking, { minutes })
-        : S.icsBookingNoDeadline;
+      : dayBefore.length && minutes
+        ? fill(S.pickBookingBoth, { ...early, minutes })
+        : dayBefore.length
+          ? fill(S.pickBookingDayBefore, early)
+          : minutes
+            ? fill(S.pickBooking, { minutes })
+            : S.icsBookingNoDeadline;
   }
   const save = byId('cal-save');
   if (save) save.disabled = !events.length;

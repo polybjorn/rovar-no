@@ -25,6 +25,7 @@ export const query = `query departures($stopId: String!, $n: Int!, $startTime: D
     estimatedCalls(numberOfDepartures: $n, timeRange: $timeRange, startTime: $startTime) {
       expectedDepartureTime
       destinationDisplay { frontText }
+      bookingArrangements { latestBookingTime minimumBookingPeriod bookingMethods bookWhen }
       serviceJourney {
         id
         line { publicCode }
@@ -37,7 +38,6 @@ export const query = `query departures($stopId: String!, $n: Int!, $startTime: D
         estimatedCalls {
           quay { stopPlace { name } }
           expectedDepartureTime
-          bookingArrangements { latestBookingTime minimumBookingPeriod bookingMethods }
         }
       }
     }
@@ -92,6 +92,16 @@ export function osloMinutes(dt) {
   return part('hour') * 60 + part('minute');
 }
 
+// Minutes from Oslo midnight of `day`, negative for a moment on an earlier
+// day: a deadline the evening before has to sort ahead of the whole board, not
+// in among the evening boats.
+export function osloMinutesFrom(dt, day) {
+  const days = Math.round(
+    (Date.parse(`${toOsloDate(dt)}T12:00:00Z`) - Date.parse(`${day}T12:00:00Z`)) / 86400000
+  );
+  return osloMinutes(dt) + days * 1440;
+}
+
 // --- route data -------------------------------------------------------------
 
 // Without a targetDate this is the direction filter alone, which is what the
@@ -136,35 +146,42 @@ export function getArrivalFromPassingTimes(call) {
 // difference, but an exported event dated from that list ends before it starts.
 // So only the spans between those stops are read off them, and every moment
 // handed back is measured from the departure the caller actually asked about.
+//
+// Booking is read off the call at the board's own stop rather than the stop
+// list, since Entur fills it in for every date and the list only for today.
 export function getRouteInfo(call) {
   const stops = call.serviceJourney.estimatedCalls;
   const departure = new Date(call.expectedDepartureTime);
+  const arrangements = call.bookingArrangements;
+  const booking = {
+    hasBooking: arrangements?.bookingMethods?.length > 0,
+    bookingDeadline: bookingDeadline(arrangements, departure),
+  };
 
   if (!stops || stops.length < 2) {
     const via = parseViaFromFrontText(call.destinationDisplay?.frontText || '');
     const { arrivalTime, duration } = getArrivalFromPassingTimes(call);
-    return { arrivalTime, duration, via, hasBooking: false, bookingDeadline: null };
+    return { arrivalTime, duration, via, ...booking };
   }
 
   const first = new Date(stops[0].expectedDepartureTime);
   const last = new Date(stops[stops.length - 1].expectedDepartureTime);
   const duration = Math.round((last - first) / 60000);
   const via = stops.slice(1, -1).map((s) => s.quay.stopPlace.name.replace(' hurtigbåtkai', ''));
-  const hasBooking = stops[0].bookingArrangements?.bookingMethods?.length > 0;
 
   return {
     arrivalTime: new Date(departure.getTime() + duration * 60000),
     duration,
     via,
-    hasBooking,
-    bookingDeadline: bookingDeadline(stops[0].bookingArrangements, departure),
+    ...booking,
   };
 }
 
-// Entur gives the booking deadline two ways and Kolumbus uses the second one:
-// latestBookingTime is a wall-clock time and is usually null, while
+// Entur gives the booking deadline two ways and Kolumbus uses both:
 // minimumBookingPeriod is an ISO 8601 duration counted back from departure
-// ("PT40M" on the 21:05 boat, so 20:25 - the same deadline kolumbus.no shows).
+// ("PT40M" on the 21:05 boat, so 20:25 - the same deadline kolumbus.no shows),
+// and latestBookingTime is a wall-clock time, which the early Sunday boats
+// carry with bookWhen "untilPreviousDay": 20:00 the evening before.
 export function bookingDeadline(arrangements, departure) {
   if (!arrangements || !departure) return null;
 
@@ -173,13 +190,23 @@ export function bookingDeadline(arrangements, departure) {
 
   const clock = /^(\d{1,2}):(\d{2})/.exec(arrangements.latestBookingTime || '');
   if (!clock) return null;
-  // A wall-clock deadline is Oslo time on the departure's own Oslo day, and
-  // never after the departure itself. Reading it in the browser's timezone
-  // would put it hours off for a visitor abroad.
-  const day = toOsloDate(departure);
+  // A wall-clock deadline is Oslo time on the departure's own Oslo day, or the
+  // day before, and never after the departure itself. Reading it in the
+  // browser's timezone would put it hours off for a visitor abroad.
+  const ownDay = toOsloDate(departure);
+  const day = arrangements.bookWhen === 'untilPreviousDay'
+    ? toOsloDate(new Date(Date.parse(`${ownDay}T12:00:00Z`) - 86400000))
+    : ownDay;
   const hhmm = `${clock[1].padStart(2, '0')}:${clock[2]}`;
   const at = new Date(`${day}T${hhmm}:00${osloOffset(day)}`);
   return at > departure ? null : at;
+}
+
+// The weekday a deadline falls on when that is earlier than its boat, else
+// empty: "20:00" alone, under a 07:05 boat, reads as the evening after it.
+export function deadlineWeekday(deadline, departure, locale = 'no') {
+  if (!deadline || toOsloDate(deadline) === toOsloDate(departure)) return '';
+  return deadline.toLocaleDateString(locale, { weekday: 'long', timeZone: 'Europe/Oslo' });
 }
 
 // ISO 8601 duration to minutes. Entur only ever sends hours and minutes here,
@@ -210,22 +237,22 @@ export function situationTexts(serviceJourney) {
     .filter(Boolean);
 }
 
-// Bestillingsrute detection, in priority order: bookingArrangements from the
-// API, then notice/situation text, then the last departure of the direction
-// (booking data is unavailable ahead of today, and the last boat is the one
-// that usually needs booking).
+// Bestillingsrute detection: bookingArrangements from the API, or a booking
+// word in the notice/situation text, and nothing guessed beyond that. Which
+// boats need booking varies by day (the first ones on Sunday do), and Entur
+// carries Kolumbus's answer for every date.
 //
 // The board says "this one needs booking" exactly once per row, with the phone
 // marker, and the legend under the board explains the marker and gives the
 // site and the number. So a booking notice from the API is dropped rather than
 // shown: it is the marker again as a sentence, and the deadline row already
 // carries the one thing the marker cannot say, which is by when.
-export function noticeState({ call, hasBooking, isLast, bookingRe }) {
+export function noticeState({ call, hasBooking, bookingRe }) {
   const notices = call.serviceJourney.notices || [];
   const texts = [...notices.map((n) => n.text), ...situationTexts(call.serviceJourney)];
 
   return {
-    isBooking: hasBooking || Boolean(isLast) || texts.some((t) => bookingRe.test(t)),
+    isBooking: hasBooking || texts.some((t) => bookingRe.test(t)),
     infoTexts: texts.filter((t) => !bookingRe.test(t)),
   };
 }
@@ -434,7 +461,6 @@ export function departureEvent(call, opts = {}) {
     direction = 'to-haugesund',
     stamp = new Date(),
     strings = {},
-    isLast = false,
     bookingRe = bookingPattern(),
     locale = 'no',
     url,
@@ -442,7 +468,7 @@ export function departureEvent(call, opts = {}) {
 
   const start = new Date(call.expectedDepartureTime);
   const { arrivalTime, duration, via, hasBooking, bookingDeadline } = getRouteInfo(call);
-  const { isBooking, infoTexts } = noticeState({ call, hasBooking, isLast, bookingRe });
+  const { isBooking, infoTexts } = noticeState({ call, hasBooking, bookingRe });
 
   const toHaugesund = direction === 'to-haugesund';
   const from = toHaugesund ? ROVAR_NAME : HAUGESUND_NAME;
@@ -452,7 +478,11 @@ export function departureEvent(call, opts = {}) {
   const description = [
     via.length && strings.icsVia ? fill(strings.icsVia, { stops: via.join(', ') }) : '',
     isBooking && bookingDeadline && strings.icsBooking
-      ? fill(strings.icsBooking, { deadline: osloClock(bookingDeadline, locale) })
+      ? fill(strings.icsBooking, {
+          deadline: [deadlineWeekday(bookingDeadline, start, locale), osloClock(bookingDeadline, locale)]
+            .filter(Boolean)
+            .join(' '),
+        })
       : isBooking
         ? strings.icsBookingNoDeadline || ''
         : '',
@@ -532,25 +562,24 @@ export function icsCalendar(events, { prodid = ICS_PRODID, method } = {}) {
   return `${lines.map((line) => foldLine(line)).join('\r\n')}\r\n`;
 }
 
-// Calls split into Oslo days, each day's own calls in clock order. The timetable
-// needs the split because "the last boat of the day" is what marks a
-// bestillingsrute when Entur has no booking data yet, and a month of calls
-// arrives as one flat list.
-export function groupByOsloDate(calls) {
-  const days = new Map();
-  for (const call of calls) {
-    const date = toOsloDate(new Date(call.expectedDepartureTime));
-    if (!days.has(date)) days.set(date, []);
-    days.get(date).push(call);
-  }
-  return [...days.entries()]
-    .map(([date, dayCalls]) => ({
-      date,
-      calls: [...dayCalls].sort(
-        (a, b) => new Date(a.expectedDepartureTime) - new Date(b.expectedDepartureTime)
-      ),
-    }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+// What the calendar dialog says about booking, once however many picks have to
+// be booked: a rule rather than a list, since the chips already name the
+// boats. Entur gives every booking boat the same period, but should two
+// differ, the longer one holds for both. A deadline the evening before is a
+// clock time, not a period, so those boats are handed back on their own:
+// counted in minutes it would read as "665 minutes before departure".
+export function bookingRule(events) {
+  const booked = events.filter((e) => e.isBooking);
+  const dayBefore = booked.filter(
+    (e) => e.bookingDeadline && toOsloDate(e.bookingDeadline) !== toOsloDate(e.start)
+  );
+  const minutes = Math.max(
+    0,
+    ...booked
+      .filter((e) => e.bookingDeadline && !dayBefore.includes(e))
+      .map((e) => Math.round((e.start - e.bookingDeadline) / 60000))
+  );
+  return { booked: booked.length > 0, minutes, dayBefore };
 }
 
 // Both directions of a month, as one sorted event list. Keyed by UID on the
@@ -559,15 +588,9 @@ export function groupByOsloDate(calls) {
 export function timetableEvents(batches, opts = {}) {
   const byUid = new Map();
   for (const { calls, direction } of batches) {
-    for (const day of groupByOsloDate(filterRoute(calls, direction))) {
-      day.calls.forEach((call, i) => {
-        const event = departureEvent(call, {
-          ...opts,
-          direction,
-          isLast: i === day.calls.length - 1,
-        });
-        byUid.set(event.uid, event);
-      });
+    for (const call of filterRoute(calls, direction)) {
+      const event = departureEvent(call, { ...opts, direction });
+      byUid.set(event.uid, event);
     }
   }
   return [...byUid.values()].sort((a, b) => a.start - b.start);
