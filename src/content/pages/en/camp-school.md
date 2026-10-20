@@ -6,7 +6,7 @@ description: "Camp school on Røvær since 1986. A briny meeting with coastal cu
 Since the start in 1986, all primary school pupils in Haugesund have
 attended camp school on Røvær. In the course of a season, around 500
 pupils from Haugesund pass through the camp school. In addition, the camp
-school is visited by pupils in years 6–7 from Odda municipality. Here
+school is visited by pupils in years 6–7 from Odda. Here
 they get a briny meeting with coastal culture, where sea meets sky. In
 both theory and practice. Mostly practice.
 

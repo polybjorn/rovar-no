@@ -7,7 +7,7 @@ description: "Schullandheim auf Røvær seit 1986. Eine salzige Begegnung mit de
 Seit dem Start im Jahr 1986 waren alle Grundschüler in Haugesund im
 Schullandheim auf Røvær. Im Laufe einer Saison besuchen rund 500 Schüler
 aus Haugesund das Schullandheim. Zusätzlich kommen Schüler der 6. und
-7. Klasse aus der Gemeinde Odda zu Besuch. Hier erwartet sie eine salzige
+7. Klasse aus Odda zu Besuch. Hier erwartet sie eine salzige
 Begegnung mit der Küstenkultur, wo Meer und Himmel sich treffen. In
 Theorie und Praxis. Vor allem Praxis.
 

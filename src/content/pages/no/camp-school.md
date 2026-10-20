@@ -6,7 +6,7 @@ description: "Leirskole på Røvær siden 1986. Et ramsalt møte med kystkulture
 Siden starten i 1986, har alle grunnskoleelevene i Haugesund vært på
 Leirskole på Røvær. I løpet av en sesong er rundt 500 elever fra Haugesund
 innom leirskolen. I tillegg får leirskolen besøk av elevene i 6-7 klasse
-fra Odda kommune. Her får de et ramsalt møte med kystkulturen, der hav
+fra Odda. Her får de et ramsalt møte med kystkulturen, der hav
 møter himmel. Både i teori og praksis. Mye praksis.
 
 ## Teori og praksis i flotte naturomgivelser
