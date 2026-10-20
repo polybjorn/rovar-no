@@ -152,28 +152,13 @@ if (write || check) {
       ` ${count(s, s.keysDone, referenceKeys.length, treeUrl(`${uiDir}/${s.code}.json`))} |`
   );
 
-  // The legend only names the states the table actually shows: with every
-  // language at least machine-translated, "not translated" explains nothing.
-  const legend = [
-    [stats.some((s) => s.reviewed), '`█` reviewed by a speaker'],
-    [
-      stats.some((s) => s.drafts.length || s.catalogDraft),
-      '`▒` machine-translated and awaiting review',
-    ],
-    [stats.some((s) => s.reviewed + s.drafted < s.total), '`░` not translated'],
-  ]
-    .filter(([shown]) => shown)
-    .map(([, text]) => text);
-
-  const key = legend.length > 1 ? `\n${legend.join(', ')}\n` : '';
-
   const table = [
     '| Language | Prefix | Progress | Pages | UI strings |',
     '|---|---|---|---|---|',
     ...rows,
   ].join('\n');
 
-  const block = `${startMarker}\n\n${table}\n${key}${endMarker}`;
+  const block = `${startMarker}\n\n${table}\n${endMarker}`;
   const readme = readFileSync(readmePath, 'utf8');
   const pattern = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`);
 

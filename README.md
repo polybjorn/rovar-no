@@ -1,24 +1,24 @@
 # Røvær island website
 
-Proposed replacement for [rovar.no](https://rovar.no), the website for Røvær
-island outside Haugesund, Norway, with the ferry timetable read live from
-Entur. The old site is still the live one. This one is up for review at
-[polybjorn.github.io/rovar-no](https://polybjorn.github.io/rovar-no/), built
-from `main` by GitHub Pages and set to noindex until launch.
+A proposed new website for Røvær, a small island outside Haugesund, Norway.
+The current site is [rovar.no](https://rovar.no). This one runs as a preview at
+[polybjorn.github.io/rovar-no](https://polybjorn.github.io/rovar-no/).
 
-## Pages
+## How it works
 
-| Page | Path | Content |
-|---|---|---|
-| Home | `/` | Hero image, intro text, card grid, OpenStreetMap link |
-| Explore the island | `/opplev-oya-var/` | Hiking, swimming, historical sites, food, places to stay, the aquaculture centre |
-| Ferry | `/rutebaten/` | Live departure board from the Entur API, with service notices, past and next departures marked, a link to Kolumbus as a fallback, and picked departures to your calendar |
-| Camp school | `/leirskolen/` | Program, practical information, contact |
-| Island history | `/rovaers-historie/` | Archaeological finds, the fishing community, the 1899 disaster |
+Built with [Astro](https://astro.build) as static HTML and plain CSS.
+Scripts cover what static pages can't: the ferry board and its calendar dialog,
+whether a place is open right now, the language menu and the 404 page. Every
+page still works without them.
 
-The paths are the Norwegian ones, kept from the old site so existing links
-still work. Every other language uses English paths under its own prefix
-(`/en/explore/`, `/de/explore/`).
+The ferry board reads departures straight from the
+[Entur JourneyPlanner API](https://developer.entur.org/), so changes and
+cancellations show up without a rebuild. Times are always Norwegian time,
+wherever the visitor is.
+
+Opening dates and hours are in `src/data/season.js`, and prices and contact
+details in `src/data/facts.js`. Each is written once and formatted per language
+at build time.
 
 ## Languages
 
@@ -29,67 +29,15 @@ still work. Every other language uses English paths under its own prefix
 | Norsk | none (root) | `██████████` 100% | 5/5 | 79/79 |
 | English | `/en/` | `██████████` 100% | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/en) | [79/79](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/en.json) |
 | Deutsch | `/de/` | `▒▒▒▒▒▒▒▒▒▒` machine-translated | [5/5](https://github.com/polybjorn/rovar-no/tree/main/src/content/pages/de) | [79/79](https://github.com/polybjorn/rovar-no/tree/main/src/i18n/ui/de.json) |
-
-`█` reviewed by a speaker, `▒` machine-translated and awaiting review
 <!-- i18n-status:end -->
 
-Each count links to the files it counts, so click one to read or fix a
-translation. Norwegian is the original wording rather than a translation, so
-its counts are plain text.
-
-Adding a language needs no changes to the code or the markup.
-`npm run i18n:new -- <code>` sets up the registry entry, the UI catalog and
-the content folder, and `npm run i18n:check -- --write` updates the table
-above. A page nobody has translated yet is not built for that language and
-does not appear in the language menu. Missing UI strings fall back one by one,
-so a half-finished language still renders.
-
-## Updating dates and hours
-
-Every date and opening time on the site is in `src/data/season.js`, and
-every price, phone number and email in `src/data/facts.js`. Each is written
-once and formatted for every language at build time, so a new season is an
-edit to those two files and nothing in `src/content`. Where each place
-publishes its hours is noted next to its entries in `season.js`.
-
-A date entered for next year (Hiltahuset's, say) is shown as soon as it is
-there, so update a place as soon as it publishes rather than all at once.
-A new `end` needs its `start` with it: the "til" rows open on that day, and
-`npm test` fails on a season after 2026 without one.
-
-## Tech
-
-[Astro](https://astro.build) builds the site to plain HTML files, the styling
-is hand-written CSS, and nothing else is needed to run it. Only two things send
-JavaScript to the browser: the departure board, which reads live times from the
-[Entur JourneyPlanner API](https://developer.entur.org/), and the language menu
-in the nav.
-
-```bash
-npm install && npm run dev
-```
-
-Node 22.12 or newer, which is what Astro 7 asks for and what `engines` in
-`package.json` declares. That is the floor rather than the version the site is
-actually built with: `.nvmrc` holds that, currently 24, and both the forge gate
-and the Pages deploy read it so the two cannot drift apart. `npm run build`
-writes the finished site to `dist/`.
-
-## Calendar
-
-"Legg avganger i kalenderen" on the ferry page lets a reader pick departures
-and download them as one `.ics` file. How it works:
-[docs/calendar.md](docs/calendar.md).
-
-## Tests
-
-`npm test` checks the departure-board logic, the routing, the language
-fallbacks and the content files (`node --test`, no test framework). It runs
-twice, the second time under `TZ=Pacific/Auckland`: a departure board that
-reads the visitor's own clock looks right in Norway and wrong everywhere else.
-CI runs the tests before the build.
+Each count links to its files. Norwegian is the original, so its counts are not
+links, and it keeps the old site's paths so existing links still work. Other
+languages use English paths under their prefix, like `/en/explore/`. A machine translation stays marked until a native speaker has reviewed
+it. Untranslated pages are left out, and a missing UI string falls back to
+English, then Norwegian.
 
 ## License
 
-The code is MIT. The page texts and the photos belong to Røvær øyting and to
-the photographers.
+The license covers the code only. The page texts and photos belong to Røvær
+øyting and the photographers.
