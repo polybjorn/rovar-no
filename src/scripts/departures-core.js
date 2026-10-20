@@ -60,17 +60,20 @@ export function toOsloDate(dt) {
   return OSLO_DATE.format(dt);
 }
 
-// "+01:00" or "+02:00", whichever Oslo was on that date.
-export function osloOffset(dateStr) {
-  const utcMidnight = new Date(`${dateStr}T00:00:00Z`);
+// "+01:00" or "+02:00", whichever Oslo's clocks were on at that wall-clock time
+// of that date. The time matters on the two days the clocks change: midnight
+// on the last Sunday of October is still summer time, but its 07:05 boat is not.
+export function osloOffset(dateStr, time = '00:00:00') {
+  const instant = new Date(`${dateStr}T${time}+01:00`);
   const osloHour = parseInt(
-    utcMidnight.toLocaleTimeString('en-US', {
+    instant.toLocaleTimeString('en-US', {
       timeZone: 'Europe/Oslo',
       hour: 'numeric',
       hour12: false,
     })
   );
-  return `+${String(osloHour).padStart(2, '0')}:00`;
+  const hours = (osloHour - instant.getUTCHours() + 24) % 24;
+  return `+${String(hours).padStart(2, '0')}:00`;
 }
 
 export function dateAtOffset(offset, now = new Date()) {
@@ -133,9 +136,8 @@ export function getArrivalFromPassingTimes(call) {
   const depDate = toOsloDate(new Date(call.expectedDepartureTime));
   // passingTimes are wall-clock Oslo times; anchor them to the Oslo UTC offset
   // so they don't get parsed in the visitor's local timezone.
-  const tz = osloOffset(depDate);
-  const dep = new Date(`${depDate}T${depTime}${tz}`);
-  const arr = new Date(`${depDate}T${arrTime}${tz}`);
+  const dep = new Date(`${depDate}T${depTime}${osloOffset(depDate, depTime)}`);
+  const arr = new Date(`${depDate}T${arrTime}${osloOffset(depDate, arrTime)}`);
   const duration = Math.round((arr - dep) / 60000);
   return { arrivalTime: arr, duration: duration > 0 ? duration : null };
 }
@@ -198,7 +200,7 @@ export function bookingDeadline(arrangements, departure) {
     ? toOsloDate(new Date(Date.parse(`${ownDay}T12:00:00Z`) - 86400000))
     : ownDay;
   const hhmm = `${clock[1].padStart(2, '0')}:${clock[2]}`;
-  const at = new Date(`${day}T${hhmm}:00${osloOffset(day)}`);
+  const at = new Date(`${day}T${hhmm}:00${osloOffset(day, `${hhmm}:00`)}`);
   return at > departure ? null : at;
 }
 

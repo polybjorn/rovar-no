@@ -65,6 +65,28 @@ test('osloOffset follows Norwegian DST, not the visitor', () => {
   assert.equal(osloOffset('2026-07-15'), '+02:00');
 });
 
+test('osloOffset reads the clock change within the day', () => {
+  // Summer time ends at 03:00 on 25 October 2026 and starts at 02:00 on 29 March.
+  assert.equal(osloOffset('2026-10-25'), '+02:00');
+  assert.equal(osloOffset('2026-10-25', '07:05:00'), '+01:00');
+  assert.equal(osloOffset('2026-03-29'), '+01:00');
+  assert.equal(osloOffset('2026-03-29', '07:05:00'), '+02:00');
+});
+
+test('an arrival on the day summer time ends is not an hour early', () => {
+  const c = call({
+    time: '2026-10-25T07:50:00+01:00',
+    stops: [],
+    passingTimes: [
+      { departure: { time: '07:50:00' } },
+      { departure: { time: '08:20:00' }, arrival: { time: '08:20:00' } },
+    ],
+  });
+  const { arrivalTime, duration } = getArrivalFromPassingTimes(c);
+  assert.equal(arrivalTime.toISOString(), '2026-10-25T07:20:00.000Z');
+  assert.equal(duration, 30);
+});
+
 test('toOsloDate reports the Oslo calendar day', () => {
   assert.equal(toOsloDate(SUMMER_NOON), '2026-07-15');
   // 23:30 UTC is already the 16th in Oslo.
