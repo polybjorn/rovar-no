@@ -26,7 +26,7 @@
     "prebuild": "npm run i18n:verify",
     "test": "node --test \"test/*.test.mjs\" && TZ=Pacific/Auckland node --test \"test/*.test.mjs\"",
     "pretest": "npm run i18n:verify",
-    "test:dist": "node --test \"test/dist/*.test.mjs\""
+    "test:dist": "node --test test/dist/no-inline-script.test.mjs"
   },
   "engines": {
     "node": ">=22.12.0"

@@ -526,14 +526,24 @@ img.section-img {
 
 .hero {
   background: var(--color-ocean-dark);
-  background-size: cover;
-  background-position: center;
   color: var(--color-on-dark);
   text-align: center;
   position: relative;
+  overflow: hidden;
+}
+
+/* An img rather than a CSS background: the URL comes from the image pipeline
+   and the CSP refuses the style attribute that would carry it. */
+.hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .hero-overlay {
+  position: relative;
   background: rgba(10, 22, 40, 0.55);
   padding: 5rem 1.5rem;
 }
@@ -594,8 +604,8 @@ img.section-img {
 }
 
 /* Boat routes and stops drawn over the map image. Lines keep their width
-   whatever the map is scaled to, and the markers are fixed-size HTML placed by
-   percentage, so neither shrinks to a hairline on a phone. */
+   whatever the map is scaled to, and the stop markers are fixed-size circles placed
+   by percentage, so neither shrinks to a hairline on a phone. */
 .map-frame {
   position: relative;
 }
@@ -633,14 +643,9 @@ img.section-img {
 }
 
 .map-stop {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border: 2.5px solid var(--color-ocean-dark);
-  border-radius: 50%;
-  background: var(--color-foam);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
+  fill: var(--color-foam);
+  stroke: var(--color-ocean-dark);
+  stroke-width: 2.5;
 }
 
 /* The link covers the whole figure, so the map itself is what you click. */

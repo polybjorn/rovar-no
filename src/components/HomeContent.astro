@@ -22,12 +22,15 @@ const { width: mapW, height: mapH } = mapRoutes;
 const toPoints = (r: number[][]) => r.map((p) => p.join(',')).join(' ');
 const mapLines = (mapRoutes.routes as number[][][]).map(toPoints);
 const mapAlternatives = (mapRoutes.alternatives as number[][][]).map(toPoints);
+// Stops are placed by percentage in an SVG with no viewBox, so the circle keeps
+// its pixel size at any width without a style attribute, which the CSP refuses.
 const mapStops = Object.values(mapRoutes.stops as Record<string, number[]>).map(
-  ([x, y]) => `left: ${(x / mapW) * 100}%; top: ${(y / mapH) * 100}%;`,
+  ([x, y]) => ({ cx: `${(x / mapW) * 100}%`, cy: `${(y / mapH) * 100}%` }),
 );
 ---
 
-<div class="hero" style={`background-image: url('${heroBg.src}');`}>
+<div class="hero">
+  <img class="hero-img" src={heroBg.src} alt="" width={heroBg.attributes.width} height={heroBg.attributes.height} />
   <div class="hero-overlay">
     <h1>{data.hero.heading}</h1>
     <p>{data.hero.text}</p>
@@ -59,7 +62,9 @@ const mapStops = Object.values(mapRoutes.stops as Record<string, number[]>).map(
         {mapLines.map((points) => <polyline class="map-route-casing" points={points} />)}
         {mapLines.map((points) => <polyline class="map-route-line" points={points} />)}
       </svg>
-      {mapStops.map((style) => <span class="map-stop" style={style} aria-hidden="true"></span>)}
+      <svg class="map-routes" aria-hidden="true">
+        {mapStops.map((stop) => <circle class="map-stop" cx={stop.cx} cy={stop.cy} r="6.25" />)}
+      </svg>
     </div>
     <figcaption class="map-bar">
       <a class="map-link" href={mapUrl} target="_blank" rel="noopener">

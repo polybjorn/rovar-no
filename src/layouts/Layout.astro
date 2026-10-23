@@ -27,7 +27,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const isPreview = !site.includes('rovar.no');
 const canonical = `${site}${currentPath}`;
 const pageTitle = page === 'home' ? title : `${title} | Røvær`;
-// Same params as the homepage hero, so the preload and the CSS background
+// Same params as the homepage hero, so the preload and the hero image
 // resolve to one asset.
 const ogImage = await getImage({ src: heroImg, format: 'webp', width: 1600 });
 
@@ -66,7 +66,7 @@ const pageLocales = localesWithPage(page);
   <meta property="og:image" content={`${site}${ogImage.src}`}>
   <meta property="og:locale" content={info.og}>
   <meta name="twitter:card" content="summary_large_image">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="no-referrer">
 </head>
 <body data-past-note={t.chrome.pastHoursNote} data-hours-status={JSON.stringify(t.chrome.hoursStatus)} data-intl={info.intl}>
