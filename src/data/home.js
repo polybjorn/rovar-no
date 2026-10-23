@@ -1,6 +1,7 @@
 // Structure of the homepage card grid: which page each card links to, which
 // photo it uses, and load priority. Language-independent - the text and alt
 // text come from src/content/pages/<lang>/home.md.
+/** @type {{ page: string, image: string, loading: 'eager' | 'lazy' }[]} */
 export const homeCards = [
   { page: 'explore',     image: 'jenter',     loading: 'eager' },
   { page: 'ferry',       image: 'hurtigbat',  loading: 'eager' },

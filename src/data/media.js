@@ -16,9 +16,11 @@ export const media = {
   kart: 'kart-rovar.png',
 };
 
+/** @type {Record<string, import('astro').ImageMetadata>} */
 const files = import.meta.glob('../assets/*.{jpg,png}', { eager: true, import: 'default' });
 
 // ImageMetadata for a key, for use with astro:assets.
+/** @param {string} key */
 export function asset(key) {
   const name = media[key];
   if (!name) throw new Error(`Unknown media key: ${key}`);

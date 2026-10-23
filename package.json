@@ -18,14 +18,15 @@
     "hours:pages": "node scripts/hours-pages.mjs",
     "pins:check": "node scripts/node-pins-check.mjs",
     "merges:check": "node scripts/check-merged-prs.mjs",
-  "sweep:check": "node scripts/check-sweep-freshness.mjs",
-  "retries:check": "node scripts/check-delete-retries.mjs",
-  "verdict:check": "node scripts/check-verdict-contract.mjs",
+    "sweep:check": "node scripts/check-sweep-freshness.mjs",
+    "retries:check": "node scripts/check-delete-retries.mjs",
+    "verdict:check": "node scripts/check-verdict-contract.mjs",
     "inert:check": "node scripts/check-inert-prs.mjs",
     "inert:history": "node scripts/check-inert-prs.mjs --history",
     "prebuild": "npm run i18n:verify",
     "test": "node --test \"test/*.test.mjs\" && TZ=Pacific/Auckland node --test \"test/*.test.mjs\"",
-    "pretest": "npm run i18n:verify"
+    "pretest": "npm run i18n:verify",
+    "test:dist": "node --test \"test/dist/*.test.mjs\""
   },
   "engines": {
     "node": ">=22.12.0"
@@ -40,6 +41,8 @@
     "fsevents@2.3.3": true
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^6.0.3",
     "unist-util-visit": "^5.1.0"
   }
 }

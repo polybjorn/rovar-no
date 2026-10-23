@@ -6,3 +6,9 @@ extend-exclude = [
   "src/content/**",
   "src/i18n/ui/*.json",
 ]
+
+# Norwegian words outside the content tree: the month in season tests and
+# hours scripts, and the original rovar.no slug in a stylesheet selector.
+[default.extend-words]
+juni = "juni"
+meny = "meny"
