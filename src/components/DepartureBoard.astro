@@ -1646,12 +1646,6 @@ const longestDates = [...new Set(
     color: var(--color-text-light);
   }
 
-  /* Still panned by the board's .dep-via until #98 removes it there. */
-  @keyframes cal-via-pan {
-    0%, 15% { transform: none; }
-    85%, 100% { transform: translateX(var(--pan, 0)); }
-  }
-
   .cal-times :global(.cal-time > .cal-booking) {
     display: inline-flex;
     margin-left: auto;
