@@ -1,0 +1,207 @@
+# Every place the page text differs from rovar.no as captured 2026-08-05, in
+# Norwegian for the board. Their client page renders it from the forge, so the
+# shape is client-pages' (scripts/text-changes-core.mjs); CI requires an
+# entry in the same push as a wording change (AGENTS.md, Content fidelity).
+note: Alt ble hentet fra dagens side 5. august 2026, og en kopi av sidene slik de så ut da er tatt vare på, så alt her kan etterprøves. Under står hvert avvik fra originalen, med begrunnelse. Ønsker dere noe tilbakestilt, er det bare å si fra.
+groups:
+  - title: Alle sidene
+    points:
+      - title: "Bunnfeltet er en lenkeliste og en kontaktlinje"
+        text: |-
+          Under «Nyttige lenker» står seks lenker i to kolonner: Røvær Havhotell, Røvær Sjøhus, Røvær Havbrukssenter, billetter hos Kolumbus, et søk på «Røvær» i Haugesunds Avis og en lenke til nettsidens kildekode på GitHub. De tre siste er nye. De fire første ligger også i tekstene der de hører hjemme; bunnfeltet er en ekstra vei til de samme stedene.
+
+          Nederst står e-postadressen rovaroyting@rovar.no og «5549 Røvær» på én linje.
+      - title: "Kontaktsetningen i bunnen er ikke videreført"
+        text: |-
+          Dagens side har en «Kontakt»-overskrift og setningen «Har du lyst til å komme i kontakt med noen på Røvær? Ta kontakt med: rovaroyting@rovar.no – så skal vil hjelpe deg så godt vi kan.» nederst på alle sidene, med skrivefeilen «skal vil». Den nye siden har ikke setningen, bare e-postadressen som lenke. Postnummeret og stedsnavnet står der i stedet, og de står ikke på dagens side.
+      - title: "Hotellnavnet er likt overalt"
+        text: Dagens side blander «Røvær Havhotell» og det gamle navnet «Røvær Kulturhotell». Hotellet har byttet navn, og den gamle nettadressen sender nå videre til rovarhavhotell.no. Den nye siden bruker «Røvær Havhotell» og den nye adressen overalt.
+      - title: "Telefonnumrene er formatert"
+        text: «52715800» skrives nå «52 71 58 00». På de engelske og tyske sidene står numrene med landkode, «+47 52 71 58 00», slik dagens engelske og tyske side også gjør. Selve numrene er uendret.
+      - title: "Språknavnet «Deutch» er rettet til «Deutsch»"
+        text: Språkvelgeren på dagens side har skrivefeilen «Deutch».
+      - title: "Ny tekst i søkeresultater"
+        text: Teksten søkemotorer viser under lenken til en side har fått ny tekst, én per side, skrevet ut fra innholdet på siden. Dagens side viser bare «Mulighetenes Røvær» på alle sider. Den vises kun i søkeresultater, aldri på selve siden, og kan endres eller strykes.
+      - title: "Nye hjelpetekster i menyen"
+        text: Lenken «Hopp til innhold» (for tastatur og skjermleser), navnet «Meny» på menyknappen på mobil, «Velg språk» på språkvelgeren og «Røvær, til forsiden» på logoen. Ingen av dem er synlige i vanlig bruk, og dagens side har dem ikke.
+      - title: "Teknisk informasjon for søkemotorer og deling"
+        text: Ikke synlig på siden, men gjør at Google og deling på Facebook o.l. viser riktig tittel, tekst og bilde.
+      - title: "Ny feilside"
+        text: Skriver noen feil adresse, får de nå en egen side («Siden finnes ikke») med lenke til forsiden, på alle tre språk. Dagens side har ingen slik side.
+      - title: "To menypunkter er kortet ned"
+        text: «Opplev øya vår» heter «Opplev øya» i menyen, og «Røværs historie» heter «Historie». De korte navnene gjør at menyen og språkvelgeren får plass på én linje. Sidene selv beholder de fulle titlene som overskrift. «Rutebåten» og «Leirskolen» er uendret.
+  - title: Hjem
+    text: Overskrift og innledning er originalens, med to grammatikkrettinger i samme setning.
+    table:
+      rows:
+        - [Før, "Et besøk dit er som en reise tilbake i tid – til øy der hvor vikingene og fiskeren en gang holdt til."]
+        - [Etter, "Et besøk dit er som en reise tilbake i tid – til øya der vikingene og fiskerne en gang holdt til."]
+    points:
+      - title: "Fire klikkbare kort er nye"
+        text: Med korte stikkord («Turer, strender, museum og mat» osv.) som inngang til undersidene. Kortene er navigasjon, ikke erstatning for tekst.
+      - title: "Kartet er laget på en annen måte"
+        text: |-
+          Dagens kart er et Google-kart som lastes inn hos Google hver gang noen åpner forsiden. Det sender besøkendes IP-adresse til Google, og Google krever etter hvert egen avtale og betaling for slike kart.
+
+          Det nye er et fast kartbilde fra Kartverket (åpne, gratis data), som vises likt for alle og ikke henter noe fra andre nettsteder. Utsnittet viser Røvær med Haugesund i kanten, slik at avstanden inn til fastlandet kommer fram. Rutene til Haugesund og Feøy er tegnet inn på kartet, med stoppestedene. Under kartet står lenken «Se Røvær på kartet», som åpner OpenStreetMap, der man kan zoome og flytte seg fritt, og kildene «© Kartverket, Kystverket, Entur».
+  - title: Opplev øya vår
+    text: |-
+      Alle ni seksjonene fra dagens side er med, i samme rekkefølge, bortsett fra at Røvær Sjøhus er flyttet ut av «Mat, drikke og overnatting» og står først i en ny seksjon, «Havbruk og laksesafari», sammen med Havbrukssenteret og visningsturen. Sjøhuset har fått sin egen overskrift. Skrivefeil og tekstendringer som følger:
+    table:
+      head: [Før, Etter]
+      rows:
+        - [Røvær havbruksenter (overskrift), Havbrukssenteret (under «Havbruk og laksesafari»)]
+        - [Visningstur til larsemerd, Visningstur til laksemerd]
+        - [Påmelding i på Røvær Sjøhus, Påmelding til turen gjøres på Røvær Sjøhus]
+        - [Grønasvika er også ideellt, Grønasvika er også ideelt]
+        - [rett ved siden Hiltahuset, rett ved siden av Hiltahuset]
+        - [ut spetember, 17. august til 30. september (som åpningstid)]
+        - [Det er GRATIS å besøke visningssenteret!, Det er gratis å besøke utstillingen.]
+        - [på VIPPS, med Vipps]
+        - ["(Bare husk å slipp dem ut etterpå)", "(bare husk å slipp dem ut etterpå)"]
+        - ["Barn under 18 år, må ha skriftlig tillatelse", "under 18 år: skriftlig tillatelse fra foresatte"]
+    points:
+      - title: "Åpningstider, priser og lenker står som oppslag for hvert sted"
+        text: |-
+          På dagens side ligger tidene i løpende tekst («åpent hver dag kl.11.00 – 16.00 frem til 16.august»). Nå står de som linjer under hvert sted, med datoene ved siden av: «Hver dag», «til 16. august», «17. august til 30. september». Havhotellets kjøkkentider står i egen kolonne. Lenker, e-post og telefon står som en liste under hvert sted. Tidene er de samme som på dagens side.
+
+          Havbrukssenterets e-post og telefon stod bare i påmeldingssetningen til visningsturen; de står nå også under Røvær Sjøhus og Havbrukssenteret.
+      - title: "Setningene rundt lenkene er fjernet"
+        text: |-
+          Dagens side har små setninger som bare peker videre til en lenke. Lenken står igjen, setningen er borte:
+
+          «For mer info, sjekk ut Røvær Sjøhus på Facebook.», «Menyen finner du her», «De har forskjellige arrangementer i løpet av året. Sjekk ut programmet på deres hjemmeside her.», «Finn og kontakt dem på kontakt@rovarhavhotell.no, facebook eller ring dem på 52715800.», «Besøk nettsiden her.» og «Les mer om priser og åpningstider for Hiltahuset.»
+      - title: "Visningsturen står som en liste"
+        text: |-
+          Dagens avsnitt er delt i linjene Avganger, Varighet, Pris og Alder. Innholdet er det samme, med disse forskjellene:
+
+          «hver dag i sommer frem til 16.august» er blitt «hver dag på sommeren» med «til 16. august» ved avgangene. «Fra 6 til 12 år må barn være i følge med en voksen» er blitt «under 12 år: sammen med en voksen». Betaling («Betaling på Røvær Sjøhus eller på VIPPS») står nå sammen med prisen. Åpningstiden til Sjøhuset i påmeldingssetningen er fjernet, fordi den står under Røvær Sjøhus.
+      - title: "Hiltahuset har fått ny tekst, åpningstider og priser"
+        text: |-
+          Dagens avsnitt («kan som regel åpnes og fortelles om av en dyktig guide», utstillingen om ulykken der 30 lokale liv gikk tapt, «Det sies at Røværulykka preger Røværbuen den dag i dag») er erstattet av to setninger: Hiltahuset er Røværs eldste hus og øyas museum, med en utstilling om ulykken i 1899, og en lenke videre til husets historie. Setningen om Skjoldbladbua er beholdt.
+
+          Åpningstider (søndag og torsdag kl. 13.30 til 15.30, 20. juni til 29. august 2027), priser (50 kr voksne, 30 kr studenter og honnør, gratis under 16 år) og kontaktinformasjon er nye, hentet fra Haugalandmuseets egen side. Dagens side henviser bare til en side om priser og åpningstider. Lenken «Nettside» går til museets side hos Haugalandmuseet; dagens lenke går via visithaugesund.no og ender i et generelt søk.
+      - title: "Nærbutikken Røvær er ny"
+        text: Butikken står under «Mat, drikke og overnatting» med en kort beskrivelse (dagligvarer, post, pakkeutlevering og fiskeutstyr), åpningstid, Facebook, nettside, e-post og telefon. Dagens side har ingen oppføring for butikken.
+      - title: "Hver oversikt sier om stedet er åpent nå"
+        text: |-
+          Under åpningstidene står en linje som «Åpent nå, stenger kl. 16.00» eller «Stengt nå. Åpner kl. 11.00 i dag». For visningsturen står «Neste avgang kl. 14.15». Når datoene er passert, er tidene strøket over, og det står «Sesongen er over. Følg dem på nett eller ta kontakt for oppdaterte tider og arrangementer.»
+
+          Disse tekstene finnes ikke på dagens side.
+      - title: "Hotellets lenker er samlet i en liste"
+        text: Dagens side lenker til hotellets program («her») og meny («her») på det gamle domenet rovarkulturhotell.no. Menylenken peker nå til rovarhavhotell.no/meny/, og «Nettside» går til hotellets forside, rovarhavhotell.no. Programlenken står ikke igjen som egen lenke.
+      - title: "En løs setning er fjernet"
+        text: «røvær kulturhotell sin webside.» sto alene og uten sammenheng nederst i hotellavsnittet, en rest etter en tidligere redigering av dagens side.
+      - title: "En gjentatt setning er fjernet"
+        text: «Det er mulighet for overnatting på hotellet.» er fjernet, fordi samme avsnitt allerede sier «Røvær Havhotell har åpent for overnatting på bestilling hele året.»
+      - title: "Hotellets Facebook-lenke virker"
+        text: I kontaktsetningen for hotellet sto «på kontakt@rovarhavhotell.no, facebook eller ring dem», men ordet «facebook» var ikke klikkbart. Facebook-siden står nå som lenke i hotellets liste, hentet fra hotellets egen nettside.
+      - title: "Krabbefangst omtales én gang"
+        text: Dagens side sier nesten det samme om krabbefangst under «Bading, grilling og sandvolley» og under «Krabbefangst». Gjentakelsen er fjernet fra badeavsnittet, og «Krabbefangst» er beholdt i sin helhet, fordi den er den mest fullstendige; den nevner begge strendene og minner om å slippe krabbene ut igjen. Ingen opplysning er borte.
+      - title: "Bildet av barnet i fjæra er flyttet"
+        text: Det står nå under «Krabbefangst», ikke under «Vikingtufter i Grønasvika». Motivet er ikke fra Grønasvika, og barnet sitter på huk i vannkanten med bøtte, altså akkurat det krabbeavsnittet beskriver.
+      - title: "Bildet fra visningsturen er med"
+        text: «Helge på merd», foto Torkild Groven, står slik det gjør på dagens side. Fotografens navn står i bildet, som i dag.
+  - title: Rutebåten
+    text: Den eneste siden som er byttet ut i sin helhet, og hovedgrunnen til den nye siden.
+    points:
+      - title: "Rutetavlen erstatter rutelenkene"
+        text: Dagens fire rutelenker peker til Kolumbus' nedlagte reiseplanlegger og er døde. Overskriften «Transport» og linjene «HAUGESUND – RØVÆR – Sjekk hurtigbåttider hos Kolumbus.no» osv. er derfor borte.
+      - title: "Innledningen er ny"
+        text: Siden åpner med «Røvær har daglige forbindelser med hurtigbåt fra Haugesund.» Setningen står ikke på dagens side.
+      - title: "Billettlenken er byttet mot en merknad under tavlen"
+        text: |-
+          Dagens «Båtbilletter kan bestilles her» er borte. Under tavlen står i stedet «Kan kreve forhåndsbestilling. Bestill via billetter.kolumbus.no eller ring 482 21 780.», og billetter hos Kolumbus ligger også i bunnfeltet. Telefonnummeret står ikke på dagens side.
+
+          Ved siden av står «Sanntidsdata fra Entur, oppdateres hvert minutt» og lenken «Se rutetider hos Kolumbus (linje 700)» til Kolumbus' nye reisesøk, som reserve.
+      - title: "Tavlen har fått egne tekster"
+        text: «Forrige dag» og «Neste dag», «Henter avganger...», «Ingen avganger denne dagen», «Bestillingsrute», «Bestillingsfrist for avgang» og lignende. Dagens side har ingen tavle og dermed ingen slike tekster.
+      - title: "Avganger kan legges i kalenderen"
+        text: Knappen «Legg avganger i kalenderen» åpner en dialog der besøkende velger avganger og dager og får en kalenderfil eller en Google Kalender-lenke. For bestillingsruter står en påminnelse om at de må bestilles på forhånd, og kalenderfilen minner om det en time før fristen. Alle tekstene i dialogen er nye.
+      - title: "Ingen egen Feøy-tavle"
+        text: Dagens side lister Feøy-Røvær som egne forbindelser. Avgangene via Feøy vises på den nye tavlen som del av linje 700 («via Feøy»).
+  - title: Leirskolen
+    text: Teksten er dagens tekst, innledningen («...et ramsalt møte med kystkulturen, der hav møter himmel») og «seilskøyta Duen» inkludert, med disse endringene.
+    points:
+      - title: "Kontaktinformasjonen står under «Praktisk informasjon»"
+        text: |-
+          Dagens side avslutter med «Har dere spørsmål som gjelder de praktiske sidene ved leirskole-oppholdet, er det bare å ta kontakt med Espen Martens», fulgt av «E-post:» og «Telefon:». Nå står «Espen Martens» som overskrift under «Praktisk informasjon», med «Ta kontakt om du har spørsmål.», og e-posten og telefonnummeret som klikkbare lenker.
+
+          «Har dere» er blitt «du», som resten av nettsiden.
+      - title: "«Odda kommune» heter «Odda»"
+        text: Elevene i 6.-7. klasse kommer «fra Odda». Odda er ikke lenger en egen kommune, og setningen holder seg riktig uten ordet «kommune».
+      - title: "Ingen egen kontaktseksjon nederst"
+        text: Leirskolen hadde samme kontaktseksjon i bunnen som de andre sidene, og den er ikke med lenger. Se «Alle sidene».
+  - title: Røværs historie
+    text: Teksten er dagens tekst, med alle detaljer, de 20 000 sildefiskerne, funnene fra 1988, Udland kirkegård og avslutningen om samholdet. Ett avvik i den gamle teksten og ett nytt avsnitt.
+    table:
+      head: [Før, Etter]
+      rows:
+        - [Tragisk ullykke i 1899 (overskrift), Tragisk ulykke i 1899]
+    points:
+      - title: "Hiltahuset har fått et eget avsnitt"
+        text: |-
+          Nytt avsnitt nederst: Hiltahuset som Røværs eldste hus, bygd rundt 1820-1830, bruk som våningshus, kårhus og skolestue, arv fra mor til datter, navnet etter Johan Hilt fra Bergen, feriehus til rundt 1960 og museum i dag. Avsnittet er ikke fra dagens side, og teksten bygger på Haugalandmuseets side om huset. Det stod ikke noe om husets historie der, bare om utstillingen om ulykken.
+
+          Under står de samme åpningstidene, prisene og kontaktopplysningene som på «Opplev øya vår», og en lenke dit.
+      - title: "«Rikt fiskesamfunn» er en egen overskrift"
+        text: Det står på samme nivå som de andre overskriftene, ikke under «Spennende arkeologiske funn» som på dagens side. Teksten er uendret.
+  - title: Engelsk og tysk
+    text: Dagens side har én engelsk side og én tysk. Begge er varianter av «Opplev øya vår» med et avsnitt om transport. Den nye siden har alle fem sidene på begge språk.
+    points:
+      - title: "Engelsk «Explore our island» er gjenbrukt"
+        text: |-
+          Dagens engelske tekst er gjenbrukt, inkludert årstids-innledningen og komle-omtalen (nå under Røvær Sjøhus). Disse skrivefeilene og feilene i setningene er rettet:
+
+          «islands highest» til «island's highest», «have in engraved» til «have it engraved», «Kindergarden» til «kindergarten», «Western part» til «western part» og «the museums nearest neighbour» til «the museum's nearest neighbour».
+
+          Hotellet heter «Røvær Havhotell» og Sjøhuset «Røvær Sjøhus», der den gamle engelske siden hadde «Culture Hotel» og «Seahouse». Åpningstidene og kontaktopplysningene er de samme som på den norske siden.
+      - title: "Samme oppsett som den norske siden"
+        text: Dagens engelske side er kortere og slår sammen flere emner i samme avsnitt. På den nye siden er setningene flyttet dit de hører hjemme i det norske oppsettet, med de samme seksjonene i samme rekkefølge, og de overskriftene som manglet er lagt til. Språkene skal være oversettelser av samme side, ikke tre ulike sider, og da må seksjonene være like.
+      - title: "Nytt innhold er oversatt fra den norske siden"
+        text: |-
+          Dagens engelske og tyske side har ingenting om krabbefangst, Havbrukssenteret, visningsturen i RIB, Nærbutikken og Hiltahuset utover én setning om museet. Disse delene er oversatt fra de norske tekstene.
+
+          Det gjelder også avsnittet om krabbefangst, som er kortere enn det norske: «Both beaches are shallow, perfect for catching crabs – just remember to release them afterwards.» Den gamle engelske siden sa at Hiltahuset kan åpnes etter avtale, og det er erstattet av åpningstidene fra den norske siden.
+      - title: "Én oversettelsesfeil er rettet"
+        text: Dagens engelske side kaller vikingtuftene «Viking graves» (vikinggraver), men tufter er rester etter hustomter, ikke graver. Engelsk sier nå «Viking house sites», tysk «Wikingerstätten». Den norske teksten er uendret.
+      - title: "Tysk er oversatt på nytt"
+        text: Dagens tyske side er maskinoversatt med til dels uforståelige setninger («Finde se auf Facebook», «Føvær Culture Hotel», setninger som slutter midt i). Den tyske teksten er derfor oversatt på nytt fra de norske originalene, med samme innhold og oppsett som den engelske.
+      - title: "Transportavsnittene er ikke videreført"
+        text: Rutebåtsiden finnes nå på alle tre språk med levende avgangsdata.
+      - title: "De andre sidene er nye oversettelser"
+        text: Hjem, Rutebåten, Leirskolen og Historie på engelsk og tysk er oversatt fra de norske tekstene; de har aldri eksistert på dagens side.
+  - title: Ikke videreført
+    points:
+      - title: "Banneret «Røver Havbrukssenter»"
+        text: Banneret (med skrivefeilen fra originalen) ligger øverst og nederst på alle dagens sider. Havbrukssenteret har i stedet sin egen seksjon med lenke på «Opplev øya vår», og en lenke i bunnfeltet.
+      - title: "Tekniske spor etter WordPress"
+        text: Ikke synlig innhold.
+      - title: "Tre bilder på «Opplev øya vår»"
+        text: Sykkelbildet og snorklebildet er for små og for uskarpe for en moderne skjerm (514 x 343 piksler), og de er de to første bildene en besøkende møter på siden. Det finnes ingen erstatning i bildearkivet til dagens side. Teksten i begge seksjonene står uendret. Hotellbildet i «Mat, drikke og overnatting» er heller ikke med; hotellet har et bilde på forsiden i stedet.
+  - title: Bildebeskrivelser
+    text: Hvert bilde kan ha en beskrivelse som leses opp av skjermlesere, og som vises hvis bildet ikke laster. Dagens side har slike beskrivelser på fire bilder; resten står tomme.
+    points:
+      - title: "Dagens beskrivelser"
+        text: To av de fire er gjenbrukt ordrett og oversatt til engelsk og tysk. De to andre, «Ungdom sykler på øya» og «Morsomt å snorkle», hørte til bildene som er tatt ut.
+        table:
+          head: [Bilde, Beskrivelse]
+          rows:
+            - [Sjøhuset, Røvær Sjøhus]
+            - [Havbrukssenteret, Bilde fra utstillingen på Røvær havbrukssenter]
+      - title: "Nye beskrivelser"
+        text: Skrevet ut fra hva bildet faktisk viser. «Havna vår Suggevågen» er lånt fra det samme motivet på dagens «Opplev øya vår».
+        table:
+          head: [Bilde, Ny beskrivelse, Hvor]
+          rows:
+            - [Barn i fjæra, Barn i rød dress på huk ved vannkanten i fjæra, Opplev øya vår]
+            - [Flytebrygga, Voksen og barn ligger på flytebrygga og ser ned i sjøen gjennom vannkikkert, Leirskolen]
+            - [Sjøsprøyt, Bølger slår inn over svabergene på en grå dag, Røværs historie]
+            - [Jenter i gresset, To jenter ler og løper i gresset, "Forsiden, kort"]
+            - [Hurtigbåten, Hurtigbåten Fjordled på vei inn, "Forsiden, kort"]
+            - [Hotellet, Røvær Havhotell speiler seg i sjøen ved kaien, "Forsiden, kort"]
+            - [Suggevågen, Havna vår Suggevågen i solnedgang, "Forsiden, kort"]
+            - [Kartet, Kart over hurtigbåtrutene mellom Røvær og Haugesund, "Forsiden, kart"]
+            - [Visningstur til laksemerd, Guide forteller til gjestene i RIB-en ved laksemerden, Opplev øya vår]
+            - [Hurtigbåten på rutetavlen, Hurtigbåten Fjordled (Kolumbus), Rutebåten]
+            - [Logoen, "Røvær, til forsiden", Alle sidene]

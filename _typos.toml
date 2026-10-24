@@ -5,6 +5,7 @@
 extend-exclude = [
   "src/content/**",
   "src/i18n/ui/*.json",
+  "docs/text-changes.yaml",
 ]
 
 # Norwegian words outside the content tree: the month in season tests and
