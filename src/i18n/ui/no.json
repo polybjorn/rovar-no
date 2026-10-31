@@ -21,14 +21,14 @@
     },
     "pastHoursNote": "Sesongen er over. Følg dem på nett eller ta kontakt for oppdaterte tider og arrangementer.",
     "hoursStatus": {
-      "openNow": "Åpent nå, stenger kl. {{time}}.",
+      "openNow": "Åpent nå, stenger kl.\u00a0{{time}}.",
       "openNowPlain": "Åpent nå.",
-      "opensToday": "Stengt nå. Åpner kl. {{time}} i dag.",
-      "opensTomorrow": "Stengt for i dag. Åpner igjen i morgen kl. {{time}}.",
-      "opensOn": "Stengt nå. Åpner {{day}} kl. {{time}}.",
-      "departsToday": "Neste avgang kl. {{time}}.",
-      "departsTomorrow": "Neste avgang i morgen kl. {{time}}.",
-      "departsOn": "Neste avgang {{day}} kl. {{time}}."
+      "opensToday": "Stengt nå. Åpner kl.\u00a0{{time}} i dag.",
+      "opensTomorrow": "Stengt for i dag. Åpner igjen i morgen kl.\u00a0{{time}}.",
+      "opensOn": "Stengt nå. Åpner {{day}} kl.\u00a0{{time}}.",
+      "departsToday": "Neste avgang kl.\u00a0{{time}}.",
+      "departsTomorrow": "Neste avgang i morgen kl.\u00a0{{time}}.",
+      "departsOn": "Neste avgang {{day}} kl.\u00a0{{time}}."
     }
   },
   "notFound": {
@@ -79,9 +79,9 @@
       "pickEvery": "hver {{day}}",
       "pickEveryWeekday": "hverdager",
       "pickChooseDays": "Velg hvilke hverdager over.",
-      "pickBooking": "Bestillingsrute: bestill senest {{minutes}} minutter før avgang på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
-      "pickBookingDayBefore": "Bestillingsrute: bestill avgang {{departures}} innen kl. {{deadline}} dagen før på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
-      "pickBookingBoth": "Bestillingsrute: bestill avgang {{departures}} innen kl. {{deadline}} dagen før og de andre senest {{minutes}} minutter før avgang, på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
+      "pickBooking": "Bestillingsrute: bestill senest {{minutes}}\u00a0minutter før avgang på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
+      "pickBookingDayBefore": "Bestillingsrute: bestill avgang {{departures}} innen kl.\u00a0{{deadline}} dagen før på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
+      "pickBookingBoth": "Bestillingsrute: bestill avgang {{departures}} innen kl.\u00a0{{deadline}} dagen før og de andre senest {{minutes}}\u00a0minutter før avgang, på {{kolumbusPhone}}. Kalenderfilen minner deg på det en time før.",
       "pickRemove": "Fjern",
       "pickLoading": "Henter rutetidene...",
       "pickSave": "Legg i kalenderen",

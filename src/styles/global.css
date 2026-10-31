@@ -87,6 +87,9 @@ body {
   background: var(--color-sand);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  /* No paragraph ends on a word alone where the browser can help it;
+     headings balance instead. */
+  text-wrap: pretty;
   /* Keeps the footer at the bottom of the viewport on short pages. */
   min-height: 100vh;
   min-height: 100svh;
@@ -96,6 +99,12 @@ body {
 
 body > main {
   flex: 1;
+}
+
+/* Even lines at every width, so no heading leaves one word alone on its last
+   line. */
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
 }
 
 img {

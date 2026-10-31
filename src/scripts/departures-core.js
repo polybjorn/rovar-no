@@ -281,16 +281,17 @@ export function timeline(departures) {
 
 // The duration is built from the units, then dropped into the language's own
 // sentence: "om {{time}}" puts it after, another language can put it first.
+// A no-break space holds each number to its unit (#177).
 export function formatCountdown(mins, s = {}) {
   if (mins <= 0) return s.now;
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   const time =
     mins < 60
-      ? `${mins} ${s.minUnit}`
+      ? `${mins}\u00a0${s.minUnit}`
       : m
-        ? `${h} ${s.hourUnit} ${m} ${s.minUnit}`
-        : `${h} ${s.hourUnit}`;
+        ? `${h}\u00a0${s.hourUnit} ${m}\u00a0${s.minUnit}`
+        : `${h}\u00a0${s.hourUnit}`;
   return (s.relative ?? '{{time}}').replace('{{time}}', time);
 }
 

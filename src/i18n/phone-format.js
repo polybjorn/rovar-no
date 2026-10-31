@@ -17,6 +17,8 @@ const cache = {};
 // convention (2-2-2-2 for landlines, 3-2-3 for mobiles), and stays readable
 // behind a country code.
 //
+// The spaces are no-break ones, so a number never splits across lines (#177).
+//
 // Each number also gets a {{<key>Tel}} twin for a tel: link: the country code
 // and the digits, with no spaces, the same in every language.
 export function phoneStrings(code) {
@@ -26,7 +28,7 @@ export function phoneStrings(code) {
   const out = {};
   for (const [key, value] of Object.entries(facts)) {
     if (!key.endsWith('Phone')) continue;
-    out[key] = local ? value : `${countryCode} ${value}`;
+    out[key] = (local ? value : `${countryCode} ${value}`).replace(/ /g, '\u00a0');
     out[`${key}Tel`] = countryCode + value.replace(/\s/g, '');
   }
 

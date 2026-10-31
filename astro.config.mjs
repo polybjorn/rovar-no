@@ -1,9 +1,12 @@
 // @ts-check
+import { createHash } from 'node:crypto';
+import { readdirSync, readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import { locales, defaultLocale } from './src/i18n/locales.js';
 import { remarkContent, contentDigest } from './src/plugins/remark-content.mjs';
 import { rehypeStructure } from './src/plugins/rehype-structure.mjs';
+import { rehypeNbsp } from './src/plugins/rehype-nbsp.mjs';
 
 // Preview deployment on GitHub Pages. At launch: site back to
 // 'https://rovar.no' and drop `base` (links go through routes/BASE_URL,
@@ -11,6 +14,14 @@ import { rehypeStructure } from './src/plugins/rehype-structure.mjs';
 // carry a noindex meta (Layout.astro), both keyed on this check.
 const site = 'https://polybjorn.github.io';
 const isPreview = !site.includes('rovar.no');
+
+// The content digest covers the values the placeholders resolve to; this one
+// covers the plugins themselves, so an edit to one reaches a plain build
+// instead of the cached markdown.
+const plugins = new URL('./src/plugins/', import.meta.url);
+const pluginsDigest = createHash('sha256')
+  .update(readdirSync(plugins).sort().map((f) => readFileSync(new URL(f, plugins), 'utf8')).join('\0'))
+  .digest('hex');
 
 // https://astro.build/config
 export default defineConfig({
@@ -47,7 +58,7 @@ export default defineConfig({
     // content cache when the hash changes, and without it an edit to facts.js
     // or season.js leaves cached pages showing the old value.
     remarkPlugins: [[remarkContent, { digest: contentDigest() }]],
-    rehypePlugins: [rehypeStructure],
+    rehypePlugins: [rehypeStructure, [rehypeNbsp, { digest: pluginsDigest }]],
   },
   // Astro 7 changed the default to 'jsx', which strips whitespace between
   // adjacent inline elements. That silently closed the gaps around the

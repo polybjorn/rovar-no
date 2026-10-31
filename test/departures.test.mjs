@@ -505,17 +505,17 @@ const cd = { now: 'nå', relative: 'om {{time}}', minUnit: 'min', hourUnit: 't' 
 test('formatCountdown reads naturally at every scale', () => {
   assert.equal(formatCountdown(0, cd), 'nå');
   assert.equal(formatCountdown(-5, cd), 'nå');
-  assert.equal(formatCountdown(12, cd), 'om 12 min');
-  assert.equal(formatCountdown(59, cd), 'om 59 min');
-  assert.equal(formatCountdown(60, cd), 'om 1 t');
-  assert.equal(formatCountdown(95, cd), 'om 1 t 35 min');
-  assert.equal(formatCountdown(120, cd), 'om 2 t');
+  assert.equal(formatCountdown(12, cd), 'om 12\u00a0min');
+  assert.equal(formatCountdown(59, cd), 'om 59\u00a0min');
+  assert.equal(formatCountdown(60, cd), 'om 1\u00a0t');
+  assert.equal(formatCountdown(95, cd), 'om 1\u00a0t 35\u00a0min');
+  assert.equal(formatCountdown(120, cd), 'om 2\u00a0t');
 });
 
 test('the countdown sentence can put the duration anywhere the language wants', () => {
   const trailing = { ...cd, relative: '{{time}} igjen' };
-  assert.equal(formatCountdown(12, trailing), '12 min igjen');
-  assert.equal(formatCountdown(95, trailing), '1 t 35 min igjen');
+  assert.equal(formatCountdown(12, trailing), '12\u00a0min igjen');
+  assert.equal(formatCountdown(95, trailing), '1\u00a0t 35\u00a0min igjen');
 });
 
 test('urgency escalates at 30 and 10 minutes', () => {

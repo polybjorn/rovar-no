@@ -116,10 +116,13 @@ test('the RIB departures are joined as a list, not concatenated', () => {
   assert.ok(/\s/.test(rendered), 'departures are not separated');
 });
 
+// Phone numbers carry no-break spaces, so none splits across lines (#177).
+const nb = (s) => s.replace(/ /g, '\u00a0');
+
 test('Norwegian keeps the local phone form, every other language gets the country code', () => {
-  assert.equal(phoneStrings('no').havhotellPhone, facts.havhotellPhone);
-  assert.equal(phoneStrings('en').havhotellPhone, `+47 ${facts.havhotellPhone}`);
-  assert.equal(phoneStrings('de').havhotellPhone, `+47 ${facts.havhotellPhone}`);
+  assert.equal(phoneStrings('no').havhotellPhone, nb(facts.havhotellPhone));
+  assert.equal(phoneStrings('en').havhotellPhone, nb(`+47 ${facts.havhotellPhone}`));
+  assert.equal(phoneStrings('de').havhotellPhone, nb(`+47 ${facts.havhotellPhone}`));
 });
 
 test('every phone number in facts is formatted for every language', () => {
@@ -147,5 +150,5 @@ test('the country code is added once, never doubled', () => {
 test('a new language gets the country code without touching any code', () => {
   // Guards the i18n promise: adding a locale is a registry line, nothing more.
   const unknown = phoneStrings('sv');
-  assert.equal(unknown.havhotellPhone, `+47 ${facts.havhotellPhone}`);
+  assert.equal(unknown.havhotellPhone, nb(`+47 ${facts.havhotellPhone}`));
 });
