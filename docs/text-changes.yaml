@@ -1,7 +1,6 @@
 # Every place the page text differs from rovar.no as captured 2026-08-05, in
-# Norwegian for the board. Their client page renders it from the forge, so the
-# shape is client-pages' (scripts/text-changes-core.mjs); CI requires an
-# entry in the same push as a wording change (AGENTS.md, Content fidelity).
+# Norwegian for the board, who read it on their client page; that renderer
+# fixes the shape. CI requires an entry in the same push as a wording change.
 note: Alt ble hentet fra dagens side 5. august 2026, og en kopi av sidene slik de så ut da er tatt vare på, så alt her kan etterprøves. Under står hvert avvik fra originalen, med begrunnelse. Ønsker dere noe tilbakestilt, er det bare å si fra.
 groups:
   - title: Alle sidene
