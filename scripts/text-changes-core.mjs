@@ -39,7 +39,7 @@ export function range({ event, sha, before, baseRef, mergeBase, exists }) {
   return null;
 }
 
-// The renderer (nixfleet scripts/client-pages.py, TEXT_CHANGES) is the authority
+// The client-page renderer (client-pages.py, TEXT_CHANGES) is the authority
 // on this shape. It keeps the last good copy when a push breaks it, so this
 // copy of the rules only moves that warning from the client page to CI.
 const TEXT = (v) => typeof v === 'string' || typeof v === 'number';
