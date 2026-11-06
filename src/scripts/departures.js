@@ -12,6 +12,7 @@ import {
   ROVAR_STOP,
   HAUGESUND_STOP,
   MAX_DAY_OFFSET,
+  TYPICAL_ROWS,
   query,
   toOsloDate,
   dateAtOffset,
@@ -286,7 +287,6 @@ function setDate() {
 // its full length from the start instead of growing when the times arrive.
 // Browser storage is a convenience here: without it, a typical day's count.
 const ROWS_KEY = 'rovar-dep-rows';
-const TYPICAL_ROWS = 10;
 const rowsKey = (id) => `${id} ${dayKind(osloWeekday(`${selectedDate()}T12:00:00Z`))}`;
 
 function rememberedRows(id) {

@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import { ui } from '../i18n/ui.js';
 import Sentence from './Sentence.astro';
-import { kolumbusUrl, ENTUR_SITE, weekdayNames, WEEKDAYS } from '../scripts/departures-core.js';
+import { kolumbusUrl, ENTUR_SITE, weekdayNames, WEEKDAYS, TYPICAL_ROWS } from '../scripts/departures-core.js';
 import { defaultLocale, localeInfo } from '../i18n/locales.js';
 import { facts } from '../data/facts.js';
 import boatImg from '../assets/Bilde-Fjorled-JMT-1-e1593513975750.jpg';
@@ -27,6 +27,9 @@ const cap = (name: string) => name.charAt(0).toLocaleUpperCase(lang) + name.slic
 const intl = localeInfo(lang).intl;
 const longDays = weekdayNames(intl, 'long');
 const shortDays = weekdayNames(intl);
+// The lists ship holding their place, as departures.js's placeholder does, so
+// the board does not grow under the reader when the script fills them in.
+const skeletonRows = Array.from({ length: TYPICAL_ROWS - 1 });
 const pickDays = WEEKDAYS.map((i) => ({ long: cap(longDays[i]), short: cap(shortDays[i]) }));
 
 // The date bar holds the width of the language's longest dates, laid out
@@ -73,11 +76,11 @@ const longestDates = [...new Set(
   <div class="dep-columns">
     <section class="dep-direction dep-to-rovar" aria-labelledby="dep-header-to-rovar">
       <h2 class="dep-header" id="dep-header-to-rovar">Haugesund<svg class="dep-header-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Røvær</h2>
-      <div id="from-haugesund"></div>
+      <div id="from-haugesund"><ul class="dep-skeleton"><li>{t.board.loading}</li>{skeletonRows.map(() => <li aria-hidden="true"><span></span></li>)}</ul></div>
     </section>
     <section class="dep-direction dep-to-haugesund" aria-labelledby="dep-header-to-haugesund">
       <h2 class="dep-header" id="dep-header-to-haugesund">Røvær<svg class="dep-header-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12h14M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Haugesund</h2>
-      <div id="from-rovar"></div>
+      <div id="from-rovar"><ul class="dep-skeleton"><li>{t.board.loading}</li>{skeletonRows.map(() => <li aria-hidden="true"><span></span></li>)}</ul></div>
     </section>
   </div>
 
@@ -592,6 +595,13 @@ const longestDates = [...new Set(
     color: var(--color-text-light);
   }
 
+  /* Without a script nothing will load, so the placeholder does not stand. */
+  @media (scripting: none) {
+    .dep-direction :global(.dep-skeleton) {
+      display: none;
+    }
+  }
+
   .dep-direction :global(.dep-skeleton li:last-child) {
     border-bottom: none;
   }
@@ -874,17 +884,18 @@ const longestDates = [...new Set(
   .dep-direction :global(.passed .dep-arrow),
   .dep-direction :global(.passed .dep-arr),
   .dep-direction :global(.passed .dep-via),
-  .dep-direction :global(.passed .dep-duration),
-  .dep-direction :global(.passed .dep-notice) {
-    opacity: 0.5;
+  .dep-direction :global(.passed .dep-duration) {
+    color: var(--color-text-passed);
   }
 
-  /* Focus and hover bring it back, so a control never sits at half strength
-     while it is the thing being used. */
-  .dep-direction :global(.passed .dep-notice:hover),
-  .dep-direction :global(.passed .dep-notice:focus-visible),
-  .dep-direction :global(.passed .dep-notice[aria-expanded='true']) {
-    opacity: 1;
+  .dep-direction :global(.passed .dep-booking-mark) {
+    color: var(--color-text-passed);
+  }
+
+  /* Focus and hover bring it back, so a control never sits greyed out while
+     it is the thing being used. */
+  .dep-direction :global(.passed .dep-info-notice:not(:hover, :focus-visible, [aria-expanded='true'])) {
+    background: var(--color-text-passed);
   }
 
   .dep-direction :global(.next) {
@@ -970,6 +981,10 @@ const longestDates = [...new Set(
   .dep-foot-text {
     flex: 9999 1 auto;
     min-width: 0;
+  }
+
+  .dep-foot-text p {
+    max-width: var(--width-measure);
   }
 
   .dep-pick {

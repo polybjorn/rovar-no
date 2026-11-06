@@ -20,7 +20,9 @@
 :root {
   --color-ocean: #1a5276;
   --color-ocean-dark: #0e3650;
-  --color-ocean-light: #2980b9;
+  /* Links, focus rings and the board's notice chip. Kept at 4.5:1 or more on
+     white, sand and sand-dark, the floor for body-size text. */
+  --color-ocean-light: #1d6699;
   --color-sand: #f5f0e8;
   --color-sand-dark: #e8dfd2;
   --color-foam: #ffffff;
@@ -32,6 +34,9 @@
      sand, sand-dark and white, so lighter never means harder to read.
      Running text uses --color-text. */
   --color-text-light: #33414e;
+  /* Departures that have already left. A solid colour rather than an opacity,
+     which took the times under 3:1; this one holds 4.5:1 on white and sand. */
+  --color-text-passed: #5a6570;
   /* Every bit of text on the dark blue surfaces uses this one white. */
   --color-on-dark: #ffffff;
   --color-border: #d5cfc5;
@@ -41,6 +46,9 @@
   --width-page: 720px;  /* a page's text column */
   --width-intro: 640px; /* the lead paragraph on the 404 page */
   --width-hero: 520px;  /* the line under the front-page title */
+  /* Running text: no line of 80 characters or more in any of the languages,
+     measured in Barlow at body size across every page. */
+  --width-measure: 30rem;
   --nav-height: 3.5rem;
 }
 
@@ -429,6 +437,12 @@ span.lang-option[aria-current="true"] {
 
 .page-wide {
   max-width: var(--width-site);
+}
+
+.page-intro,
+.section p,
+.info-box p {
+  max-width: var(--width-measure);
 }
 
 .page-title {

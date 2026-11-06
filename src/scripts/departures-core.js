@@ -15,6 +15,10 @@ export const ENTUR_SITE = 'https://entur.no/';
 export const ROVAR_STOP = 'NSR:StopPlace:25940';
 export const HAUGESUND_STOP = 'NSR:StopPlace:26090';
 export const MAX_DAY_OFFSET = 7;
+// Blank rows a list holds while its first load is out, when the browser has no
+// count from an earlier visit. The page ships this many, so the board stands at
+// about its full length from the first paint.
+export const TYPICAL_ROWS = 10;
 // A ceiling on the query window, not a horizon: Entur is asked for more than it
 // can have and answers with the whole published timetable, which is what lets
 // a weekly pick in the calendar dialog run to the end of it.
