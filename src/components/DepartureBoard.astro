@@ -114,7 +114,7 @@ const longestDates = [...new Set(
           />
         </span>
         <span class="dep-unit dep-kolumbus">
-          <span class="dep-kolumbus-sep" aria-hidden="true">|</span>
+          <span class="dep-kolumbus-sep" aria-hidden="true"></span>
           <Sentence
             text={t.kolumbus.line}
             links={{
@@ -1857,9 +1857,16 @@ const longestDates = [...new Set(
     position: relative;
   }
 
+  /* A drawn rule, not a "|" glyph: a faded glyph is text and fails the 4.5:1
+     text contrast check, while a divider only separates. */
   .dep-kolumbus-sep {
     position: absolute;
-    left: -0.65rem;
+    left: -0.5rem;
+    top: 50%;
+    width: 1px;
+    height: 1em;
+    transform: translateY(-50%);
+    background: currentColor;
     opacity: 0.4;
   }
 

@@ -56,6 +56,23 @@ const t = ui(defaultLocale).notFound;
     margin-right: auto;
   }
 
+  /* With scripting on, not-found.js removes the other languages, which would
+     move the centred block after it has been drawn. So the block waits unseen
+     until the script marks it ready; the delayed animation shows it anyway if
+     the script never runs. Without scripting the whole page stands at once. */
+  @media (scripting: enabled) {
+    .nf-page:not(.nf-ready) {
+      visibility: hidden;
+      animation: nf-reveal 0s 1s forwards;
+    }
+  }
+
+  @keyframes nf-reveal {
+    to {
+      visibility: visible;
+    }
+  }
+
   /* One language on screen needs no gap under it; three still want one. */
   .nf-lang:last-child {
     margin-bottom: 0;

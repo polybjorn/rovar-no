@@ -33,3 +33,8 @@ if (shown) {
   // Same shape Layout.astro builds, so the tab reads like every other page.
   document.title = `${shown.querySelector('.page-title').textContent} | Røvær`;
 }
+
+// The page CSS keeps the block invisible while scripting is on, so narrowing it
+// after the first paint does not move the language that stays (layout shift).
+// Marked whether or not a language matched, so the page always shows.
+document.querySelector('.nf-page')?.classList.add('nf-ready');
