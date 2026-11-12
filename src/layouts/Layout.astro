@@ -66,7 +66,7 @@ const pageLocales = localesWithPage(page);
   <meta property="og:image" content={`${site}${ogImage.src}`}>
   <meta property="og:locale" content={info.og}>
   <meta name="twitter:card" content="summary_large_image">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://api.entur.io; font-src 'self'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="no-referrer">
 </head>
 <body data-past-note={t.chrome.pastHoursNote} data-hours-status={JSON.stringify(t.chrome.hoursStatus)} data-intl={info.intl}>
@@ -85,7 +85,8 @@ const pageLocales = localesWithPage(page);
         ))}
         <li class="lang-switcher">
           <details class="lang-menu">
-            <summary aria-label={t.chrome.langLabel}>
+            {/* The name holds the code it shows, so a voice user who says "NO" reaches it (WCAG 2.5.3). */}
+            <summary aria-label={`${t.chrome.langLabel} (${lang.toUpperCase()})`}>
               <svg class="lang-globe" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />

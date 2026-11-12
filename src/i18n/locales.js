@@ -16,13 +16,15 @@
 //           the phrase for every day, and the words for "and" and "to" in
 //           "Saturday and Sunday" and "Sunday to Wednesday". Weekday names
 //           come from Intl.
+//   oldSlug optional address the old rovar.no gave this language, which
+//           the build sends on to the language's front page
 
 export const locales = [
   { code: 'no', endonym: 'Norsk',   intl: 'nb-NO', og: 'nb_NO', dir: 'ltr', root: true, timeSep: '.',
     days: { every: 'hver dag', and: 'og', through: 'til' } },
-  { code: 'en', endonym: 'English', intl: 'en-GB', og: 'en_GB', dir: 'ltr',
+  { code: 'en', endonym: 'English', intl: 'en-GB', og: 'en_GB', dir: 'ltr', oldSlug: 'english',
     days: { every: 'every day', and: 'and', through: 'to' } },
-  { code: 'de', endonym: 'Deutsch', intl: 'de-DE', og: 'de_DE', dir: 'ltr', range: '{a} bis {b}',
+  { code: 'de', endonym: 'Deutsch', intl: 'de-DE', og: 'de_DE', dir: 'ltr', range: '{a} bis {b}', oldSlug: 'deutch',
     days: { every: 'täglich', and: 'und', through: 'bis' } },
 ];
 

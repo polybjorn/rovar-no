@@ -10,6 +10,9 @@ extend-exclude = [
 
 # Norwegian words outside the content tree: the month in season tests and
 # hours scripts, and the original rovar.no slug in a stylesheet selector.
+# "deutch" is the old site's German address as it was spelled, which the
+# build still has to answer (oldSlug in src/i18n/locales.js).
 [default.extend-words]
 juni = "juni"
 meny = "meny"
+deutch = "deutch"

@@ -39,6 +39,7 @@
   "ferry": {
     "prevDay": "Previous day",
     "nextDay": "Next day",
+    "pickDate": "Choose date",
     "boatAlt": "The express boat Fjordled (Kolumbus)",
     "legend": "May require advance booking.",
     "booking": "Book via {{bookingSiteLink}} or call {{kolumbusPhone}}.",

@@ -130,6 +130,12 @@ a:hover {
   text-decoration: underline;
 }
 
+/* A link inside a sentence is told from the text around it by more than its
+   colour (WCAG 1.4.1), which its blue alone does not do at 3:1. */
+p a {
+  text-decoration: underline;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-ocean-light);
   outline-offset: 2px;
