@@ -9,7 +9,7 @@
     "homeLabel": "Røvær, to the front page",
     "skipLink": "Skip to content",
     "menuLabel": "Menu",
-    "langLabel": "Choose language",
+    "langLabel": "{{code}}, choose language",
     "linksHeading": "Useful links",
     "links": {
       "havhotell": "Røvær Havhotell",
