@@ -87,9 +87,9 @@ test('every phone number has a tel: twin with no spaces', () => {
 });
 
 test('a closing time at midnight is written 24:00, not wrapped to 00:00', () => {
-  assert.equal(seasonStrings('no').narbutikkenHours, '05.45\u00a0–\u2060\u00a024.00');
-  assert.equal(seasonStrings('en').narbutikkenHours, '05:45\u00a0–\u2060\u00a024:00');
-  assert.equal(seasonStrings('de').narbutikkenHours, '05:45\u00a0bis\u00a024:00');
+  assert.equal(seasonStrings('no').narbutikkenHours, '05.45\u00a0– 24.00');
+  assert.equal(seasonStrings('en').narbutikkenHours, '05:45\u00a0– 24:00');
+  assert.equal(seasonStrings('de').narbutikkenHours, '05:45\u00a0bis 24:00');
 });
 
 test('German uses its own range template, not an en dash', () => {

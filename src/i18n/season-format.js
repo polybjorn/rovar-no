@@ -143,15 +143,14 @@ export function seasonStrings(code) {
       out[`${key}Year`] = value[1].slice(0, 4);
       continue;
     }
-    // A clock range never breaks across lines: "12:30 bis" on one line and
-    // "20:00" on the next reads as two facts. A no-break space alone does not
-    // hold after an en dash, which Unicode lets a line break follow, so the
-    // dash also gets a word joiner.
-    out[key] = range
-      .replace('{a}', clock(value[0]))
-      .replace('{b}', clock(value[1]))
-      .replaceAll(' ', '\u00a0')
-      .replaceAll('–', '–\u2060');
+    // A clock range breaks only before its closing time, and only where its
+    // cell cannot hold it whole (two sets of hours side by side on a narrow
+    // phone, or enlarged text spacing): "12:30 bis" ending a line still reads
+    // as unfinished, where "20:00" starting one would read as a fact of its
+    // own. Every other space is a no-break space.
+    const [head, tail] = range.split('{b}');
+    out[key] = head.replace('{a}', clock(value[0])).replaceAll(' ', '\u00a0').replace(/\u00a0$/, ' ')
+      + (clock(value[1]) + tail).replaceAll(' ', '\u00a0');
   }
 
   cache[code] = out;

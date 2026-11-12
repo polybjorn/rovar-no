@@ -489,20 +489,20 @@ const longestDates = [...new Set(
     grid-area: 1 / 1;
   }
 
+  /* The script fills in the date after the first paint, so the box takes
+     its height and width from the longest dates: a phone that wraps the date
+     to two lines would otherwise push the board down under the reader. A
+     short date leaves a blank line there, the price of a board that holds
+     still. */
   .dep-date-sizer {
     visibility: hidden;
-    display: none;
   }
 
   /* One line beside the photo, where a wrapped date would make the row taller
-     than the photo; a phone has the full width and may wrap it, and spends no
-     height on a longer date than the one shown. */
+     than the photo; a phone has the full width and may wrap it. */
   @media (min-width: 641px) {
     .dep-date-line {
       white-space: nowrap;
-    }
-    .dep-date-sizer {
-      display: block;
     }
     /* Centred in the reserved width, so a short date sits evenly between
        the arrows rather than leaving the gap all on one side. */
@@ -864,11 +864,14 @@ const longestDates = [...new Set(
     height: 1rem;
   }
 
+  /* Forced colours paint the background away, and the transparent border is
+     then the button's only edge. The padding gives back its width. */
   .dep-direction :global(.dep-info-notice) {
     background: var(--color-ocean-light);
     color: var(--color-on-dark);
+    border: 1px solid transparent;
     border-radius: 4px;
-    padding: 0.2rem 0.4rem;
+    padding: calc(0.2rem - 1px) calc(0.4rem - 1px);
     gap: 0.25rem;
     font-size: 0.7rem;
     font-weight: 600;

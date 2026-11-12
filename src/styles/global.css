@@ -1135,8 +1135,8 @@ img.section-img {
 /* Too narrow for that, each row puts its label on a line of its own and the
    two sets of times side by side under it, so the kitchen hours still sit
    under their heading. The gap is narrow so that both sets fit on one line
-   each from about 350px; below that "kl." wraps above its times, and the
-   times themselves never break (season-format). */
+   each from about 350px; below that each set breaks before its closing
+   time, the one place a range may break (season-format). */
 @container (max-width: 24rem) {
   .section ul.fact-list.has-extra {
     grid-template-columns: auto 1fr;
@@ -1170,9 +1170,11 @@ img.section-img {
 
 /* A link to another page of the site, set in running text ({{historyPage}}
    and friends), stays in one piece: the whole of it moves to the next line
-   rather than breaking part way. They are short, so this never overflows. */
+   rather than breaking part way. An inline block, not nowrap, so one wider
+   than the line, as under enlarged text spacing, still wraps inside it. */
 .section p a[href^="../"] {
-  white-space: nowrap;
+  display: inline-block;
+  max-width: 100%;
 }
 
 /* Footer */
