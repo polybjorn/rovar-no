@@ -1,0 +1,12 @@
+# Read by the CI dependency gate (bjorn/ci-actions osv-scan).
+
+# A crafted extglob can make picomatch backtrack for a long time. It comes in
+# only through the build: astro, vite, tinyglobby and unstorage match this
+# repo's own file patterns at build time, and the site ships as static files
+# with no Node process for a visitor to reach. No picomatch release fixes it
+# yet (4.0.7 is the newest and is affected). The date makes the gate fail
+# again, so the ignore is rechecked rather than kept for good.
+[[IgnoredVulns]]
+id = "GHSA-fc5q-39xc-vjpf"
+ignoreUntil = 2027-02-01
+reason = "picomatch <= 4.0.7 is build-time only, through astro and vite, which glob this repo's own files; the output is static and no fixed release exists yet"
