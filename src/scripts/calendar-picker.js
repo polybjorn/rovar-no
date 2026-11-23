@@ -335,7 +335,8 @@ function renderFooter() {
   if (google) {
     // A link carries one event, so anything more goes by download only.
     google.hidden = events.length !== 1;
-    if (events.length === 1) google.href = googleCalendarUrl(events[0]);
+    // target and rel go on with the href: HTML allows neither on a link without one.
+    if (events.length === 1) Object.assign(google, { href: googleCalendarUrl(events[0]), target: '_blank', rel: 'noopener' });
   }
 }
 
